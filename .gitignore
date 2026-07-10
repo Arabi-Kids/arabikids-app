@@ -1,0 +1,30 @@
+# Dependencies
+node_modules/
+
+# Environment variables (never commit secrets)
+.env
+.env.local
+backend/.env
+frontend/.env
+
+# Build output
+frontend/dist/
+frontend/build/
+
+# Logs
+npm-debug.log*
+*.log
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+.idea/
+
+# Local-only dev launcher (hardcoded machine path, not needed by other devs)
+frontend/run-dev.bat
+
+# Stray local screenshot artifact
+arabikids-frontend-screenshot.png
