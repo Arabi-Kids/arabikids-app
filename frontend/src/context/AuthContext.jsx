@@ -60,7 +60,15 @@ export function AuthProvider({ children }) {
         options: { data: { name, child_name: childName, age_group: ageGroup } },
       });
       if (error) throw new Error(error.message);
-      if (!data.user) throw new Error('Sign up succeeded but no session was returned — check your email to confirm your account.');
+      if (!data.user) throw new Error('Sign up failed — please try again.');
+
+      // If the Supabase project has "Confirm email" enabled, signUp succeeds
+      // but returns no session until the user clicks the confirmation link —
+      // don't pretend they're logged in (onAuthStateChange will also fire
+      // with a null session here and would otherwise race with this).
+      if (!data.session) {
+        return { needsEmailConfirmation: true, user: null };
+      }
 
       // public.users is populated by an on-signup DB trigger, which can lag
       // a beat behind the client seeing the new auth user — retry briefly.
@@ -71,7 +79,7 @@ export function AuthProvider({ children }) {
         if (!profileRow) await new Promise((r) => setTimeout(r, 400));
       }
       setUser(mapUserRow(profileRow));
-      return mapUserRow(profileRow);
+      return { needsEmailConfirmation: false, user: mapUserRow(profileRow) };
     },
     []
   );

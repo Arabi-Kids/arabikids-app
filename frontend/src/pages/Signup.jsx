@@ -17,6 +17,7 @@ export default function Signup() {
   });
   const [error, setError] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [confirmEmailSent, setConfirmEmailSent] = useState(false);
 
   function update(field, value) {
     setForm((f) => ({ ...f, [field]: value }));
@@ -37,14 +38,32 @@ export default function Signup() {
 
     setSubmitting(true);
     try {
-      await register(form);
+      const { needsEmailConfirmation } = await register(form);
       functionsApi.subscribeEnginemailer({ name: form.name, email: form.email }).catch(() => {});
-      navigate('/thank-you');
+      if (needsEmailConfirmation) {
+        setConfirmEmailSent(true);
+      } else {
+        navigate('/thank-you');
+      }
     } catch (err) {
       setError(err.message);
     } finally {
       setSubmitting(false);
     }
+  }
+
+  if (confirmEmailSent) {
+    return (
+      <div className="container">
+        <div className="card auth-card" style={{ textAlign: 'center' }}>
+          <h1 className="page-title">Check Your Email</h1>
+          <p className="page-subtitle" style={{ marginBottom: 0 }}>
+            We've sent a confirmation link to <strong>{form.email}</strong>. Click it to activate your account, then log in to start
+            your first free lesson.
+          </p>
+        </div>
+      </div>
+    );
   }
 
   return (

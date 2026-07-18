@@ -58,7 +58,7 @@ export default function Lesson() {
     setSubmitting(true);
     setError('');
     try {
-      const data = await completeLesson({ userId: user.id, lessonId: lesson.id, exercises, answers });
+      const data = await completeLesson({ userId: user?.id ?? null, lessonId: lesson.id, exercises, answers });
       const resultMap = Object.fromEntries(data.results.map((r) => [r.exerciseId, r]));
       setResults({ ...data, byExercise: resultMap });
     } catch (err) {
@@ -160,6 +160,11 @@ export default function Lesson() {
             <div className="card" style={{ textAlign: 'center', background: results.completed ? 'rgba(26,122,74,0.08)' : 'rgba(200,150,12,0.08)' }}>
               <h3 style={{ margin: '0 0 8px' }}>Score: {results.score}%</h3>
               <p style={{ margin: 0 }}>{results.completed ? '🎉 Great job, lesson completed!' : 'Keep practicing to reach 70%.'}</p>
+              {!results.saved && (
+                <p style={{ margin: '12px 0 0', color: 'var(--color-blue-dark)', fontWeight: 700 }}>
+                  <Link to="/signup" style={{ color: 'var(--color-blue)' }}>Create a free account</Link> to save this score and track your streak.
+                </p>
+              )}
               <div style={{ display: 'flex', gap: 12, justifyContent: 'center', marginTop: 16, flexWrap: 'wrap' }}>
                 <Link to={`/lessons/${group}`} className="btn btn-outline">
                   Back to Lesson Hub

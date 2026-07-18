@@ -119,8 +119,10 @@ export async function getLessonDetail(ageGroup, lessonNumber) {
 const PASS_THRESHOLD = 70;
 
 /** Grades client-side against the exercises already fetched for this lesson (the
- * user is only ever shown exercises for lessons they're entitled to), then
- * upserts the attempt into user_progress. */
+ * user is only ever shown exercises for lessons they're entitled to). If
+ * `userId` is null (an anonymous visitor trying a free lesson), grading still
+ * works but nothing is saved — the caller should prompt them to sign up to
+ * keep their progress. */
 export async function completeLesson({ userId, lessonId, exercises, answers }) {
   let correctCount = 0;
   const results = exercises.map((ex) => {
@@ -130,6 +132,11 @@ export async function completeLesson({ userId, lessonId, exercises, answers }) {
   });
   const score = Math.round((correctCount / exercises.length) * 100);
   const completed = score >= PASS_THRESHOLD;
+
+  if (!userId) {
+    return { score, completed, results, saved: false };
+  }
+
   const nowIso = new Date().toISOString();
 
   const { data: existing, error: existingError } = await supabase
@@ -153,7 +160,7 @@ export async function completeLesson({ userId, lessonId, exercises, answers }) {
   );
   if (upsertError) throw new Error(upsertError.message);
 
-  return { score, completed, results };
+  return { score, completed, results, saved: true };
 }
 
 function computeStreak(completedDates) {
