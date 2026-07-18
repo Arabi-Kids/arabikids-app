@@ -1,12 +1,24 @@
 import { useState } from 'react';
+import { submitContactMessage } from '../lib/db.js';
 
 export default function Contact() {
   const [form, setForm] = useState({ name: '', email: '', message: '' });
   const [submitted, setSubmitted] = useState(false);
+  const [error, setError] = useState('');
+  const [submitting, setSubmitting] = useState(false);
 
-  function handleSubmit(e) {
+  async function handleSubmit(e) {
     e.preventDefault();
-    setSubmitted(true);
+    setError('');
+    setSubmitting(true);
+    try {
+      await submitContactMessage(form);
+      setSubmitted(true);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setSubmitting(false);
+    }
   }
 
   return (
@@ -24,6 +36,7 @@ export default function Contact() {
           </div>
         ) : (
           <form onSubmit={handleSubmit}>
+            {error && <p className="error-text">{error}</p>}
             <div className="form-group">
               <label htmlFor="name">Name</label>
               <input id="name" required value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
@@ -49,8 +62,8 @@ export default function Contact() {
                 style={{ width: '100%', padding: '12px 14px', borderRadius: 'var(--radius-md)', border: '2px solid #e0dccd', fontFamily: 'inherit', fontSize: '1rem' }}
               />
             </div>
-            <button type="submit" className="btn btn-primary" style={{ width: '100%' }}>
-              Send Message
+            <button type="submit" className="btn btn-primary" style={{ width: '100%' }} disabled={submitting}>
+              {submitting ? 'Sending...' : 'Send Message'}
             </button>
           </form>
         )}

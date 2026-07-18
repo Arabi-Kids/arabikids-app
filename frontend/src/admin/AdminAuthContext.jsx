@@ -1,53 +1,68 @@
 import { createContext, useContext, useEffect, useState, useCallback } from 'react';
-import { api } from '../api/client';
+import { supabaseAdmin } from '../lib/supabaseAdmin.js';
+import { mapUserRow } from '../lib/db.js';
 
-// Deliberately separate from the public AuthContext: separate token storage,
-// separate session, so the admin portal is a fully independent product.
+// Deliberately separate from the public AuthContext: a distinct Supabase
+// client with its own localStorage session key (lib/supabaseAdmin.js), so
+// the admin portal is a fully independent session even though it's the same
+// underlying Supabase Auth user table (admin = a users row with role='admin').
 const AdminAuthContext = createContext(null);
 
 export function AdminAuthProvider({ children }) {
-  const [token, setToken] = useState(() => localStorage.getItem('arabikids_admin_token'));
   const [admin, setAdmin] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    if (!token) {
+  const loadProfile = useCallback(async (userId) => {
+    if (!userId) {
       setAdmin(null);
-      setLoading(false);
       return;
     }
-    api
-      .get('/auth/me', token)
-      .then(({ user }) => {
-        if (user.role !== 'admin') throw new Error('Not an admin account.');
-        setAdmin(user);
-      })
-      .catch(() => {
-        localStorage.removeItem('arabikids_admin_token');
-        setToken(null);
-        setAdmin(null);
-      })
-      .finally(() => setLoading(false));
-  }, [token]);
-
-  const login = useCallback(async (email, password) => {
-    const { token: newToken, user } = await api.post('/auth/login', { email, password });
-    if (user.role !== 'admin') {
-      throw new Error('This account does not have admin access.');
-    }
-    localStorage.setItem('arabikids_admin_token', newToken);
-    setToken(newToken);
-    setAdmin(user);
-    return user;
+    const { data } = await supabaseAdmin.from('users').select('*').eq('id', userId).maybeSingle();
+    const mapped = mapUserRow(data);
+    setAdmin(mapped?.role === 'admin' ? mapped : null);
   }, []);
 
-  const logout = useCallback(() => {
-    localStorage.removeItem('arabikids_admin_token');
-    setToken(null);
+  useEffect(() => {
+    let active = true;
+
+    supabaseAdmin.auth.getSession().then(async ({ data: { session } }) => {
+      if (!active) return;
+      await loadProfile(session?.user?.id);
+      if (active) setLoading(false);
+    });
+
+    const {
+      data: { subscription },
+    } = supabaseAdmin.auth.onAuthStateChange((_event, session) => {
+      loadProfile(session?.user?.id);
+    });
+
+    return () => {
+      active = false;
+      subscription.unsubscribe();
+    };
+  }, [loadProfile]);
+
+  const login = useCallback(async (email, password) => {
+    const { data, error } = await supabaseAdmin.auth.signInWithPassword({ email, password });
+    if (error) throw new Error(error.message);
+
+    const { data: profileRow } = await supabaseAdmin.from('users').select('*').eq('id', data.user.id).maybeSingle();
+    const mapped = mapUserRow(profileRow);
+    if (mapped?.role !== 'admin') {
+      await supabaseAdmin.auth.signOut();
+      throw new Error('This account does not have admin access.');
+    }
+    setAdmin(mapped);
+    return mapped;
+  }, []);
+
+  const logout = useCallback(async () => {
+    await supabaseAdmin.auth.signOut();
     setAdmin(null);
   }, []);
 
-  const value = { token, admin, loading, login, logout };
+  const value = { admin, loading, login, logout };
 
   return <AdminAuthContext.Provider value={value}>{children}</AdminAuthContext.Provider>;
 }

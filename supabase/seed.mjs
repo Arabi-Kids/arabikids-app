@@ -1,13 +1,31 @@
-// Seeds the arabikids database with 45 Junior (ages 3-7, Noorania-Qaida-style phonics)
+// Seeds the Supabase project with 45 Junior (ages 3-7, Noorania-Qaida-style phonics)
 // + 45 Explorer (ages 8-17, Madinah Arabic Book 1) lessons = 90 total.
 // 5 free + 40 paid per age group. Every single lesson links its Arabic word/phrase
 // to a real Quranic verse or name, per the "Arabic and Quran taught together" model.
 //
+// Ported from the old backend/db/seed.js (mysql2) to @supabase/supabase-js,
+// using the service role key so it bypasses RLS.
+//
 // NOTE: Quranic references/translations here are simplified for a children's curriculum
 // seed and should be reviewed by a qualified Arabic/Islamic studies scholar before
 // production launch.
-require('dotenv').config();
-const pool = require('../config/db');
+//
+// Usage: node supabase/seed.mjs   (reads SUPABASE_URL + SUPABASE_SERVICE_KEY from env)
+
+import 'dotenv/config';
+import { createClient } from '@supabase/supabase-js';
+
+const SUPABASE_URL = process.env.SUPABASE_URL;
+const SERVICE_KEY = process.env.SUPABASE_SERVICE_KEY;
+
+if (!SUPABASE_URL || !SERVICE_KEY) {
+  console.error('Missing SUPABASE_URL or SUPABASE_SERVICE_KEY in the environment (.env).');
+  process.exit(1);
+}
+
+const supabase = createClient(SUPABASE_URL, SERVICE_KEY, {
+  auth: { autoRefreshToken: false, persistSession: false },
+});
 
 function shuffle(arr) {
   const a = [...new Set(arr)];
@@ -25,7 +43,6 @@ function pickDistractors(pool, exclude, n) {
 // JUNIOR (ages 3-7): 28 letters + 5 harakat + 4 colors + 4 numbers + 4 family = 45
 // ---------------------------------------------------------------------------
 
-// [letter, name, quranicWord, meaning, reference]
 const JUNIOR_LETTERS = [
   ['ا', 'alif', 'اللّٰه', 'Allah', 'used throughout the Quran'],
   ['ب', 'baa', 'بِسْمِ', 'in the name of', 'Surah Al-Fatihah 1:1'],
@@ -74,7 +91,7 @@ const JUNIOR_COLORS = [
 
 const JUNIOR_NUMBERS = [
   ['Numbers 1-3', 'وَاحِد', 'one', 'Surah Al-Ikhlas 112:1, "Qul huwa Allahu ahad"'],
-  ['Numbers 4-6', 'سِتَّة', 'six', 'Surah Al-A\'raf 7:54, heavens and earth in six days'],
+  ['Numbers 4-6', 'سِتَّة', 'six', "Surah Al-A'raf 7:54, heavens and earth in six days"],
   ['Numbers 7-9', 'سَبْع', 'seven', 'Surah Al-Hijr 15:87, "the seven oft-repeated verses"'],
   ['Number 10', 'عَشْر', 'ten', 'Surah Al-Fajr 89:2, "by the ten nights"'],
 ];
@@ -140,7 +157,7 @@ function buildJuniorLessons() {
       lesson_goal: `Recognise the letter ${letter} and see it inside a real Quranic word.`,
       arabic_word: word,
       arabic_word_meaning: meaning,
-      is_free: num <= 5 ? 1 : 0,
+      is_free: num <= 5,
       estimated_minutes: 8,
       content: {
         type: 'letter',
@@ -163,7 +180,7 @@ function buildJuniorLessons() {
       lesson_goal: `Learn the ${title.split(' ')[0]} vowel mark and hear it in a Quranic word.`,
       arabic_word: word,
       arabic_word_meaning: meaning,
-      is_free: num <= 5 ? 1 : 0,
+      is_free: num <= 5,
       estimated_minutes: 8,
       content: {
         type: 'harakat',
@@ -184,7 +201,7 @@ function buildJuniorLessons() {
       lesson_goal: `Learn the colour ${label.toLowerCase()} and where it appears in the Quran.`,
       arabic_word: word,
       arabic_word_meaning: meaning,
-      is_free: num <= 5 ? 1 : 0,
+      is_free: num <= 5,
       estimated_minutes: 8,
       content: {
         type: 'color',
@@ -205,7 +222,7 @@ function buildJuniorLessons() {
       lesson_goal: `Learn ${label.toLowerCase()} and how numbers appear in the Quran.`,
       arabic_word: word,
       arabic_word_meaning: meaning,
-      is_free: num <= 5 ? 1 : 0,
+      is_free: num <= 5,
       estimated_minutes: 8,
       content: {
         type: 'number',
@@ -226,7 +243,7 @@ function buildJuniorLessons() {
       lesson_goal: `Learn the word for "${label.toLowerCase()}" and meet this word in the Quran.`,
       arabic_word: word,
       arabic_word_meaning: meaning,
-      is_free: num <= 5 ? 1 : 0,
+      is_free: num <= 5,
       estimated_minutes: 8,
       content: {
         type: 'family',
@@ -244,21 +261,19 @@ function buildJuniorLessons() {
 // EXPLORER (ages 8-17): 10 vocab + 25 grammar/conjugation + 10 Quran reading = 45
 // ---------------------------------------------------------------------------
 
-// [theme, word, meaning, reference]
 const EXPLORER_VOCAB = [
   ['Family', 'أَب', 'father', 'Surah Yusuf 12:4'],
   ['Colours', 'أَصْفَر', 'yellow', 'Surah Al-Baqarah 2:69'],
   ['Animals', 'نَمْلَة', 'ant', 'Surah An-Naml 27:18'],
   ['Numbers', 'سَبْع', 'seven', 'Surah Al-Hijr 15:87'],
-  ['Greetings', 'سَلَام', 'peace', 'Surah Al-An\'am 6:54'],
-  ['Body Parts', 'قَلْب', 'heart', 'Surah Ash-Shu\'ara 26:89'],
+  ['Greetings', 'سَلَام', 'peace', "Surah Al-An'am 6:54"],
+  ['Body Parts', 'قَلْب', 'heart', "Surah Ash-Shu'ara 26:89"],
   ['Food', 'عَسَل', 'honey', 'Surah An-Nahl 16:69'],
   ['Nature & Weather', 'رِيح', 'wind', 'Surah Ar-Rum 30:46'],
-  ['Home', 'بَيْت', 'house (the Ka\'bah)', 'Surah Al-Baqarah 2:125'],
+  ['Home', 'بَيْت', "house (the Ka'bah)", 'Surah Al-Baqarah 2:125'],
   ['Time', 'يَوْم', 'day', 'Surah Al-Fatihah 1:4'],
 ];
 
-// [topic, phrase, meaning, reference]
 const EXPLORER_GRAMMAR = [
   ['Nouns and the definite article (ال)', 'الْحَمْدُ', 'the praise', 'Surah Al-Fatihah 1:2'],
   ['Gender: masculine and feminine nouns', 'مُسْلِمَة', 'a Muslim woman', 'Surah Al-Ahzab 33:35'],
@@ -270,14 +285,14 @@ const EXPLORER_GRAMMAR = [
   ['Prepositions of place (في، على)', 'فِي قُلُوبِهِم', 'in their hearts', 'Surah Al-Baqarah 2:10'],
   ['Question words (من، ما، أين)', 'مَن ذَا الَّذِي', 'who is the one who', 'Surah Al-Baqarah 2:255'],
   ['Simple verbal sentences (الجملة الفعلية)', 'خَلَقَ السَّمَاوَاتِ', 'He created the heavens', 'Surah Al-Anbya 21:30'],
-  ['Verb conjugation: past tense (هو/هي)', 'خَلَقَ', 'he created', 'Surah Al-A\'raf 7:189'],
+  ['Verb conjugation: past tense (هو/هي)', 'خَلَقَ', 'he created', "Surah Al-A'raf 7:189"],
   ['Verb conjugation: past tense (أنا/نحن)', 'خَلَقْنَا', 'We created', 'Surah Al-Insan 76:2'],
   ['Verb conjugation: present tense (هو/هي)', 'يَعْلَمُ', 'he knows', 'Surah Al-Hadid 57:4'],
   ['Verb conjugation: present tense (أنا/نحن)', 'نَعْبُدُ', 'we worship', 'Surah Al-Fatihah 1:5'],
   ['The imperative (command) form', 'اقْرَأْ', 'Read!', 'Surah Al-Alaq 96:1'],
   ['Adjectives and noun-adjective agreement', 'الرَّحْمَٰنِ الرَّحِيمِ', 'the Most Merciful, the Especially Merciful', 'Surah Al-Fatihah 1:3'],
   ['Numbers 11-20', 'عَشْرٌ كَامِلَة', 'ten complete', 'Surah Al-Baqarah 2:196'],
-  ['Days of the week', 'يَوْمَ الْجُمُعَةِ', 'the day of Friday', 'Surah Al-Jumu\'ah 62:9'],
+  ['Days of the week', 'يَوْمَ الْجُمُعَةِ', 'the day of Friday', "Surah Al-Jumu'ah 62:9"],
   ['Months and the Islamic calendar', 'شَهْرُ رَمَضَان', 'the month of Ramadan', 'Surah Al-Baqarah 2:185'],
   ['Telling the time', 'السَّاعَة', 'the Hour', 'Surah Al-Qamar 54:1'],
   ['Connecting sentences with و and ف', 'وَالْعَصْرِ', 'by time / the age', 'Surah Al-Asr 103:1'],
@@ -287,7 +302,6 @@ const EXPLORER_GRAMMAR = [
   ['Question formation with هل and أ', 'هَلْ أَتَاكَ', 'has there come to you', 'Surah Al-Ghashiyah 88:1'],
 ];
 
-// [title, arabicPassage, translation, reference]
 const EXPLORER_READING = [
   ['Al-Fatihah, Ayah 1', 'بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ', 'In the name of Allah, the Most Gracious, the Most Merciful.', 'Surah Al-Fatihah 1:1'],
   ['Al-Fatihah, Ayah 2', 'الْحَمْدُ لِلَّهِ رَبِّ الْعَالَمِينَ', 'All praise is due to Allah, Lord of the worlds.', 'Surah Al-Fatihah 1:2'],
@@ -301,10 +315,7 @@ const EXPLORER_READING = [
   ['An-Nas, Ayah 1', 'قُلْ أَعُوذُ بِرَبِّ النَّاسِ', 'Say: I seek refuge in the Lord of mankind.', 'Surah An-Nas 114:1'],
 ];
 
-const EXPLORER_ALL_MEANINGS = [
-  ...EXPLORER_VOCAB.map((v) => v[2]),
-  ...EXPLORER_GRAMMAR.map((g) => g[2]),
-];
+const EXPLORER_ALL_MEANINGS = [...EXPLORER_VOCAB.map((v) => v[2]), ...EXPLORER_GRAMMAR.map((g) => g[2])];
 const EXPLORER_ALL_REFERENCES = [
   ...EXPLORER_VOCAB.map((v) => v[3]),
   ...EXPLORER_GRAMMAR.map((g) => g[3]),
@@ -351,7 +362,7 @@ function buildExplorerLessons() {
       lesson_goal: `Build vocabulary around ${theme.toLowerCase()} and see it used in the Quran.`,
       arabic_word: word,
       arabic_word_meaning: meaning,
-      is_free: num <= 5 ? 1 : 0,
+      is_free: num <= 5,
       estimated_minutes: 12,
       content: {
         type: 'vocabulary',
@@ -372,7 +383,7 @@ function buildExplorerLessons() {
       lesson_goal: `Understand ${topic.toLowerCase()} and see it in a real Quranic phrase.`,
       arabic_word: phrase,
       arabic_word_meaning: meaning,
-      is_free: num <= 5 ? 1 : 0,
+      is_free: num <= 5,
       estimated_minutes: 15,
       content: {
         type: 'grammar',
@@ -393,7 +404,7 @@ function buildExplorerLessons() {
       lesson_goal: `Read ${title} word by word and understand its meaning.`,
       arabic_word: passage,
       arabic_word_meaning: translation,
-      is_free: num <= 5 ? 1 : 0,
+      is_free: num <= 5,
       estimated_minutes: 15,
       content: {
         type: 'reading',
@@ -410,60 +421,80 @@ function buildExplorerLessons() {
 }
 
 async function seed() {
-  const conn = await pool.getConnection();
-  try {
-    console.log('Clearing existing lesson data...');
-    await conn.query('SET FOREIGN_KEY_CHECKS = 0');
-    await conn.query('TRUNCATE TABLE exercises');
-    await conn.query('TRUNCATE TABLE user_progress');
-    await conn.query('TRUNCATE TABLE lessons');
-    await conn.query('SET FOREIGN_KEY_CHECKS = 1');
+  console.log('Clearing existing lesson data...');
+  await supabase.from('exercises').delete().neq('id', 0);
+  await supabase.from('user_progress').delete().neq('id', 0);
+  await supabase.from('lessons').delete().neq('id', 0);
 
-    const allLessons = [...buildJuniorLessons(), ...buildExplorerLessons()];
-    console.log(`Seeding ${allLessons.length} lessons...`);
+  const allLessons = [...buildJuniorLessons(), ...buildExplorerLessons()];
+  console.log(`Seeding ${allLessons.length} lessons...`);
 
-    for (const lesson of allLessons) {
-      const [result] = await conn.query(
-        `INSERT INTO lessons (age_group, lesson_number, title, lesson_goal, arabic_word, arabic_word_meaning, content, is_free, estimated_minutes)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-        [
-          lesson.age_group,
-          lesson.lesson_number,
-          lesson.title,
-          lesson.lesson_goal,
-          lesson.arabic_word,
-          lesson.arabic_word_meaning,
-          JSON.stringify(lesson.content),
-          lesson.is_free,
-          lesson.estimated_minutes,
-        ]
-      );
-      const lessonId = result.insertId;
-      for (let i = 0; i < lesson.exercises.length; i++) {
-        const ex = lesson.exercises[i];
-        await conn.query(
-          `INSERT INTO exercises (lesson_id, exercise_number, title, instruction, options, correct_answer, explanation)
-           VALUES (?, ?, ?, ?, ?, ?, ?)`,
-          [lessonId, i + 1, ex.title, ex.instruction, JSON.stringify(ex.options), ex.correct_answer, ex.explanation]
-        );
-      }
+  for (const lesson of allLessons) {
+    const { exercises, ...lessonRow } = lesson;
+    const { data: inserted, error: lessonError } = await supabase
+      .from('lessons')
+      .insert(lessonRow)
+      .select('id')
+      .single();
+
+    if (lessonError) {
+      throw new Error(`Failed to insert lesson "${lesson.title}": ${lessonError.message}`);
     }
 
-    console.log('Seeding admin user (email: admin@arabikids.com / password: Admin123!)...');
-    const bcrypt = require('bcryptjs');
-    const hashed = await bcrypt.hash('Admin123!', 10);
-    await conn.query(
-      `INSERT INTO users (name, email, password, role, subscription_status)
-       VALUES ('ArabiKids Admin', 'admin@arabikids.com', ?, 'admin', 'active')
-       ON DUPLICATE KEY UPDATE password = VALUES(password)`,
-      [hashed]
-    );
+    const exerciseRows = exercises.map((ex, i) => ({
+      lesson_id: inserted.id,
+      exercise_number: i + 1,
+      title: ex.title,
+      instruction: ex.instruction,
+      options: ex.options,
+      correct_answer: ex.correct_answer,
+      explanation: ex.explanation,
+    }));
 
-    console.log(`Seed complete: ${allLessons.length} lessons.`);
-  } finally {
-    conn.release();
-    await pool.end();
+    const { error: exerciseError } = await supabase.from('exercises').insert(exerciseRows);
+    if (exerciseError) {
+      throw new Error(`Failed to insert exercises for "${lesson.title}": ${exerciseError.message}`);
+    }
   }
+
+  console.log(`Seed complete: ${allLessons.length} lessons.`);
+
+  console.log('Seeding admin user (email: admin@arabikids.com / password: Admin123!)...');
+  const ADMIN_EMAIL = 'admin@arabikids.com';
+  const ADMIN_PASSWORD = 'Admin123!';
+
+  let adminUserId;
+  const { data: created, error: createError } = await supabase.auth.admin.createUser({
+    email: ADMIN_EMAIL,
+    password: ADMIN_PASSWORD,
+    email_confirm: true,
+    user_metadata: { name: 'ArabiKids Admin', age_group: 'junior' },
+  });
+
+  if (createError) {
+    if (!createError.message.includes('already been registered')) {
+      throw new Error(`Failed to create admin user: ${createError.message}`);
+    }
+    const { data: list, error: listError } = await supabase.auth.admin.listUsers();
+    if (listError) throw new Error(`Failed to look up existing admin user: ${listError.message}`);
+    const existing = list.users.find((u) => u.email === ADMIN_EMAIL);
+    if (!existing) throw new Error('Admin user reported as existing but could not be found.');
+    adminUserId = existing.id;
+  } else {
+    adminUserId = created.user.id;
+  }
+
+  // handle_new_user() trigger already inserted a public.users row with role='parent'; promote it.
+  const { error: promoteError } = await supabase
+    .from('users')
+    .update({ role: 'admin', subscription_status: 'active' })
+    .eq('id', adminUserId);
+
+  if (promoteError) {
+    throw new Error(`Failed to promote admin user: ${promoteError.message}`);
+  }
+
+  console.log('Admin user ready.');
 }
 
 seed().catch((err) => {

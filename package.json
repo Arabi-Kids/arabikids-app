@@ -1,0 +1,19 @@
+{
+  "name": "arabikids",
+  "private": true,
+  "version": "1.0.0",
+  "description": "ArabiKids monorepo root — Supabase schema/seed scripts, shared deps for Netlify Functions.",
+  "scripts": {
+    "seed": "node supabase/seed.mjs",
+    "dev": "netlify dev",
+    "build": "npm --prefix frontend install && npm --prefix frontend run build"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.45.4",
+    "stripe": "^16.8.0"
+  },
+  "devDependencies": {
+    "dotenv": "^16.4.5",
+    "netlify-cli": "^17.38.0"
+  }
+}

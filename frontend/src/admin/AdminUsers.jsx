@@ -1,25 +1,19 @@
 import { useEffect, useState } from 'react';
-import { useAdminAuth } from './AdminAuthContext.jsx';
-import { api } from '../api/client';
+import { listUsers, updateUserSubscriptionStatus } from '../lib/adminDb.js';
 
 export default function AdminUsers() {
-  const { token } = useAdminAuth();
   const [users, setUsers] = useState([]);
   const [search, setSearch] = useState('');
   const [status, setStatus] = useState('');
   const [error, setError] = useState('');
 
   function loadUsers() {
-    const params = new URLSearchParams();
-    if (search) params.set('search', search);
-    if (status) params.set('status', status);
-    api
-      .get(`/admin/users${params.toString() ? `?${params}` : ''}`, token)
-      .then((data) => setUsers(data.users))
+    listUsers({ search, status })
+      .then(setUsers)
       .catch((err) => setError(err.message));
   }
 
-  useEffect(loadUsers, [token]);
+  useEffect(loadUsers, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   function handleSearchSubmit(e) {
     e.preventDefault();
@@ -28,7 +22,7 @@ export default function AdminUsers() {
 
   async function updateStatus(user, subscriptionStatus) {
     try {
-      await api.put(`/admin/users/${user.id}`, { subscriptionStatus }, token);
+      await updateUserSubscriptionStatus(user.id, subscriptionStatus);
       loadUsers();
     } catch (err) {
       setError(err.message);

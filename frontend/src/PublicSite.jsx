@@ -3,6 +3,7 @@ import { AuthProvider } from './context/AuthContext.jsx';
 import Navbar from './components/Navbar.jsx';
 import Footer from './components/Footer.jsx';
 import ProtectedRoute from './components/ProtectedRoute.jsx';
+import AddToHomeScreen from './components/AddToHomeScreen.jsx';
 
 import Home from './pages/Home.jsx';
 import HowItWorks from './pages/HowItWorks.jsx';
@@ -18,6 +19,7 @@ import Progress from './pages/Progress.jsx';
 import Account from './pages/Account.jsx';
 import Privacy from './pages/Privacy.jsx';
 import Terms from './pages/Terms.jsx';
+import NotFound from './pages/NotFound.jsx';
 
 export default function PublicSite() {
   return (
@@ -61,9 +63,11 @@ export default function PublicSite() {
             />
             <Route path="/privacy" element={<Privacy />} />
             <Route path="/terms" element={<Terms />} />
+            <Route path="*" element={<NotFound />} />
           </Routes>
         </main>
         <Footer />
+        <AddToHomeScreen />
       </div>
     </AuthProvider>
   );

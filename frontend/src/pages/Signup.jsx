@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.jsx';
+import { functionsApi } from '../lib/functions.js';
 
 export default function Signup() {
   const { register } = useAuth();
@@ -9,8 +10,10 @@ export default function Signup() {
     name: '',
     email: '',
     password: '',
+    confirmPassword: '',
     childName: '',
     ageGroup: 'junior',
+    acceptTerms: false,
   });
   const [error, setError] = useState('');
   const [submitting, setSubmitting] = useState(false);
@@ -22,9 +25,20 @@ export default function Signup() {
   async function handleSubmit(e) {
     e.preventDefault();
     setError('');
+
+    if (form.password !== form.confirmPassword) {
+      setError('Passwords do not match.');
+      return;
+    }
+    if (!form.acceptTerms) {
+      setError('Please accept the Terms of Use to continue.');
+      return;
+    }
+
     setSubmitting(true);
     try {
       await register(form);
+      functionsApi.subscribeEnginemailer({ name: form.name, email: form.email }).catch(() => {});
       navigate('/thank-you');
     } catch (err) {
       setError(err.message);
@@ -70,6 +84,17 @@ export default function Signup() {
             />
           </div>
           <div className="form-group">
+            <label htmlFor="confirmPassword">Confirm Password</label>
+            <input
+              id="confirmPassword"
+              type="password"
+              required
+              minLength={8}
+              value={form.confirmPassword}
+              onChange={(e) => update('confirmPassword', e.target.value)}
+            />
+          </div>
+          <div className="form-group">
             <label htmlFor="childName">Child&apos;s Name</label>
             <input id="childName" required value={form.childName} onChange={(e) => update('childName', e.target.value)} />
           </div>
@@ -79,6 +104,26 @@ export default function Signup() {
               <option value="junior">Junior (ages 3-7)</option>
               <option value="explorer">Explorer (ages 8-17)</option>
             </select>
+          </div>
+          <div className="form-group" style={{ display: 'flex', alignItems: 'flex-start', gap: 8 }}>
+            <input
+              id="acceptTerms"
+              type="checkbox"
+              style={{ width: 'auto', marginTop: 4 }}
+              checked={form.acceptTerms}
+              onChange={(e) => update('acceptTerms', e.target.checked)}
+            />
+            <label htmlFor="acceptTerms" style={{ marginBottom: 0, fontWeight: 400 }}>
+              I agree to the{' '}
+              <Link to="/terms" style={{ color: 'var(--color-blue)', fontWeight: 700 }}>
+                Terms of Use
+              </Link>{' '}
+              and{' '}
+              <Link to="/privacy" style={{ color: 'var(--color-blue)', fontWeight: 700 }}>
+                Privacy Policy
+              </Link>
+              .
+            </label>
           </div>
           <button type="submit" className="btn btn-primary" style={{ width: '100%' }} disabled={submitting}>
             {submitting ? 'Creating account...' : 'Sign Up'}

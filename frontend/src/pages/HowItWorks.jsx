@@ -80,7 +80,7 @@ export default function HowItWorks() {
           </div>
           <div>
             <span className="badge badge-free">Step 2</span>
-            <p className="arabic-text" style={{ margin: '8px 0 0', fontSize: '1.8rem' }}>بِسْمِ</p>
+            <p className="arabic-text" dir="rtl" style={{ margin: '8px 0 0', fontSize: '1.8rem' }}>بِسْمِ</p>
             <p style={{ margin: 0, color: '#6b7a8a' }}>"in the name of"</p>
           </div>
           <div>

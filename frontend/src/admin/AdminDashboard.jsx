@@ -1,15 +1,13 @@
 import { useEffect, useState } from 'react';
-import { useAdminAuth } from './AdminAuthContext.jsx';
-import { api } from '../api/client';
+import { getDashboardStats } from '../lib/adminDb.js';
 
 export default function AdminDashboard() {
-  const { token } = useAdminAuth();
   const [data, setData] = useState(null);
   const [error, setError] = useState('');
 
   useEffect(() => {
-    api.get('/admin/dashboard', token).then(setData).catch((err) => setError(err.message));
-  }, [token]);
+    getDashboardStats().then(setData).catch((err) => setError(err.message));
+  }, []);
 
   return (
     <div>

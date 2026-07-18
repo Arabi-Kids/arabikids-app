@@ -1,26 +1,41 @@
 import { useEffect, useState } from 'react';
 import { Link, useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.jsx';
-import { api } from '../api/client';
+import { listLessonsForHub } from '../lib/db.js';
+
+const VALID_GROUPS = ['junior', 'explorer'];
 
 export default function LessonHub() {
   const { group } = useParams();
-  const ageGroup = group === 'explorer' ? 'explorer' : 'junior';
   const navigate = useNavigate();
-  const { token, isPaid } = useAuth();
+  const { user, isPaid } = useAuth();
   const [lessons, setLessons] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
+  const validGroup = VALID_GROUPS.includes(group);
+
   useEffect(() => {
+    if (!validGroup) {
+      setLoading(false);
+      return;
+    }
     setLoading(true);
     setError('');
-    api
-      .get(`/lessons/${ageGroup}`, token)
-      .then((data) => setLessons(data.lessons))
+    listLessonsForHub(group, { userId: user?.id, isPaidUser: isPaid() })
+      .then(setLessons)
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
-  }, [ageGroup, token]);
+  }, [group, validGroup, user?.id, isPaid]);
+
+  if (!validGroup) {
+    return (
+      <div className="container" style={{ padding: 60, textAlign: 'center' }}>
+        <h1 className="page-title">Lesson track not found</h1>
+        <Link to="/lessons/junior" className="btn btn-primary">Go to Junior Track</Link>
+      </div>
+    );
+  }
 
   return (
     <div className="container" style={{ padding: '48px 0' }}>
@@ -31,13 +46,13 @@ export default function LessonHub() {
 
       <div style={{ display: 'flex', gap: 12, marginBottom: 28 }}>
         <button
-          className={ageGroup === 'junior' ? 'btn btn-secondary' : 'btn btn-outline'}
+          className={group === 'junior' ? 'btn btn-secondary' : 'btn btn-outline'}
           onClick={() => navigate('/lessons/junior')}
         >
           Junior (3-7)
         </button>
         <button
-          className={ageGroup === 'explorer' ? 'btn btn-secondary' : 'btn btn-outline'}
+          className={group === 'explorer' ? 'btn btn-secondary' : 'btn btn-outline'}
           onClick={() => navigate('/lessons/explorer')}
         >
           Explorer (8-17)
@@ -52,7 +67,7 @@ export default function LessonHub() {
           {lessons.map((lesson) => (
             <Link
               key={lesson.id}
-              to={lesson.locked ? '/pricing' : `/lessons/${ageGroup}/${lesson.lessonNumber}`}
+              to={lesson.locked ? '/pricing' : `/lessons/${group}/${lesson.lessonNumber}`}
               className="card"
               style={{ display: 'block', opacity: lesson.locked ? 0.75 : 1 }}
             >
@@ -60,10 +75,10 @@ export default function LessonHub() {
                 <span style={{ fontWeight: 800, color: 'var(--color-blue)' }}>Lesson {lesson.lessonNumber}</span>
                 {lesson.locked ? (
                   <span className="badge badge-locked">🔒 Locked</span>
+                ) : lesson.completed ? (
+                  <span className="badge badge-gold">⭐ Done</span>
                 ) : lesson.isFree ? (
                   <span className="badge badge-free">Free</span>
-                ) : lesson.completed ? (
-                  <span className="badge badge-free">✓ Done</span>
                 ) : null}
               </div>
               <p style={{ margin: 0, fontWeight: 700 }}>{lesson.title}</p>

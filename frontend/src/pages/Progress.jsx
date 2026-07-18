@@ -1,19 +1,17 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.jsx';
-import { api } from '../api/client';
+import { getProgressSummary } from '../lib/db.js';
 
 export default function Progress() {
-  const { token } = useAuth();
+  const { user } = useAuth();
   const [data, setData] = useState(null);
   const [error, setError] = useState('');
 
   useEffect(() => {
-    api
-      .get('/progress', token)
-      .then(setData)
-      .catch((err) => setError(err.message));
-  }, [token]);
+    if (!user) return;
+    getProgressSummary(user.id).then(setData).catch((err) => setError(err.message));
+  }, [user]);
 
   const pct = data ? Math.min(100, Math.round((data.totalCompleted / 90) * 100)) : 0;
 
@@ -52,39 +50,41 @@ export default function Progress() {
           </div>
 
           <h3 style={{ color: 'var(--color-blue)' }}>Recent Lessons</h3>
-          <table className="table">
-            <thead>
-              <tr>
-                <th>Age Group</th>
-                <th>Lesson</th>
-                <th>Score</th>
-                <th>Attempts</th>
-                <th>Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              {data.recent.map((p) => (
-                <tr key={p.lessonId}>
-                  <td style={{ textTransform: 'capitalize' }}>{p.ageGroup}</td>
-                  <td>
-                    <Link to={`/lessons/${p.ageGroup}/${p.lessonNumber}`} style={{ color: 'var(--color-blue)', fontWeight: 700 }}>
-                      #{p.lessonNumber} {p.title}
-                    </Link>
-                  </td>
-                  <td>{p.score}%</td>
-                  <td>{p.attempts}</td>
-                  <td>{p.completed ? '✅ Completed' : '⏳ In progress'}</td>
-                </tr>
-              ))}
-              {data.recent.length === 0 && (
+          <div style={{ overflowX: 'auto' }}>
+            <table className="table">
+              <thead>
                 <tr>
-                  <td colSpan={5} style={{ textAlign: 'center', color: '#6b7a8a' }}>
-                    No lessons attempted yet. Head to the Lesson Hub to get started!
-                  </td>
+                  <th>Age Group</th>
+                  <th>Lesson</th>
+                  <th>Score</th>
+                  <th>Attempts</th>
+                  <th>Status</th>
                 </tr>
-              )}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {data.recent.map((p) => (
+                  <tr key={p.lessonId}>
+                    <td style={{ textTransform: 'capitalize' }}>{p.ageGroup}</td>
+                    <td>
+                      <Link to={`/lessons/${p.ageGroup}/${p.lessonNumber}`} style={{ color: 'var(--color-blue)', fontWeight: 700 }}>
+                        #{p.lessonNumber} {p.title}
+                      </Link>
+                    </td>
+                    <td>{p.score}%</td>
+                    <td>{p.attempts}</td>
+                    <td>{p.completed ? '✅ Completed' : '⏳ In progress'}</td>
+                  </tr>
+                ))}
+                {data.recent.length === 0 && (
+                  <tr>
+                    <td colSpan={5} style={{ textAlign: 'center', color: '#6b7a8a' }}>
+                      No lessons attempted yet. Head to the Lesson Hub to get started!
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
         </>
       )}
     </div>

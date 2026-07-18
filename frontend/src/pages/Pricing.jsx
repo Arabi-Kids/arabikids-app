@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.jsx';
-import { api } from '../api/client';
+import { functionsApi } from '../lib/functions.js';
 
 const PLANS = [
   {
@@ -45,14 +45,14 @@ const FAQS = [
 ];
 
 export default function Pricing() {
-  const { user, token } = useAuth();
+  const { user } = useAuth();
   const navigate = useNavigate();
   const [loadingPlan, setLoadingPlan] = useState(null);
   const [error, setError] = useState('');
 
   async function handleChoose(planId) {
     if (planId === 'free') {
-      navigate(user ? '/lessons/junior' : '/signup');
+      navigate(user ? `/lessons/${user.ageGroup || 'junior'}` : '/signup');
       return;
     }
     if (!user) {
@@ -62,7 +62,8 @@ export default function Pricing() {
     setError('');
     setLoadingPlan(planId);
     try {
-      const { url } = await api.post('/subscriptions/checkout', { plan: planId }, token);
+      const { url } = await functionsApi.createCheckout(planId);
+      if (!url) throw new Error('Could not start checkout — please try again.');
       window.location.href = url;
     } catch (err) {
       setError(err.message);

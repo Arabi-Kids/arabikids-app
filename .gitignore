@@ -4,12 +4,12 @@ node_modules/
 # Environment variables (never commit secrets)
 .env
 .env.local
-backend/.env
 frontend/.env
 
 # Build output
 frontend/dist/
 frontend/build/
+.netlify/
 
 # Logs
 npm-debug.log*

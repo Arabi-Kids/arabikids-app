@@ -1,51 +1,57 @@
+import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.jsx';
 
 export default function Navbar() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const [menuOpen, setMenuOpen] = useState(false);
   const group = user?.ageGroup || 'junior';
 
-  function handleLogout() {
-    logout();
+  async function handleLogout() {
+    setMenuOpen(false);
+    await logout();
     navigate('/');
   }
 
+  function closeMenu() {
+    setMenuOpen(false);
+  }
+
   return (
-    <header
-      style={{
-        background: '#fff',
-        boxShadow: '0 2px 12px rgba(27,79,138,0.08)',
-        position: 'sticky',
-        top: 0,
-        zIndex: 10,
-      }}
-    >
-      <div
-        className="container"
-        style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: 72, flexWrap: 'wrap' }}
-      >
-        <Link to="/" style={{ fontWeight: 900, fontSize: '1.5rem', color: 'var(--color-blue)' }}>
+    <header className="navbar-header">
+      <div className="container navbar-inner">
+        <Link to="/" style={{ fontWeight: 900, fontSize: '1.5rem', color: 'var(--color-blue)' }} onClick={closeMenu}>
           Arabi<span style={{ color: 'var(--color-gold)' }}>Kids</span>
         </Link>
-        <nav style={{ display: 'flex', gap: 20, alignItems: 'center', flexWrap: 'wrap' }}>
-          <Link to="/how-it-works">How it Works</Link>
-          <Link to="/pricing">Pricing</Link>
-          <Link to="/about">About</Link>
-          <Link to="/contact">Contact</Link>
-          {user && <Link to={`/lessons/${group}`}>Lessons</Link>}
-          {user && <Link to="/progress">Progress</Link>}
+
+        <button
+          className="navbar-toggle"
+          aria-label={menuOpen ? 'Close menu' : 'Open menu'}
+          aria-expanded={menuOpen}
+          onClick={() => setMenuOpen((o) => !o)}
+        >
+          {menuOpen ? '✕' : '☰'}
+        </button>
+
+        <nav className={`navbar-links ${menuOpen ? 'open' : ''}`}>
+          <Link to="/how-it-works" onClick={closeMenu}>How it Works</Link>
+          <Link to="/pricing" onClick={closeMenu}>Pricing</Link>
+          <Link to="/about" onClick={closeMenu}>About</Link>
+          <Link to="/contact" onClick={closeMenu}>Contact</Link>
+          {user && <Link to={`/lessons/${group}`} onClick={closeMenu}>Lessons</Link>}
+          {user && <Link to="/progress" onClick={closeMenu}>Progress</Link>}
           {user ? (
             <>
-              <Link to="/account">Account</Link>
+              <Link to="/account" onClick={closeMenu}>Account</Link>
               <button className="btn btn-outline" onClick={handleLogout}>
                 Log out
               </button>
             </>
           ) : (
             <>
-              <Link to="/login">Log in</Link>
-              <Link to="/signup" className="btn btn-primary">
+              <Link to="/login" onClick={closeMenu}>Log in</Link>
+              <Link to="/signup" className="btn btn-primary" onClick={closeMenu}>
                 Get Started
               </Link>
             </>

@@ -19,6 +19,7 @@ export default function ExerciseCard({ exercise, index, selected, onSelect, resu
               key={option}
               onClick={() => onSelect(exercise.id, option)}
               disabled={isAnswered}
+              dir={/[؀-ۿ]/.test(option) ? 'rtl' : undefined}
               className={/[؀-ۿ]/.test(option) ? 'arabic-text' : ''}
               style={{
                 padding: '14px 16px',

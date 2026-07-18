@@ -1,24 +1,23 @@
 import { useEffect, useState } from 'react';
-import { useAdminAuth } from './AdminAuthContext.jsx';
-import { api } from '../api/client';
+import { listAdminLessons, updateLesson } from '../lib/adminDb.js';
 
 export default function AdminLessonsManager() {
-  const { token } = useAdminAuth();
   const [ageGroup, setAgeGroup] = useState('junior');
   const [lessons, setLessons] = useState([]);
   const [editingId, setEditingId] = useState(null);
-  const [draft, setDraft] = useState({ title: '', content: '' });
+  const [draft, setDraft] = useState({ title: '', contentText: '' });
+  const [draftError, setDraftError] = useState('');
   const [error, setError] = useState('');
 
   function loadLessons() {
-    api.get('/admin/lessons', token).then((data) => setLessons(data.lessons)).catch((err) => setError(err.message));
+    listAdminLessons().then(setLessons).catch((err) => setError(err.message));
   }
 
-  useEffect(loadLessons, [token]);
+  useEffect(loadLessons, []);
 
   async function toggleFree(lesson) {
     try {
-      await api.put(`/admin/lessons/${lesson.id}`, { isFree: !lesson.is_free }, token);
+      await updateLesson(lesson.id, { is_free: !lesson.is_free });
       loadLessons();
     } catch (err) {
       setError(err.message);
@@ -27,13 +26,22 @@ export default function AdminLessonsManager() {
 
   function startEdit(lesson) {
     setEditingId(lesson.id);
-    setDraft({ title: lesson.title, content: JSON.stringify(lesson, null, 2) });
+    setDraftError('');
+    setDraft({ title: lesson.title, contentText: JSON.stringify(lesson.content, null, 2) });
   }
 
   async function saveEdit(lesson) {
+    let parsedContent;
     try {
-      await api.put(`/admin/lessons/${lesson.id}`, { title: draft.title }, token);
+      parsedContent = JSON.parse(draft.contentText);
+    } catch {
+      setDraftError('Content must be valid JSON.');
+      return;
+    }
+    try {
+      await updateLesson(lesson.id, { title: draft.title, content: parsedContent });
       setEditingId(null);
+      setDraftError('');
       loadLessons();
     } catch (err) {
       setError(err.message);
@@ -89,11 +97,11 @@ export default function AdminLessonsManager() {
                   {editingId === l.id ? (
                     <>
                       <button onClick={() => saveEdit(l)} style={actionBtnStyle}>Save</button>
-                      <button onClick={() => setEditingId(null)} style={actionBtnStyleOutline}>Cancel</button>
+                      <button onClick={() => { setEditingId(null); setDraftError(''); }} style={actionBtnStyleOutline}>Cancel</button>
                     </>
                   ) : (
                     <>
-                      <button onClick={() => startEdit(l)} style={actionBtnStyleOutline}>Edit Title</button>
+                      <button onClick={() => startEdit(l)} style={actionBtnStyleOutline}>Edit</button>
                       <button onClick={() => toggleFree(l)} style={actionBtnStyleOutline}>
                         Mark as {l.is_free ? 'Paid' : 'Free'}
                       </button>
@@ -105,6 +113,23 @@ export default function AdminLessonsManager() {
           </tbody>
         </table>
       </div>
+
+      {editingId && (
+        <div className="admin-card" style={{ marginTop: 20 }}>
+          <h3 style={{ marginTop: 0, color: '#fff' }}>Lesson Content (JSON)</h3>
+          <p style={{ color: 'var(--admin-muted)', marginTop: -8 }}>
+            Edit the lesson's concept, Quranic connection, etc. Must stay valid JSON.
+          </p>
+          {draftError && <p style={{ color: '#e57373', fontWeight: 700 }}>{draftError}</p>}
+          <textarea
+            className="admin-input"
+            rows={16}
+            style={{ fontFamily: 'monospace', fontSize: '0.85rem', resize: 'vertical' }}
+            value={draft.contentText}
+            onChange={(e) => setDraft({ ...draft, contentText: e.target.value })}
+          />
+        </div>
+      )}
     </div>
   );
 }
