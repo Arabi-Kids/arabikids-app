@@ -1,0 +1,53 @@
+<!--
+  ArabiKids "Confirm signup" email template — doubles as the welcome email,
+  since Enginemailer has no verified sending domain yet and this account has
+  "Confirm email" enabled (so Supabase already sends this on every signup).
+
+  HOW TO APPLY:
+  1. Supabase Dashboard -> Authentication -> Email Templates -> Confirm signup
+  2. Set Subject heading to: Welcome to ArabiKids — Confirm Your Account
+  3. Paste this whole file into the "Message body" field (HTML mode)
+  4. Save
+
+  Template variables used (Supabase's Go-template syntax):
+  - {{ .ConfirmationURL }} — required, the actual confirm link
+  - {{ .Data.name }}       — parent name, passed as signUp() user metadata
+  - {{ .Data.age_group }}  — 'junior' or 'explorer', also passed at signUp
+
+  NOTE: Supabase's default built-in email sending has a low rate limit
+  (a few emails/hour on the free tier) — fine for early testing, but you'll
+  want custom SMTP (Project Settings -> Auth -> SMTP Settings) before real
+  signup volume. Once Enginemailer has a verified domain, you can either
+  point Supabase's SMTP at Enginemailer, or switch fully to the
+  Enginemailer-based welcome email in netlify/functions/subscribe-enginemailer.js
+  instead — just don't run both, or new users get two welcome-ish emails.
+-->
+<!doctype html>
+<html>
+  <body style="margin:0;padding:0;background:#fbf9f3;font-family:Arial,Helvetica,sans-serif;color:#1f2a37;">
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#fbf9f3;padding:32px 0;">
+      <tr><td align="center">
+        <table role="presentation" width="480" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:16px;overflow:hidden;">
+          <tr><td style="background:#1b4f8a;padding:24px 32px;">
+            <span style="font-size:22px;font-weight:900;color:#ffffff;">Arabi<span style="color:#f0b93d;">Kids</span></span>
+          </td></tr>
+          <tr><td style="padding:32px;">
+            <h1 style="margin:0 0 16px;font-size:20px;color:#1b4f8a;">Welcome to ArabiKids{{ if .Data.name }}, {{ .Data.name }}{{ end }}!</h1>
+            <div style="font-size:15px;line-height:1.6;color:#4b5a6a;">
+              <p>Thanks for signing up. Confirm your email to activate your account — your child's first 5 lessons are free, no credit card needed.</p>
+              <p>Every ArabiKids lesson connects an Arabic word directly to the Quran, so what your child learns to say, they also learn to understand.</p>
+            </div>
+            <table role="presentation" cellpadding="0" cellspacing="0" style="margin-top:24px;">
+              <tr><td style="background:#c8960c;border-radius:999px;">
+                <a href="{{ .ConfirmationURL }}" style="display:inline-block;padding:14px 28px;color:#ffffff;font-weight:800;text-decoration:none;font-size:15px;">Confirm Your Account</a>
+              </td></tr>
+            </table>
+          </td></tr>
+          <tr><td style="padding:20px 32px;background:#f4f1e8;color:#8ea0b6;font-size:12px;">
+            Teaching the Language of the Quran — One Kid at a Time.<br/>ArabiKids
+          </td></tr>
+        </table>
+      </td></tr>
+    </table>
+  </body>
+</html>
