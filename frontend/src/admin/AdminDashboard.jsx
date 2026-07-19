@@ -19,6 +19,7 @@ export default function AdminDashboard() {
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 20, marginBottom: 32 }}>
             {[
               ['Total Users', data.totalUsers],
+              ['Total Children', data.totalChildren],
               ['Paid Subscribers', data.paidSubscribers],
               ['MRR (USD)', `$${data.mrrUsd.toFixed(2)}`],
               ['Past Due', data.pastDueSubscriptions],

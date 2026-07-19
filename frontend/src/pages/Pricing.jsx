@@ -52,7 +52,7 @@ export default function Pricing() {
 
   async function handleChoose(planId) {
     if (planId === 'free') {
-      navigate(user ? `/lessons/${user.ageGroup || 'junior'}` : '/signup');
+      navigate(user ? '/lessons' : '/signup');
       return;
     }
     if (!user) {

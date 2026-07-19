@@ -1,8 +1,9 @@
 import { supabase } from './supabase.js';
 
-// All helpers here return camelCase-shaped objects so the page components
-// (written against the old Express API's JSON shape) didn't need to be
-// rewritten field-by-field on top of the Postgres migration.
+// All helpers here return camelCase-shaped objects so page components don't
+// deal with snake_case Postgres columns directly.
+
+const PASS_THRESHOLD = 70;
 
 export function mapUserRow(row) {
   if (!row) return null;
@@ -10,158 +11,305 @@ export function mapUserRow(row) {
     id: row.id,
     name: row.name,
     email: row.email,
-    childName: row.child_name,
-    ageGroup: row.age_group,
     role: row.role,
     subscriptionStatus: row.subscription_status,
     subscriptionPlan: row.subscription_plan,
+    subscriptionTier: row.subscription_tier,
     stripeCustomerId: row.stripe_customer_id,
     currentPeriodEnd: row.current_period_end,
   };
 }
 
-function mapExerciseRow(row) {
+function mapChildRow(row) {
+  if (!row) return null;
   return {
     id: row.id,
-    exerciseNumber: row.exercise_number,
-    title: row.title,
-    instruction: row.instruction,
-    options: row.options,
-    correctAnswer: row.correct_answer,
-    explanation: row.explanation,
+    parentId: row.parent_id,
+    name: row.name,
+    dateOfBirth: row.date_of_birth,
+    currentStageId: row.current_stage_id,
+    maxStageId: row.max_stage_id,
+    currentStreak: row.current_streak,
+    longestStreak: row.longest_streak,
+    createdAt: row.created_at,
   };
 }
 
-/**
- * Full listing (all 45 lessons) for the Lesson Hub, including lock/free/
- * completed state. Uses the `list_lessons` RPC for metadata (which is
- * readable by everyone regardless of entitlement) so locked lessons still
- * show up with a padlock instead of disappearing.
- */
-export async function listLessonsForHub(ageGroup, { userId, isPaidUser }) {
-  const { data: meta, error: metaError } = await supabase.rpc('list_lessons', { p_age_group: ageGroup });
+// ---------------------------------------------------------------------------
+// Child profiles
+// ---------------------------------------------------------------------------
+
+export async function listChildren(parentId) {
+  const { data, error } = await supabase
+    .from('child_profiles')
+    .select('*')
+    .eq('parent_id', parentId)
+    .order('created_at');
+  if (error) throw new Error(error.message);
+  return data.map(mapChildRow);
+}
+
+/** Standard-tier parents get one child; Family is uncapped for now — the
+ * DB-side enforce_child_limit() trigger is the actual source of truth, this
+ * just surfaces its error message cleanly. */
+export async function createChildProfile({ parentId, name, dateOfBirth, startingStageId, maxStageId }) {
+  const { data, error } = await supabase
+    .from('child_profiles')
+    .insert({
+      parent_id: parentId,
+      name,
+      date_of_birth: dateOfBirth || null,
+      current_stage_id: startingStageId,
+      max_stage_id: maxStageId ?? startingStageId,
+    })
+    .select('*')
+    .single();
+  if (error) throw new Error(error.message);
+  return mapChildRow(data);
+}
+
+export async function renameChildProfile(childId, name) {
+  const { error } = await supabase.from('child_profiles').update({ name }).eq('id', childId);
+  if (error) throw new Error(error.message);
+}
+
+/** Highest-order stage whose min_placement_age is still <= age — a stand-in
+ * for the adaptive placement test (deferred to a later workstream). */
+export function computeMaxStageForAge(age, stagesOrdered) {
+  if (!stagesOrdered.length) return null;
+  let allowed = stagesOrdered[0].id;
+  for (const stage of stagesOrdered) {
+    if (stage.minPlacementAge <= age) allowed = stage.id;
+  }
+  return allowed;
+}
+
+export function ageFromDob(dob) {
+  if (!dob) return null;
+  const birth = new Date(dob);
+  const now = new Date();
+  let age = now.getFullYear() - birth.getFullYear();
+  const monthDiff = now.getMonth() - birth.getMonth();
+  if (monthDiff < 0 || (monthDiff === 0 && now.getDate() < birth.getDate())) age -= 1;
+  return age;
+}
+
+// ---------------------------------------------------------------------------
+// Curriculum (levels -> stages) — public, no entitlement needed to browse
+// the map itself.
+// ---------------------------------------------------------------------------
+
+export async function getCurriculum() {
+  const [{ data: levels, error: levelsError }, { data: stages, error: stagesError }] = await Promise.all([
+    supabase.from('levels').select('*').order('order_index'),
+    supabase.from('stages').select('*').order('order_index'),
+  ]);
+  if (levelsError) throw new Error(levelsError.message);
+  if (stagesError) throw new Error(stagesError.message);
+
+  const mappedStages = stages.map((s) => ({
+    id: s.id,
+    levelId: s.level_id,
+    name: s.name,
+    orderIndex: s.order_index,
+    videoUrl: s.video_url,
+    minPlacementAge: s.min_placement_age,
+    isFree: s.is_free,
+  }));
+
+  const mappedLevels = levels.map((level) => ({
+    id: level.id,
+    name: level.name,
+    orderIndex: level.order_index,
+    description: level.description,
+    stages: mappedStages.filter((s) => s.levelId === level.id),
+  }));
+
+  return { levels: mappedLevels, stages: mappedStages };
+}
+
+// ---------------------------------------------------------------------------
+// Lessons within a stage
+// ---------------------------------------------------------------------------
+
+/** Metadata for every lesson in a stage (via the list_stage_lessons RPC, so
+ * locked lessons still show up with a title/padlock) plus this child's
+ * progress on each. `stageUnlocked` (whether the child has progressed far
+ * enough to be in this stage at all) is computed by the caller from
+ * current_stage_id ordering and combined with the payment paywall here. */
+export async function listStageLessonsForChild(stageId, { childId, isPaidUser, stageUnlocked }) {
+  const { data: meta, error: metaError } = await supabase.rpc('list_stage_lessons', { p_stage_id: stageId });
   if (metaError) throw new Error(metaError.message);
 
   let progressByLessonId = new Map();
-  if (userId) {
+  if (childId) {
     const { data: progress, error: progressError } = await supabase
-      .from('user_progress')
+      .from('child_lesson_progress')
       .select('lesson_id, score, completed_at')
-      .eq('user_id', userId);
+      .eq('child_id', childId);
     if (progressError) throw new Error(progressError.message);
     progressByLessonId = new Map(progress.map((p) => [p.lesson_id, p]));
   }
 
   return meta.map((lesson) => {
     const progress = progressByLessonId.get(lesson.id);
+    const paywalled = !lesson.is_free && !isPaidUser;
     return {
       id: lesson.id,
-      lessonNumber: lesson.lesson_number,
+      stageId: lesson.stage_id,
+      orderIndex: lesson.order_index,
       title: lesson.title,
       arabicWord: lesson.arabic_word,
       isFree: lesson.is_free,
       estimatedMinutes: lesson.estimated_minutes,
-      locked: !lesson.is_free && !isPaidUser,
+      locked: !stageUnlocked || paywalled,
+      paywalled,
       completed: !!progress?.completed_at,
-      score: progress?.score ?? null,
     };
   });
 }
 
-/**
- * Single lesson + exercises. RLS silently returns zero rows (no error) for
- * a lesson the current session isn't entitled to, instead of an error with
- * a particular message to string-match — so we disambiguate "doesn't
- * exist" vs "locked" against the public metadata list, and also derive
- * hasNext from it.
- */
-export async function getLessonDetail(ageGroup, lessonNumber) {
-  const lessonNum = Number(lessonNumber);
+const CHECKPOINT_INTERVAL = 3;
+
+/** Whether finishing this lesson (by order_index, within a stage of
+ * lessonCount lessons) triggers a checkpoint — every 3rd lesson, or the
+ * last lesson of the stage (always a checkpoint, the final one being the
+ * mastery exercise). */
+export function isCheckpointDue(orderIndex, lessonCount) {
+  return orderIndex % CHECKPOINT_INTERVAL === 0 || orderIndex === lessonCount;
+}
+export function checkpointOrderForLesson(orderIndex, lessonCount) {
+  return Math.ceil(orderIndex / CHECKPOINT_INTERVAL) + (orderIndex === lessonCount && orderIndex % CHECKPOINT_INTERVAL !== 0 ? 1 : 0);
+}
+
+/** Single lesson's content. RLS silently returns zero rows for a lesson the
+ * session isn't entitled to (no session-specific error), so we disambiguate
+ * "doesn't exist" vs "locked" against the public metadata list. */
+export async function getLessonDetail(stageId, orderIndex) {
+  const orderNum = Number(orderIndex);
 
   const [{ data: lessonRow, error: lessonError }, { data: meta, error: metaError }] = await Promise.all([
-    supabase
-      .from('lessons')
-      .select('*, exercises(*)')
-      .eq('age_group', ageGroup)
-      .eq('lesson_number', lessonNum)
-      .maybeSingle(),
-    supabase.rpc('list_lessons', { p_age_group: ageGroup }),
+    supabase.from('lessons').select('*').eq('stage_id', stageId).eq('order_index', orderNum).maybeSingle(),
+    supabase.rpc('list_stage_lessons', { p_stage_id: stageId }),
   ]);
-
   if (lessonError) throw new Error(lessonError.message);
   if (metaError) throw new Error(metaError.message);
 
-  const existsInGroup = meta.some((m) => m.lesson_number === lessonNum);
-  if (!existsInGroup) return { notFound: true };
+  const existsInStage = meta.some((m) => m.order_index === orderNum);
+  if (!existsInStage) return { notFound: true };
   if (!lessonRow) return { locked: true };
 
-  const maxLessonNumber = Math.max(...meta.map((m) => m.lesson_number));
-
+  const lessonCount = meta.length;
   return {
     lesson: {
       id: lessonRow.id,
-      lessonNumber: lessonRow.lesson_number,
+      stageId: lessonRow.stage_id,
+      orderIndex: lessonRow.order_index,
       title: lessonRow.title,
       lessonGoal: lessonRow.lesson_goal,
       arabicWord: lessonRow.arabic_word,
       arabicWordMeaning: lessonRow.arabic_word_meaning,
       content: lessonRow.content,
       estimatedMinutes: lessonRow.estimated_minutes,
-      hasNext: lessonNum < maxLessonNumber,
+      hasNext: orderNum < lessonCount,
+      checkpointDue: isCheckpointDue(orderNum, lessonCount),
+      checkpointOrder: checkpointOrderForLesson(orderNum, lessonCount),
     },
-    exercises: lessonRow.exercises
-      .slice()
-      .sort((a, b) => a.exercise_number - b.exercise_number)
-      .map(mapExerciseRow),
   };
 }
 
-const PASS_THRESHOLD = 70;
-
-/** Grades client-side against the exercises already fetched for this lesson (the
- * user is only ever shown exercises for lessons they're entitled to). If
- * `userId` is null (an anonymous visitor trying a free lesson), grading still
- * works but nothing is saved — the caller should prompt them to sign up to
- * keep their progress. */
-export async function completeLesson({ userId, lessonId, exercises, answers }) {
-  let correctCount = 0;
-  const results = exercises.map((ex) => {
-    const isCorrect = answers[ex.id] === ex.correctAnswer;
-    if (isCorrect) correctCount += 1;
-    return { exerciseId: ex.id, correct: isCorrect, explanation: ex.explanation };
-  });
-  const score = Math.round((correctCount / exercises.length) * 100);
-  const completed = score >= PASS_THRESHOLD;
-
-  if (!userId) {
-    return { score, completed, results, saved: false };
-  }
-
+export async function completeLessonForChild({ childId, lessonId }) {
   const nowIso = new Date().toISOString();
-
   const { data: existing, error: existingError } = await supabase
-    .from('user_progress')
-    .select('score, attempts, completed_at')
-    .eq('user_id', userId)
+    .from('child_lesson_progress')
+    .select('attempts, completed_at')
+    .eq('child_id', childId)
     .eq('lesson_id', lessonId)
     .maybeSingle();
   if (existingError) throw new Error(existingError.message);
 
-  const { error: upsertError } = await supabase.from('user_progress').upsert(
+  const { error: upsertError } = await supabase.from('child_lesson_progress').upsert(
     {
-      user_id: userId,
+      child_id: childId,
       lesson_id: lessonId,
-      score: Math.max(score, existing?.score ?? 0),
+      completed_at: existing?.completed_at ?? nowIso,
       attempts: (existing?.attempts ?? 0) + 1,
       last_attempt_at: nowIso,
-      completed_at: completed ? existing?.completed_at ?? nowIso : existing?.completed_at ?? null,
     },
-    { onConflict: 'user_id,lesson_id' }
+    { onConflict: 'child_id,lesson_id' }
   );
   if (upsertError) throw new Error(upsertError.message);
-
-  return { score, completed, results, saved: true };
 }
+
+// ---------------------------------------------------------------------------
+// Stage checkpoints
+// ---------------------------------------------------------------------------
+
+export async function getStageCheckpoint(stageId, checkpointOrder) {
+  const { data: se, error } = await supabase
+    .from('stage_exercises')
+    .select('*, exercise_questions(*)')
+    .eq('stage_id', stageId)
+    .eq('checkpoint_order', checkpointOrder)
+    .maybeSingle();
+  if (error) throw new Error(error.message);
+  if (!se) return null;
+
+  return {
+    id: se.id,
+    stageId: se.stage_id,
+    checkpointOrder: se.checkpoint_order,
+    isMastery: se.is_mastery,
+    questions: se.exercise_questions
+      .slice()
+      .sort((a, b) => a.question_number - b.question_number)
+      .map((q) => ({
+        id: q.id,
+        questionNumber: q.question_number,
+        title: q.title,
+        instruction: q.instruction,
+        options: q.options,
+        correctAnswer: q.correct_answer,
+        explanation: q.explanation,
+      })),
+  };
+}
+
+/** Grades client-side (the child is only ever shown a checkpoint they're
+ * entitled to). On a passed mastery checkpoint, advances the child to the
+ * next stage and records the stage as complete. */
+export async function completeCheckpointForChild({ childId, checkpoint, answers, nextStageId }) {
+  let correct = 0;
+  const results = checkpoint.questions.map((q) => {
+    const isCorrect = answers[q.id] === q.correctAnswer;
+    if (isCorrect) correct += 1;
+    return { questionId: q.id, correct: isCorrect, explanation: q.explanation };
+  });
+  const score = Math.round((correct / checkpoint.questions.length) * 100);
+  const passed = score >= PASS_THRESHOLD;
+
+  if (checkpoint.isMastery && passed) {
+    const nowIso = new Date().toISOString();
+    const { error: progressError } = await supabase
+      .from('child_stage_progress')
+      .upsert({ child_id: childId, stage_id: checkpoint.stageId, mastery_passed_at: nowIso }, { onConflict: 'child_id,stage_id' });
+    if (progressError) throw new Error(progressError.message);
+
+    if (nextStageId) {
+      const { error: advanceError } = await supabase
+        .from('child_profiles')
+        .update({ current_stage_id: nextStageId })
+        .eq('id', childId);
+      if (advanceError) throw new Error(advanceError.message);
+    }
+  }
+
+  return { score, passed, results };
+}
+
+// ---------------------------------------------------------------------------
+// Progress (per child)
+// ---------------------------------------------------------------------------
 
 function computeStreak(completedDates) {
   const days = new Set(completedDates.map((d) => new Date(d).toISOString().slice(0, 10)));
@@ -177,31 +325,40 @@ function computeStreak(completedDates) {
   return streak;
 }
 
-export async function getProgressSummary(userId) {
-  const { data: rows, error } = await supabase
-    .from('user_progress')
-    .select('score, completed_at, attempts, last_attempt_at, lesson_id, lessons(age_group, lesson_number, title)')
-    .eq('user_id', userId);
-  if (error) throw new Error(error.message);
+export async function getChildProgressSummary(childId) {
+  const { data: lessonRows, error: lessonError } = await supabase
+    .from('child_lesson_progress')
+    .select('completed_at, last_attempt_at, lesson_id, lessons(order_index, title, stages(name, order_index))')
+    .eq('child_id', childId);
+  if (lessonError) throw new Error(lessonError.message);
 
-  const totalCompleted = rows.filter((r) => r.completed_at).length;
-  const totalAttempted = rows.length;
-  const streak = computeStreak(rows.filter((r) => r.completed_at).map((r) => r.completed_at));
+  const { data: stageRows, error: stageError } = await supabase
+    .from('child_stage_progress')
+    .select('stage_id, mastery_passed_at')
+    .eq('child_id', childId)
+    .not('mastery_passed_at', 'is', null);
+  if (stageError) throw new Error(stageError.message);
 
-  const recent = [...rows]
-    .sort((a, b) => new Date(b.last_attempt_at || b.completed_at || 0) - new Date(a.last_attempt_at || a.completed_at || 0))
+  const completedLessons = lessonRows.filter((r) => r.completed_at);
+  const streak = computeStreak(completedLessons.map((r) => r.completed_at));
+
+  const recent = [...completedLessons]
+    .sort((a, b) => new Date(b.last_attempt_at || b.completed_at) - new Date(a.last_attempt_at || a.completed_at))
     .slice(0, 5)
     .map((r) => ({
       lessonId: r.lesson_id,
-      ageGroup: r.lessons.age_group,
-      lessonNumber: r.lessons.lesson_number,
+      stageName: r.lessons.stages.name,
+      lessonOrderIndex: r.lessons.order_index,
       title: r.lessons.title,
-      score: r.score,
-      attempts: r.attempts,
-      completed: !!r.completed_at,
     }));
 
-  return { totalCompleted, totalAttempted, streak, recent };
+  return {
+    totalLessonsCompleted: completedLessons.length,
+    totalLessonsAttempted: lessonRows.length,
+    stagesCompleted: stageRows.length,
+    streak,
+    recent,
+  };
 }
 
 export async function submitContactMessage({ name, email, message }) {

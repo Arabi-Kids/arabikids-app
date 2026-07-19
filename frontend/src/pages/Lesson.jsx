@@ -1,70 +1,58 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext.jsx';
-import { getLessonDetail, completeLesson } from '../lib/db.js';
-import ExerciseCard from '../components/ExerciseCard.jsx';
-
-const VALID_GROUPS = ['junior', 'explorer'];
+import { useActiveChild } from '../context/ActiveChildContext.jsx';
+import { getLessonDetail, completeLessonForChild } from '../lib/db.js';
 
 export default function Lesson() {
-  const { group, id } = useParams();
+  const { stageId, orderIndex } = useParams();
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { activeChild } = useActiveChild();
   const [lesson, setLesson] = useState(null);
-  const [exercises, setExercises] = useState([]);
-  const [answers, setAnswers] = useState({});
-  const [results, setResults] = useState(null);
   const [locked, setLocked] = useState(false);
   const [notFound, setNotFound] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
-
-  const validGroup = VALID_GROUPS.includes(group);
+  const [completed, setCompleted] = useState(false);
 
   useEffect(() => {
-    if (!validGroup) {
-      setLoading(false);
-      setNotFound(true);
-      return;
-    }
     setLoading(true);
     setError('');
     setLocked(false);
     setNotFound(false);
-    setResults(null);
-    setAnswers({});
-    getLessonDetail(group, id)
+    setCompleted(false);
+    getLessonDetail(stageId, orderIndex)
       .then((data) => {
-        if (data.notFound) {
-          setNotFound(true);
-        } else if (data.locked) {
-          setLocked(true);
-        } else {
-          setLesson(data.lesson);
-          setExercises(data.exercises);
-        }
+        if (data.notFound) setNotFound(true);
+        else if (data.locked) setLocked(true);
+        else setLesson(data.lesson);
       })
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
-  }, [group, id, validGroup]);
+  }, [stageId, orderIndex]);
 
-  function selectAnswer(exerciseId, option) {
-    if (results) return;
-    setAnswers((a) => ({ ...a, [exerciseId]: option }));
-  }
-
-  async function handleSubmit() {
+  async function handleMarkComplete() {
+    if (!activeChild) {
+      navigate('/add-child');
+      return;
+    }
     setSubmitting(true);
     setError('');
     try {
-      const data = await completeLesson({ userId: user?.id ?? null, lessonId: lesson.id, exercises, answers });
-      const resultMap = Object.fromEntries(data.results.map((r) => [r.exerciseId, r]));
-      setResults({ ...data, byExercise: resultMap });
+      await completeLessonForChild({ childId: activeChild.id, lessonId: lesson.id });
+      setCompleted(true);
     } catch (err) {
       setError(err.message);
     } finally {
       setSubmitting(false);
+    }
+  }
+
+  function handleContinue() {
+    if (lesson.checkpointDue) {
+      navigate(`/lessons/stage/${stageId}/checkpoint/${lesson.checkpointOrder}`);
+    } else {
+      navigate(`/lessons/stage/${stageId}/lesson/${lesson.orderIndex + 1}`);
     }
   }
 
@@ -74,7 +62,7 @@ export default function Lesson() {
     return (
       <div className="container" style={{ padding: 60, textAlign: 'center' }}>
         <h1 className="page-title">Lesson not found</h1>
-        <Link to="/lessons/junior" className="btn btn-primary">Back to Lessons</Link>
+        <Link to="/lessons" className="btn btn-primary">Back to Lessons</Link>
       </div>
     );
   }
@@ -83,7 +71,7 @@ export default function Lesson() {
     return (
       <div className="container" style={{ padding: 60, textAlign: 'center' }}>
         <h1 className="page-title">This lesson is locked</h1>
-        <p className="page-subtitle">Subscribe to unlock all 90 ArabiKids lessons.</p>
+        <p className="page-subtitle">Subscribe to unlock the full ArabiKids curriculum.</p>
         <Link to="/pricing" className="btn btn-primary">
           View Pricing
         </Link>
@@ -95,19 +83,17 @@ export default function Lesson() {
   if (!lesson) return null;
 
   const content = lesson.content;
-  const allAnswered = exercises.length > 0 && exercises.every((ex) => answers[ex.id] !== undefined);
 
   return (
     <div className="container" style={{ padding: '48px 0', maxWidth: 720 }}>
-      <Link to={`/lessons/${group}`} style={{ color: 'var(--color-blue)', fontWeight: 700 }}>
-        ← Back to lessons
+      <Link to={`/lessons/stage/${stageId}`} style={{ color: 'var(--color-blue)', fontWeight: 700 }}>
+        ← Back to stage
       </Link>
       <h1 className="page-title" style={{ marginTop: 12 }}>
-        Lesson {lesson.lessonNumber}: {lesson.title}
+        Lesson {lesson.orderIndex}: {lesson.title}
       </h1>
       <p style={{ color: '#8ea0b6', marginTop: -8 }}>{lesson.estimatedMinutes} min · {lesson.lessonGoal}</p>
 
-      {/* Step 1: Concept */}
       <div className="card" style={{ marginBottom: 20 }}>
         <span className="badge badge-free">Concept</span>
         <p style={{ fontSize: '1.1rem', marginTop: 12 }}>{content.concept}</p>
@@ -119,14 +105,18 @@ export default function Lesson() {
         )}
       </div>
 
-      {/* Step 2: Arabic Word */}
       <div className="card" style={{ marginBottom: 20, textAlign: 'center' }}>
         <span className="badge badge-free">Arabic Word</span>
         <p className="arabic-text" dir="rtl" style={{ fontSize: '2.5rem', margin: '16px 0 8px' }}>{lesson.arabicWord}</p>
         <p style={{ fontWeight: 700, color: 'var(--color-blue)' }}>{lesson.arabicWordMeaning}</p>
+        {content.secondWord && (
+          <>
+            <p className="arabic-text" dir="rtl" style={{ fontSize: '2rem', margin: '20px 0 8px' }}>{content.secondWord.arabic}</p>
+            <p style={{ fontWeight: 700, color: 'var(--color-blue)' }}>{content.secondWord.translation}</p>
+          </>
+        )}
       </div>
 
-      {/* Step 3: Quranic Connection */}
       <div className="card" style={{ marginBottom: 28, background: 'rgba(200,150,12,0.06)', border: '1px solid rgba(200,150,12,0.25)' }}>
         <span className="badge badge-locked">Quranic Connection</span>
         <p className="arabic-text" dir="rtl" style={{ fontSize: '1.5rem', margin: '14px 0 4px' }}>{content.quranicConnection?.arabic}</p>
@@ -135,49 +125,22 @@ export default function Lesson() {
         {content.quranicConnection?.note && <p style={{ margin: '8px 0 0', color: '#6b7a8a' }}>{content.quranicConnection.note}</p>}
       </div>
 
-      {/* Step 4: Exercises */}
-      {exercises.length > 0 && (
-        <>
-          <h2 style={{ color: 'var(--color-blue)' }}>Practice (3 Exercises)</h2>
-          {exercises.map((ex, i) => (
-            <ExerciseCard
-              key={ex.id}
-              exercise={ex}
-              index={i}
-              selected={answers[ex.id]}
-              onSelect={selectAnswer}
-              result={results?.byExercise[ex.id]}
-            />
-          ))}
+      {error && <p className="error-text">{error}</p>}
 
-          {error && <p className="error-text">{error}</p>}
-
-          {!results ? (
-            <button className="btn btn-primary" disabled={!allAnswered || submitting} onClick={handleSubmit}>
-              {submitting ? 'Checking...' : 'Submit Answers'}
-            </button>
-          ) : (
-            <div className="card" style={{ textAlign: 'center', background: results.completed ? 'rgba(26,122,74,0.08)' : 'rgba(200,150,12,0.08)' }}>
-              <h3 style={{ margin: '0 0 8px' }}>Score: {results.score}%</h3>
-              <p style={{ margin: 0 }}>{results.completed ? '🎉 Great job, lesson completed!' : 'Keep practicing to reach 70%.'}</p>
-              {!results.saved && (
-                <p style={{ margin: '12px 0 0', color: 'var(--color-blue-dark)', fontWeight: 700 }}>
-                  <Link to="/signup" style={{ color: 'var(--color-blue)' }}>Create a free account</Link> to save this score and track your streak.
-                </p>
-              )}
-              <div style={{ display: 'flex', gap: 12, justifyContent: 'center', marginTop: 16, flexWrap: 'wrap' }}>
-                <Link to={`/lessons/${group}`} className="btn btn-outline">
-                  Back to Lesson Hub
-                </Link>
-                {lesson.hasNext && (
-                  <button className="btn btn-primary" onClick={() => navigate(`/lessons/${group}/${lesson.lessonNumber + 1}`)}>
-                    Next Lesson →
-                  </button>
-                )}
-              </div>
-            </div>
-          )}
-        </>
+      {!completed ? (
+        <button className="btn btn-primary" disabled={submitting} onClick={handleMarkComplete}>
+          {submitting ? 'Saving...' : 'Mark Complete'}
+        </button>
+      ) : (
+        <div className="card" style={{ textAlign: 'center', background: 'rgba(26,122,74,0.08)' }}>
+          <h3 style={{ margin: '0 0 8px' }}>🎉 Lesson complete!</h3>
+          <p style={{ margin: 0 }}>
+            {lesson.checkpointDue ? "Time for a quick checkpoint to review what you've learned." : 'Ready for the next lesson?'}
+          </p>
+          <button className="btn btn-primary" style={{ marginTop: 16 }} onClick={handleContinue}>
+            {lesson.checkpointDue ? 'Start Checkpoint →' : 'Next Lesson →'}
+          </button>
+        </div>
       )}
     </div>
   );

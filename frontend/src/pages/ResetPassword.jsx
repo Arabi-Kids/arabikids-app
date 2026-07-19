@@ -73,7 +73,7 @@ export default function ResetPassword() {
         <div className="card auth-card" style={{ textAlign: 'center' }}>
           <h1 className="page-title">Password Updated</h1>
           <p className="page-subtitle" style={{ marginBottom: 20 }}>Your password has been changed successfully.</p>
-          <button className="btn btn-primary" onClick={() => navigate('/lessons/junior')}>
+          <button className="btn btn-primary" onClick={() => navigate('/lessons')}>
             Continue to ArabiKids
           </button>
         </div>

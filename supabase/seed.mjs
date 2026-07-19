@@ -1,14 +1,16 @@
-// Seeds the Supabase project with 45 Junior (ages 3-7, Noorania-Qaida-style phonics)
-// + 45 Explorer (ages 8-17, Madinah Arabic Book 1) lessons = 90 total.
-// 5 free + 40 paid per age group. Every single lesson links its Arabic word/phrase
-// to a real Quranic verse or name, per the "Arabic and Quran taught together" model.
+// ArabiKids v2 seed — one continuous curriculum: 4 Levels x 4 Stages x 8-10
+// Lessons (~150-160 total), each Stage gated by periodic checkpoints (every
+// 3 lessons) plus a final mastery checkpoint that unlocks the next Stage.
 //
-// Ported from the old backend/db/seed.js (mysql2) to @supabase/supabase-js,
-// using the service role key so it bypasses RLS.
-//
-// NOTE: Quranic references/translations here are simplified for a children's curriculum
-// seed and should be reviewed by a qualified Arabic/Islamic studies scholar before
-// production launch.
+// Content strategy (see plan): reuse every item from the old 90-lesson
+// Junior/Explorer seed where it topically matches the new stage map, then
+// fill remaining slots with new lessons built the same way — real Arabic
+// words/phrases tied to a specific, well-known Quranic occurrence. Where new
+// content was needed, it deliberately sticks to extremely well-known material
+// (Al-Fatihah, Al-Ikhlas, An-Nas, Ayat al-Kursi, common Islamic vocabulary)
+// rather than obscure citations, to keep accuracy risk low — but per the
+// original seed's own caveat, ALL of this still needs review by a qualified
+// Arabic/Islamic studies scholar before real users see it.
 //
 // Usage: node supabase/seed.mjs   (reads SUPABASE_URL + SUPABASE_SERVICE_KEY from env)
 
@@ -40,10 +42,41 @@ function pickDistractors(pool, exclude, n) {
 }
 
 // ---------------------------------------------------------------------------
-// JUNIOR (ages 3-7): 28 letters + 5 harakat + 4 colors + 4 numbers + 4 family = 45
+// LEVELS + STAGES
 // ---------------------------------------------------------------------------
 
-const JUNIOR_LETTERS = [
+const LEVELS = [
+  { key: 'beginner', name: 'Beginner', order_index: 1, description: 'Letters & Sounds' },
+  { key: 'elementary', name: 'Elementary', order_index: 2, description: 'Words Take Shape' },
+  { key: 'intermediate', name: 'Intermediate', order_index: 3, description: 'Grammar Foundations' },
+  { key: 'advanced', name: 'Advanced', order_index: 4, description: 'Verbs, Sentences & Application' },
+];
+
+const STAGES = [
+  { key: 'stage1', levelKey: 'beginner', name: 'Letter Shapes I', order_index: 1, min_placement_age: 3, is_free: true },
+  { key: 'stage2', levelKey: 'beginner', name: 'Letter Shapes II & Harakat Intro', order_index: 2, min_placement_age: 3, is_free: false },
+  { key: 'stage3', levelKey: 'beginner', name: 'Harakat Mastery', order_index: 3, min_placement_age: 4, is_free: false },
+  { key: 'stage4', levelKey: 'beginner', name: 'Tanween & Sukoon', order_index: 4, min_placement_age: 4, is_free: false },
+  { key: 'stage5', levelKey: 'elementary', name: 'Connecting Letters & Madd', order_index: 5, min_placement_age: 5, is_free: false },
+  { key: 'stage6', levelKey: 'elementary', name: 'First 3-Letter Words', order_index: 6, min_placement_age: 5, is_free: false },
+  { key: 'stage7', levelKey: 'elementary', name: 'Islamic Vocabulary I', order_index: 7, min_placement_age: 6, is_free: false },
+  { key: 'stage8', levelKey: 'elementary', name: 'Islamic Vocabulary II & Phrases', order_index: 8, min_placement_age: 6, is_free: false },
+  { key: 'stage9', levelKey: 'intermediate', name: 'Nouns & Gender', order_index: 9, min_placement_age: 7, is_free: false },
+  { key: 'stage10', levelKey: 'intermediate', name: 'Demonstratives & Definite Article', order_index: 10, min_placement_age: 7, is_free: false },
+  { key: 'stage11', levelKey: 'intermediate', name: 'Prepositions & Location', order_index: 11, min_placement_age: 8, is_free: false },
+  { key: 'stage12', levelKey: 'intermediate', name: 'Questions & Possession (Idafa)', order_index: 12, min_placement_age: 8, is_free: false },
+  { key: 'stage13', levelKey: 'advanced', name: 'Pronouns & Past Tense Verbs', order_index: 13, min_placement_age: 9, is_free: false },
+  { key: 'stage14', levelKey: 'advanced', name: 'Present Tense & Plurals', order_index: 14, min_placement_age: 9, is_free: false },
+  { key: 'stage15', levelKey: 'advanced', name: 'Complex Sentences & Quranic Patterns', order_index: 15, min_placement_age: 10, is_free: false },
+  { key: 'stage16', levelKey: 'advanced', name: 'Fluency & Quranic Application (Capstone)', order_index: 16, min_placement_age: 10, is_free: false },
+];
+
+// ---------------------------------------------------------------------------
+// SHARED LETTER DATA — [letter, name, quranicWord, meaning, reference]
+// (ported from the v1 seed's JUNIOR_LETTERS, used for Stages 1-2)
+// ---------------------------------------------------------------------------
+
+const LETTERS = [
   ['ا', 'alif', 'اللّٰه', 'Allah', 'used throughout the Quran'],
   ['ب', 'baa', 'بِسْمِ', 'in the name of', 'Surah Al-Fatihah 1:1'],
   ['ت', 'taa', 'تَبَارَكَ', 'blessed is He', 'Surah Al-Mulk 67:1'],
@@ -74,7 +107,7 @@ const JUNIOR_LETTERS = [
   ['ي', 'yaa', 'يَوْم', 'day', 'Surah Al-Fatihah 1:4'],
 ];
 
-const JUNIOR_HARAKAT = [
+const HARAKAT = [
   ['فَتْحَة (Fatha)', 'a short "a" sound, as in the بَ of تَبَارَكَ', 'بَ', 'the "ba" sound', 'Surah Al-Mulk 67:1'],
   ['كَسْرَة (Kasra)', 'a short "i" sound, as in the بِ of بِسْمِ', 'بِ', 'the "bi" sound', 'Surah Al-Fatihah 1:1'],
   ['ضَمَّة (Damma)', 'a short "u" sound, as in the هُ of هُدَى', 'هُ', 'the "hu" sound', 'Surah Al-Fatihah 1:6'],
@@ -82,382 +115,457 @@ const JUNIOR_HARAKAT = [
   ['شَدَّة وسُكُون (Shaddah & Sukoon)', 'a doubled letter and a silent letter, as in اللّٰه', 'اللّٰه', 'Allah', 'used throughout the Quran'],
 ];
 
-const JUNIOR_COLORS = [
-  ['Yellow', 'أَصْفَر', 'yellow', 'Surah Al-Baqarah 2:69, describing a bright yellow cow'],
-  ['White', 'أَبْيَض', 'white', 'Surah Fatir 35:27, describing white mountain streaks'],
-  ['Green', 'أَخْضَر', 'green', 'Surah Al-Insan 76:21, the green garments of Paradise'],
-  ['Black', 'أَسْوَد', 'black', 'Surah Fatir 35:27, describing black mountain streaks'],
-];
+// ---------------------------------------------------------------------------
+// Generic helpers: turn a flat list of content items into lessons + stage
+// checkpoints (periodic every 3 lessons, final one always is_mastery).
+// ---------------------------------------------------------------------------
 
-const JUNIOR_NUMBERS = [
-  ['Numbers 1-3', 'وَاحِد', 'one', 'Surah Al-Ikhlas 112:1, "Qul huwa Allahu ahad"'],
-  ['Numbers 4-6', 'سِتَّة', 'six', "Surah Al-A'raf 7:54, heavens and earth in six days"],
-  ['Numbers 7-9', 'سَبْع', 'seven', 'Surah Al-Hijr 15:87, "the seven oft-repeated verses"'],
-  ['Number 10', 'عَشْر', 'ten', 'Surah Al-Fajr 89:2, "by the ten nights"'],
-];
-
-const JUNIOR_FAMILY = [
-  ['Father', 'أَب', 'father', 'Surah Yusuf 12:4, Yusuf speaking to his father'],
-  ['Mother', 'أُمّ', 'mother', 'Surah Al-Qasas 28:7, the mother of Musa'],
-  ['Son / Child', 'اِبْن', 'son', 'Surah Maryam 19:34, "Isa, the son of Maryam"'],
-  ['Brother', 'أَخ', 'brother', 'Surah Yusuf 12:8, the brothers of Yusuf'],
-];
-
-const JUNIOR_ALL_MEANINGS = [
-  ...JUNIOR_LETTERS.map((l) => l[3]),
-  ...JUNIOR_COLORS.map((c) => c[2]),
-  ...JUNIOR_NUMBERS.map((n) => n[2]),
-  ...JUNIOR_FAMILY.map((f) => f[2]),
-];
-const JUNIOR_ALL_REFERENCES = [
-  ...JUNIOR_LETTERS.map((l) => l[4]),
-  ...JUNIOR_HARAKAT.map((h) => h[4]),
-  ...JUNIOR_COLORS.map((c) => c[3]),
-  ...JUNIOR_NUMBERS.map((n) => n[3]),
-  ...JUNIOR_FAMILY.map((f) => f[3]),
-];
-
-function juniorExercises({ conceptLabel, conceptPool, arabicWord, meaning, reference }) {
-  return [
-    {
-      title: 'Word Meaning',
-      instruction: `What does "${arabicWord}" mean?`,
-      options: shuffle([meaning, ...pickDistractors(JUNIOR_ALL_MEANINGS, meaning, 3)]),
-      correct_answer: meaning,
-      explanation: `"${arabicWord}" means "${meaning}".`,
-    },
-    {
-      title: 'Concept Check',
-      instruction: `This lesson is about:`,
-      options: shuffle([conceptLabel, ...pickDistractors(conceptPool, conceptLabel, 3)]),
-      correct_answer: conceptLabel,
-      explanation: `This lesson teaches: ${conceptLabel}.`,
-    },
-    {
-      title: 'Quran Connection',
-      instruction: `Where do we find "${arabicWord}" connected to the Quran?`,
-      options: shuffle([reference, ...pickDistractors(JUNIOR_ALL_REFERENCES, reference, 3)]),
-      correct_answer: reference,
-      explanation: `"${arabicWord}" connects to ${reference}.`,
-    },
-  ];
+function itemsAllMeanings(items) {
+  return items.map((it) => it.meaning);
+}
+function itemsAllReferences(items) {
+  return items.map((it) => it.reference);
 }
 
-function buildJuniorLessons() {
-  const lessons = [];
-  let num = 0;
-  const letterLabels = JUNIOR_LETTERS.map(([letter]) => letter);
-
-  JUNIOR_LETTERS.forEach(([letter, name, word, meaning, reference]) => {
-    num += 1;
-    lessons.push({
-      age_group: 'junior',
-      lesson_number: num,
-      title: `Letter ${letter} (${name})`,
-      lesson_goal: `Recognise the letter ${letter} and see it inside a real Quranic word.`,
-      arabic_word: word,
-      arabic_word_meaning: meaning,
-      is_free: num <= 5,
-      estimated_minutes: 8,
-      content: {
-        type: 'letter',
-        concept: `Learn to recognise, sound out and write the letter ${letter} (${name}).`,
-        letter,
-        transliteration: name,
-        quranicConnection: { arabic: word, translation: meaning, reference, note: `"${word}" (${meaning}) is found in ${reference}.` },
+function buildLessons(stageKey, items, { minutes = 8 } = {}) {
+  return items.map((item, i) => ({
+    stageKey,
+    order_index: i + 1,
+    title: item.title,
+    lesson_goal: item.goal,
+    arabic_word: item.arabicWord,
+    arabic_word_meaning: item.meaning,
+    estimated_minutes: minutes,
+    content: {
+      type: item.type || 'vocabulary',
+      concept: item.concept,
+      ...(item.extra || {}),
+      quranicConnection: {
+        arabic: item.arabicWord,
+        translation: item.meaning,
+        reference: item.reference,
+        note: `"${item.arabicWord}" (${item.meaning}) is found in ${item.reference}.`,
       },
-      exercises: juniorExercises({ conceptLabel: letter, conceptPool: letterLabels, arabicWord: word, meaning, reference }),
-    });
-  });
+    },
+  }));
+}
 
-  const harakatLabels = JUNIOR_HARAKAT.map(([title]) => title);
-  JUNIOR_HARAKAT.forEach(([title, desc, word, meaning, reference]) => {
-    num += 1;
-    lessons.push({
-      age_group: 'junior',
-      lesson_number: num,
-      title,
-      lesson_goal: `Learn the ${title.split(' ')[0]} vowel mark and hear it in a Quranic word.`,
-      arabic_word: word,
-      arabic_word_meaning: meaning,
-      is_free: num <= 5,
-      estimated_minutes: 8,
-      content: {
-        type: 'harakat',
-        concept: desc,
-        quranicConnection: { arabic: word, translation: meaning, reference, note: `Hear this vowel mark in "${word}" from ${reference}.` },
+function checkpointBoundaries(lessonCount) {
+  const bounds = [];
+  for (let after = 3; after < lessonCount; after += 3) bounds.push(after);
+  bounds.push(lessonCount);
+  return bounds;
+}
+
+// Builds the stage's checkpoints (periodic + final mastery), each with 3
+// questions (word meaning / concept check / Quran connection) drawn from the
+// lessons that checkpoint covers.
+function buildStageCheckpoints(items) {
+  const meaningPool = itemsAllMeanings(items);
+  const referencePool = itemsAllReferences(items);
+  const conceptPool = items.map((it) => it.title);
+  const bounds = checkpointBoundaries(items.length);
+
+  let prevBound = 0;
+  return bounds.map((bound, ci) => {
+    const covered = items.slice(prevBound, bound);
+    prevBound = bound;
+    const pick = (i) => covered[i % covered.length];
+
+    const a = pick(0);
+    const b = pick(1);
+    const c = pick(2);
+
+    const questions = [
+      {
+        question_number: 1,
+        title: 'Word Meaning',
+        instruction: `What does "${a.arabicWord}" mean?`,
+        options: shuffle([a.meaning, ...pickDistractors(meaningPool, a.meaning, 3)]),
+        correct_answer: a.meaning,
+        explanation: `"${a.arabicWord}" means "${a.meaning}".`,
       },
-      exercises: juniorExercises({ conceptLabel: title, conceptPool: harakatLabels, arabicWord: word, meaning, reference }),
-    });
-  });
-
-  const colorLabels = JUNIOR_COLORS.map(([label]) => label);
-  JUNIOR_COLORS.forEach(([label, word, meaning, reference]) => {
-    num += 1;
-    lessons.push({
-      age_group: 'junior',
-      lesson_number: num,
-      title: `Colour: ${label}`,
-      lesson_goal: `Learn the colour ${label.toLowerCase()} and where it appears in the Quran.`,
-      arabic_word: word,
-      arabic_word_meaning: meaning,
-      is_free: num <= 5,
-      estimated_minutes: 8,
-      content: {
-        type: 'color',
-        concept: `The Arabic word for ${label.toLowerCase()} is ${word}.`,
-        quranicConnection: { arabic: word, translation: meaning, reference, note: `${reference}.` },
+      {
+        question_number: 2,
+        title: 'Concept Check',
+        instruction: `Which lesson covered "${b.arabicWord}"?`,
+        options: shuffle([b.title, ...pickDistractors(conceptPool, b.title, 3)]),
+        correct_answer: b.title,
+        explanation: `"${b.arabicWord}" was taught in "${b.title}".`,
       },
-      exercises: juniorExercises({ conceptLabel: label, conceptPool: colorLabels, arabicWord: word, meaning, reference }),
-    });
-  });
-
-  const numberLabels = JUNIOR_NUMBERS.map(([label]) => label);
-  JUNIOR_NUMBERS.forEach(([label, word, meaning, reference]) => {
-    num += 1;
-    lessons.push({
-      age_group: 'junior',
-      lesson_number: num,
-      title: label,
-      lesson_goal: `Learn ${label.toLowerCase()} and how numbers appear in the Quran.`,
-      arabic_word: word,
-      arabic_word_meaning: meaning,
-      is_free: num <= 5,
-      estimated_minutes: 8,
-      content: {
-        type: 'number',
-        concept: `${label}: focus word ${word} ("${meaning}").`,
-        quranicConnection: { arabic: word, translation: meaning, reference, note: `${reference}.` },
+      {
+        question_number: 3,
+        title: 'Quran Connection',
+        instruction: `Where is "${c.arabicWord}" found in the Quran?`,
+        options: shuffle([c.reference, ...pickDistractors(referencePool, c.reference, 3)]),
+        correct_answer: c.reference,
+        explanation: `"${c.arabicWord}" (${c.meaning}) is found in ${c.reference}.`,
       },
-      exercises: juniorExercises({ conceptLabel: label, conceptPool: numberLabels, arabicWord: word, meaning, reference }),
-    });
-  });
+    ];
 
-  const familyLabels = JUNIOR_FAMILY.map(([label]) => label);
-  JUNIOR_FAMILY.forEach(([label, word, meaning, reference]) => {
-    num += 1;
-    lessons.push({
-      age_group: 'junior',
-      lesson_number: num,
-      title: `Family: ${label}`,
-      lesson_goal: `Learn the word for "${label.toLowerCase()}" and meet this word in the Quran.`,
-      arabic_word: word,
-      arabic_word_meaning: meaning,
-      is_free: num <= 5,
-      estimated_minutes: 8,
-      content: {
-        type: 'family',
-        concept: `The Arabic word for ${label.toLowerCase()} is ${word}.`,
-        quranicConnection: { arabic: word, translation: meaning, reference, note: `${reference}.` },
-      },
-      exercises: juniorExercises({ conceptLabel: label, conceptPool: familyLabels, arabicWord: word, meaning, reference }),
-    });
+    return { checkpoint_order: ci + 1, is_mastery: bound === items.length, questions };
   });
-
-  return lessons;
 }
 
 // ---------------------------------------------------------------------------
-// EXPLORER (ages 8-17): 10 vocab + 25 grammar/conjugation + 10 Quran reading = 45
+// STAGE CONTENT
 // ---------------------------------------------------------------------------
 
-const EXPLORER_VOCAB = [
-  ['Family', 'أَب', 'father', 'Surah Yusuf 12:4'],
-  ['Colours', 'أَصْفَر', 'yellow', 'Surah Al-Baqarah 2:69'],
-  ['Animals', 'نَمْلَة', 'ant', 'Surah An-Naml 27:18'],
-  ['Numbers', 'سَبْع', 'seven', 'Surah Al-Hijr 15:87'],
-  ['Greetings', 'سَلَام', 'peace', "Surah Al-An'am 6:54"],
-  ['Body Parts', 'قَلْب', 'heart', "Surah Ash-Shu'ara 26:89"],
-  ['Food', 'عَسَل', 'honey', 'Surah An-Nahl 16:69'],
-  ['Nature & Weather', 'رِيح', 'wind', 'Surah Ar-Rum 30:46'],
-  ['Home', 'بَيْت', "house (the Ka'bah)", 'Surah Al-Baqarah 2:125'],
-  ['Time', 'يَوْم', 'day', 'Surah Al-Fatihah 1:4'],
-];
-
-const EXPLORER_GRAMMAR = [
-  ['Nouns and the definite article (ال)', 'الْحَمْدُ', 'the praise', 'Surah Al-Fatihah 1:2'],
-  ['Gender: masculine and feminine nouns', 'مُسْلِمَة', 'a Muslim woman', 'Surah Al-Ahzab 33:35'],
-  ['Singular, dual and plural', 'السَّمَاوَات', 'the heavens (plural)', 'Surah Al-Baqarah 2:29'],
-  ['Demonstrative pronouns (هذا / ذلك)', 'ذَٰلِكَ الْكِتَابُ', 'that is the Book', 'Surah Al-Baqarah 2:2'],
-  ['The idaafah (possessive) construction', 'رَبِّ الْعَالَمِينَ', 'Lord of the worlds', 'Surah Al-Fatihah 1:2'],
-  ['Personal pronouns (أنا، أنت، هو، هي)', 'إِيَّاكَ نَعْبُدُ', 'You alone we worship', 'Surah Al-Fatihah 1:5'],
-  ['Simple nominal sentences (الجملة الاسمية)', 'اللَّهُ نُورُ السَّمَاوَاتِ', 'Allah is the Light of the heavens', 'Surah An-Nur 24:35'],
-  ['Prepositions of place (في، على)', 'فِي قُلُوبِهِم', 'in their hearts', 'Surah Al-Baqarah 2:10'],
-  ['Question words (من، ما، أين)', 'مَن ذَا الَّذِي', 'who is the one who', 'Surah Al-Baqarah 2:255'],
-  ['Simple verbal sentences (الجملة الفعلية)', 'خَلَقَ السَّمَاوَاتِ', 'He created the heavens', 'Surah Al-Anbya 21:30'],
-  ['Verb conjugation: past tense (هو/هي)', 'خَلَقَ', 'he created', "Surah Al-A'raf 7:189"],
-  ['Verb conjugation: past tense (أنا/نحن)', 'خَلَقْنَا', 'We created', 'Surah Al-Insan 76:2'],
-  ['Verb conjugation: present tense (هو/هي)', 'يَعْلَمُ', 'he knows', 'Surah Al-Hadid 57:4'],
-  ['Verb conjugation: present tense (أنا/نحن)', 'نَعْبُدُ', 'we worship', 'Surah Al-Fatihah 1:5'],
-  ['The imperative (command) form', 'اقْرَأْ', 'Read!', 'Surah Al-Alaq 96:1'],
-  ['Adjectives and noun-adjective agreement', 'الرَّحْمَٰنِ الرَّحِيمِ', 'the Most Merciful, the Especially Merciful', 'Surah Al-Fatihah 1:3'],
-  ['Numbers 11-20', 'عَشْرٌ كَامِلَة', 'ten complete', 'Surah Al-Baqarah 2:196'],
-  ['Days of the week', 'يَوْمَ الْجُمُعَةِ', 'the day of Friday', "Surah Al-Jumu'ah 62:9"],
-  ['Months and the Islamic calendar', 'شَهْرُ رَمَضَان', 'the month of Ramadan', 'Surah Al-Baqarah 2:185'],
-  ['Telling the time', 'السَّاعَة', 'the Hour', 'Surah Al-Qamar 54:1'],
-  ['Connecting sentences with و and ف', 'وَالْعَصْرِ', 'by time / the age', 'Surah Al-Asr 103:1'],
-  ['Sun letters and moon letters', 'الشَّمْس / الْقَمَر', 'the sun / the moon', 'Surah Ash-Shams 91:1, Surah Al-Qamar 54:1'],
-  ['The broken plural (جمع التكسير)', 'أَنْبِيَاء', 'prophets (plural)', 'Surah An-Nisa 4:69'],
-  ['Attached pronouns (ي، ك، ه)', 'رَبِّي / رَبُّكَ', 'my Lord / your Lord', 'used throughout the Quran'],
-  ['Question formation with هل and أ', 'هَلْ أَتَاكَ', 'has there come to you', 'Surah Al-Ghashiyah 88:1'],
-];
-
-const EXPLORER_READING = [
-  ['Al-Fatihah, Ayah 1', 'بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ', 'In the name of Allah, the Most Gracious, the Most Merciful.', 'Surah Al-Fatihah 1:1'],
-  ['Al-Fatihah, Ayah 2', 'الْحَمْدُ لِلَّهِ رَبِّ الْعَالَمِينَ', 'All praise is due to Allah, Lord of the worlds.', 'Surah Al-Fatihah 1:2'],
-  ['Al-Fatihah, Ayah 3', 'الرَّحْمَٰنِ الرَّحِيمِ', 'The Most Gracious, the Most Merciful.', 'Surah Al-Fatihah 1:3'],
-  ['Al-Fatihah, Ayah 4', 'مَالِكِ يَوْمِ الدِّينِ', 'Master of the Day of Judgement.', 'Surah Al-Fatihah 1:4'],
-  ['Al-Fatihah, Ayah 5', 'إِيَّاكَ نَعْبُدُ وَإِيَّاكَ نَسْتَعِينُ', 'You alone we worship, and You alone we ask for help.', 'Surah Al-Fatihah 1:5'],
-  ['Al-Fatihah, Ayah 6', 'اهْدِنَا الصِّرَاطَ الْمُسْتَقِيمَ', 'Guide us to the straight path.', 'Surah Al-Fatihah 1:6'],
-  ['Al-Fatihah, Ayah 7', 'صِرَاطَ الَّذِينَ أَنْعَمْتَ عَلَيْهِمْ', 'The path of those You have blessed.', 'Surah Al-Fatihah 1:7'],
-  ['Al-Ikhlas, Ayah 1-2', 'قُلْ هُوَ اللَّهُ أَحَدٌ ۝ اللَّهُ الصَّمَدُ', 'Say: He is Allah, One. Allah, the Eternal Refuge.', 'Surah Al-Ikhlas 112:1-2'],
-  ['Al-Ikhlas, Ayah 3-4', 'لَمْ يَلِدْ وَلَمْ يُولَدْ ۝ وَلَمْ يَكُنْ لَهُ كُفُوًا أَحَدٌ', 'He neither begets nor is born, nor is there any equivalent to Him.', 'Surah Al-Ikhlas 112:3-4'],
-  ['An-Nas, Ayah 1', 'قُلْ أَعُوذُ بِرَبِّ النَّاسِ', 'Say: I seek refuge in the Lord of mankind.', 'Surah An-Nas 114:1'],
-];
-
-const EXPLORER_ALL_MEANINGS = [...EXPLORER_VOCAB.map((v) => v[2]), ...EXPLORER_GRAMMAR.map((g) => g[2])];
-const EXPLORER_ALL_REFERENCES = [
-  ...EXPLORER_VOCAB.map((v) => v[3]),
-  ...EXPLORER_GRAMMAR.map((g) => g[3]),
-  ...EXPLORER_READING.map((r) => r[3]),
-];
-
-function explorerExercises({ conceptLabel, conceptPool, arabicWord, meaning, reference }) {
-  return [
-    {
-      title: 'Word / Phrase Meaning',
-      instruction: `What does "${arabicWord}" mean?`,
-      options: shuffle([meaning, ...pickDistractors(EXPLORER_ALL_MEANINGS, meaning, 3)]),
-      correct_answer: meaning,
-      explanation: `"${arabicWord}" means "${meaning}".`,
+function letterPairItem([l1, n1, w1, m1, r1], [l2, n2, w2, m2, r2]) {
+  return {
+    title: `Letters ${l1} & ${l2} (${n1}, ${n2})`,
+    goal: `Recognise ${l1} and ${l2}, and meet them inside real Quranic words.`,
+    arabicWord: w1,
+    meaning: m1,
+    reference: r1,
+    type: 'letter-pair',
+    concept: `Learn to recognise, sound out and write the letters ${l1} (${n1}) and ${l2} (${n2}).`,
+    extra: {
+      letters: [l1, l2],
+      secondWord: { arabic: w2, translation: m2, reference: r2 },
     },
-    {
-      title: 'Concept Check',
-      instruction: `This lesson mainly teaches:`,
-      options: shuffle([conceptLabel, ...pickDistractors(conceptPool, conceptLabel, 3)]),
-      correct_answer: conceptLabel,
-      explanation: `This lesson focuses on: ${conceptLabel}.`,
-    },
-    {
-      title: 'Quran Connection',
-      instruction: `Where is "${arabicWord}" found in the Quran?`,
-      options: shuffle([reference, ...pickDistractors(EXPLORER_ALL_REFERENCES, reference, 3)]),
-      correct_answer: reference,
-      explanation: `"${arabicWord}" (${meaning}) is found in ${reference}.`,
-    },
-  ];
+  };
 }
 
-function buildExplorerLessons() {
-  const lessons = [];
-  let num = 0;
-
-  const vocabLabels = EXPLORER_VOCAB.map(([theme]) => theme);
-  EXPLORER_VOCAB.forEach(([theme, word, meaning, reference]) => {
-    num += 1;
-    lessons.push({
-      age_group: 'explorer',
-      lesson_number: num,
-      title: `Vocabulary: ${theme}`,
-      lesson_goal: `Build vocabulary around ${theme.toLowerCase()} and see it used in the Quran.`,
-      arabic_word: word,
-      arabic_word_meaning: meaning,
-      is_free: num <= 5,
-      estimated_minutes: 12,
-      content: {
-        type: 'vocabulary',
-        concept: `Key word for ${theme}: ${word} ("${meaning}").`,
-        quranicConnection: { arabic: word, translation: meaning, reference, note: `${reference}.` },
-      },
-      exercises: explorerExercises({ conceptLabel: theme, conceptPool: vocabLabels, arabicWord: word, meaning, reference }),
-    });
-  });
-
-  const grammarLabels = EXPLORER_GRAMMAR.map(([topic]) => topic);
-  EXPLORER_GRAMMAR.forEach(([topic, phrase, meaning, reference]) => {
-    num += 1;
-    lessons.push({
-      age_group: 'explorer',
-      lesson_number: num,
-      title: topic,
-      lesson_goal: `Understand ${topic.toLowerCase()} and see it in a real Quranic phrase.`,
-      arabic_word: phrase,
-      arabic_word_meaning: meaning,
-      is_free: num <= 5,
-      estimated_minutes: 15,
-      content: {
-        type: 'grammar',
-        concept: `Grammar focus: ${topic}. Example from the Quran: ${phrase} ("${meaning}").`,
-        quranicConnection: { arabic: phrase, translation: meaning, reference, note: `${reference}.` },
-      },
-      exercises: explorerExercises({ conceptLabel: topic, conceptPool: grammarLabels, arabicWord: phrase, meaning, reference }),
-    });
-  });
-
-  const readingLabels = EXPLORER_READING.map(([title]) => title);
-  EXPLORER_READING.forEach(([title, passage, translation, reference]) => {
-    num += 1;
-    lessons.push({
-      age_group: 'explorer',
-      lesson_number: num,
-      title: `Reading: ${title}`,
-      lesson_goal: `Read ${title} word by word and understand its meaning.`,
-      arabic_word: passage,
-      arabic_word_meaning: translation,
-      is_free: num <= 5,
-      estimated_minutes: 15,
-      content: {
-        type: 'reading',
-        concept: 'Read the verse below word by word, then check your understanding.',
-        passage,
-        translation,
-        quranicConnection: { arabic: passage, translation, reference, note: `${reference}.` },
-      },
-      exercises: explorerExercises({ conceptLabel: title, conceptPool: readingLabels, arabicWord: passage, meaning: translation, reference }),
-    });
-  });
-
-  return lessons;
+function harakatItem([title, desc, word, meaning, reference]) {
+  return {
+    title,
+    goal: `Learn the ${title.split(' ')[0]} vowel mark and hear it in a Quranic word.`,
+    arabicWord: word,
+    meaning,
+    reference,
+    type: 'harakat',
+    concept: desc,
+  };
 }
+
+function practiceItem([, , word, meaning, reference], harakatLabel) {
+  return {
+    title: `Practice: ${harakatLabel} in "${word}"`,
+    goal: `Spot the ${harakatLabel} mark inside a word you've already learned.`,
+    arabicWord: word,
+    meaning,
+    reference,
+    type: 'harakat-practice',
+    concept: `Look for the ${harakatLabel} mark in "${word}" ("${meaning}") and sound it out.`,
+  };
+}
+
+// --- Stage 1: Letter Shapes I (8 lessons = 8 letter-pairs = letters 1-16) ---
+const stage1Items = [];
+for (let i = 0; i < 16; i += 2) stage1Items.push(letterPairItem(LETTERS[i], LETTERS[i + 1]));
+
+// --- Stage 2: Letter Shapes II & Harakat Intro (6 pairs = letters 17-28, + Fatha + Kasra) ---
+const stage2Items = [];
+for (let i = 16; i < 28; i += 2) stage2Items.push(letterPairItem(LETTERS[i], LETTERS[i + 1]));
+stage2Items.push(harakatItem(HARAKAT[0])); // Fatha
+stage2Items.push(harakatItem(HARAKAT[1])); // Kasra
+
+// --- Stage 3: Harakat Mastery (Damma + 7 practice, reusing earlier letters) ---
+const stage3Items = [
+  harakatItem(HARAKAT[2]), // Damma
+  practiceItem(LETTERS[1], 'Fatha'), // baa -> Bismi
+  practiceItem(LETTERS[2], 'Fatha'), // taa -> Tabaraka
+  practiceItem(LETTERS[5], 'Fatha'), // haa -> Hamd
+  practiceItem(LETTERS[9], 'Fatha'), // raa -> Rahman
+  practiceItem(LETTERS[25], 'Damma'), // haa-light -> Huda
+  practiceItem(LETTERS[24], 'Damma'), // noon -> Nur
+  practiceItem(LETTERS[7], 'Kasra'), // daal -> Deen
+];
+
+// --- Stage 4: Tanween & Sukoon (Tanween + Shaddah/Sukoon + 6 practice) ---
+const stage4Items = [
+  harakatItem(HARAKAT[3]), // Tanween
+  harakatItem(HARAKAT[4]), // Shaddah & Sukoon
+  practiceItem(LETTERS[3], 'Sukoon'), // thaa -> Thabat
+  practiceItem(LETTERS[10], 'Tanween'), // zaay -> Zakat
+  practiceItem(LETTERS[13], 'Sukoon'), // saad -> Sirat
+  practiceItem(LETTERS[18], 'Tanween'), // ghayn -> Ghafoor
+  practiceItem(LETTERS[20], 'Sukoon'), // qaaf -> Quran
+  practiceItem(LETTERS[22], 'Sukoon'), // laam -> Lutf
+];
+
+// --- Stage 5: Connecting Letters & Madd (8 lessons) ---
+function simpleItem(title, goal, arabicWord, meaning, reference, type = 'vocabulary', concept) {
+  return { title, goal, arabicWord, meaning, reference, type, concept: concept || `${title}: focus word ${arabicWord} ("${meaning}").` };
+}
+const stage5Items = [
+  simpleItem('Father', 'Read the connected word for "father".', 'أَب', 'father', 'Surah Yusuf 12:4, Yusuf speaking to his father'),
+  simpleItem('Mother', 'Read the connected word for "mother".', 'أُمّ', 'mother', 'Surah Al-Qasas 28:7, the mother of Musa'),
+  simpleItem('Son / Child', 'Read the connected word for "son".', 'اِبْن', 'son', 'Surah Maryam 19:34, "Isa, the son of Maryam"'),
+  simpleItem('Brother', 'Read the connected word for "brother".', 'أَخ', 'brother', 'Surah Yusuf 12:8, the brothers of Yusuf'),
+  simpleItem('Madd: He Said', 'Hear the long "aa" (madd) sound in a common Quranic verb.', 'قَالَ', 'he said', 'used throughout the Quran to introduce speech', 'madd'),
+  simpleItem('Madd: He Came', 'Hear the long "aa" (madd) sound in another common verb.', 'جَاءَ', 'he came', 'used throughout the Quran', 'madd'),
+  simpleItem('Madd: Book', 'Hear the long "ee" (madd) sound in a word you already know.', 'كِتَاب', 'book', 'often refers to the Quran', 'madd'),
+  simpleItem('Madd: Light', 'Hear the long "oo" (madd) sound in a word you already know.', 'نُور', 'light', 'Surah An-Nur 24:35', 'madd'),
+];
+
+// --- Stage 6: First 3-Letter Words (10 lessons: colours + numbers + shapes) ---
+const stage6Items = [
+  simpleItem('Colour: Yellow', 'Learn the colour yellow.', 'أَصْفَر', 'yellow', 'Surah Al-Baqarah 2:69, describing a bright yellow cow', 'color'),
+  simpleItem('Colour: White', 'Learn the colour white.', 'أَبْيَض', 'white', 'Surah Fatir 35:27, describing white mountain streaks', 'color'),
+  simpleItem('Colour: Green', 'Learn the colour green.', 'أَخْضَر', 'green', 'Surah Al-Insan 76:21, the green garments of Paradise', 'color'),
+  simpleItem('Colour: Black', 'Learn the colour black.', 'أَسْوَد', 'black', 'Surah Fatir 35:27, describing black mountain streaks', 'color'),
+  simpleItem('Numbers 1-3', 'Learn one, two, three and their Quranic connection.', 'وَاحِد', 'one', 'Surah Al-Ikhlas 112:1, "Qul huwa Allahu ahad"', 'number'),
+  simpleItem('Numbers 4-6', 'Learn four, five, six and their Quranic connection.', 'سِتَّة', 'six', "Surah Al-A'raf 7:54, heavens and earth in six days", 'number'),
+  simpleItem('Numbers 7-9', 'Learn seven, eight, nine and their Quranic connection.', 'سَبْع', 'seven', 'Surah Al-Hijr 15:87, "the seven oft-repeated verses"', 'number'),
+  simpleItem('Number 10', 'Learn ten and its Quranic connection.', 'عَشْر', 'ten', 'Surah Al-Fajr 89:2, "by the ten nights"', 'number'),
+  simpleItem('Shape: Circle', 'Learn the word for circle.', 'دَائِرَة', 'circle', 'a shape seen throughout Allah’s creation', 'shape'),
+  simpleItem('Shape: Crescent', 'Learn the word for crescent moon.', 'هِلَال', 'crescent moon', 'a symbol used to mark Islamic months', 'shape'),
+];
+
+// --- Stage 7: Islamic Vocabulary I (10 lessons) ---
+const stage7Items = [
+  simpleItem('Allah', 'The name of God in Islam.', 'اللّٰه', 'Allah', 'used throughout the Quran'),
+  simpleItem('Rabb', 'A name meaning "Lord" or "Sustainer".', 'رَبّ', 'Lord', 'Surah Al-Fatihah 1:2, "Rabbil-’alameen"'),
+  simpleItem('Salah', 'The Arabic word for the ritual prayer.', 'صَلَاة', 'prayer', 'Surah Al-Baqarah 2:3, "those who establish prayer"'),
+  simpleItem('Quran', 'The final revelation, recited by Muslims worldwide.', 'قُرْآن', 'the recitation', 'the final revelation'),
+  simpleItem('Nabi', 'The Arabic word for a Prophet.', 'نَبِيّ', 'Prophet', 'used throughout the Quran for Allah’s messengers'),
+  simpleItem('Malak', 'The Arabic word for Angel.', 'مَلَك', 'angel', 'Surah Al-Baqarah 2:30, angels mentioned to Adam’s creation'),
+  simpleItem('Rasul', 'The Arabic word for Messenger.', 'رَسُول', 'messenger', 'used throughout the Quran for Prophets sent with a message'),
+  simpleItem('Ummah', 'The Arabic word for community or nation.', 'أُمَّة', 'community', 'Surah Al-Baqarah 2:143, "a middle nation"'),
+  simpleItem('Iman', 'The Arabic word for faith or belief.', 'إِيمَان', 'faith', 'Surah Al-Hujurat 49:14, discussing faith entering the heart'),
+  simpleItem('Islam', 'The Arabic word meaning submission to Allah.', 'إِسْلَام', 'submission (to Allah)', 'Surah Aal-E-Imran 3:19, "the religion in the sight of Allah is Islam"'),
+];
+
+// --- Stage 8: Islamic Vocabulary II & Phrases (10 lessons) ---
+const stage8Items = [
+  simpleItem('Bismillah', 'The phrase said before starting any good action.', 'بِسْمِ اللَّهِ', 'in the name of Allah', 'Surah Al-Fatihah 1:1', 'phrase'),
+  simpleItem('Alhamdulillah', 'The phrase of praise and thanks to Allah.', 'الْحَمْدُ لِلَّه', 'all praise is due to Allah', 'Surah Al-Fatihah 1:2', 'phrase'),
+  simpleItem('Subhanallah', 'The phrase said to glorify Allah.', 'سُبْحَانَ اللَّه', 'glory be to Allah', 'used throughout the Quran to declare Allah’s perfection', 'phrase'),
+  simpleItem('Astaghfirullah', 'The phrase said to ask Allah’s forgiveness.', 'أَسْتَغْفِرُ اللَّه', 'I seek Allah’s forgiveness', 'a phrase rooted in the Quran’s calls to seek forgiveness', 'phrase'),
+  simpleItem('InshaAllah', 'The phrase said when speaking of the future.', 'إِنْ شَاءَ اللَّه', 'if Allah wills', 'Surah Al-Kahf 18:23-24, commanding this phrase for future plans', 'phrase'),
+  simpleItem('MashaAllah', 'The phrase said when admiring something good.', 'مَا شَاءَ اللَّه', 'what Allah has willed', 'Surah Al-Kahf 18:39', 'phrase'),
+  simpleItem('Assalamu Alaykum', 'The Islamic greeting of peace.', 'اَلسَّلَامُ عَلَيْكُم', 'peace be upon you', 'Surah An-Nisa 4:86, the command to return greetings well', 'phrase'),
+  simpleItem('La ilaha illallah', 'The first half of the declaration of faith.', 'لَا إِلَٰهَ إِلَّا اللَّه', 'there is no god but Allah', 'Surah As-Saffat 37:35', 'phrase'),
+  simpleItem('Allahu Akbar', 'The phrase declaring Allah is greatest, said in prayer.', 'اللَّهُ أَكْبَر', 'Allah is greatest', 'said throughout the five daily prayers', 'phrase'),
+  simpleItem('Surah Al-Ikhlas, Ayah 1', 'Read the opening of a short, well-known surah.', 'قُلْ هُوَ اللَّهُ أَحَدٌ', 'Say: He is Allah, One', 'Surah Al-Ikhlas 112:1', 'reading'),
+];
+
+// --- Stage 9: Nouns & Gender (10 lessons) ---
+const stage9Items = [
+  simpleItem('The definite article (ال)', 'Learn how "the" attaches to the front of a noun.', 'الْحَمْدُ', 'the praise', 'Surah Al-Fatihah 1:2'),
+  simpleItem('Gender: masculine & feminine', 'Learn how Ta Marbuta (ة) marks a feminine noun.', 'مُسْلِمَة', 'a Muslim woman', 'Surah Al-Ahzab 33:35'),
+  simpleItem('Singular, dual & plural', 'Learn how nouns change for one, two, or many.', 'السَّمَاوَات', 'the heavens (plural)', 'Surah Al-Baqarah 2:29'),
+  simpleItem('Sound masculine plural', 'Learn the -un/-in ending for regular masculine plurals.', 'مُسْلِمُونَ', 'Muslims (masc. plural)', 'Surah Al-Hijr 15:2'),
+  simpleItem('Sound feminine plural', 'Learn the -at ending for regular feminine plurals.', 'مُسْلِمَات', 'Muslim women', 'Surah Al-Ahzab 33:35'),
+  simpleItem('Broken plurals', 'Learn how some plurals change form entirely.', 'كُتُب', 'books (plural of kitab)', 'used throughout the Quran'),
+  simpleItem('Adjective agreement', 'Learn how adjectives must match their noun.', 'الصِّرَاطَ الْمُسْتَقِيمَ', 'the straight path', 'Surah Al-Fatihah 1:6'),
+  simpleItem('Noun cases: intro', 'A first look at how noun endings shift with grammar role.', 'رَبُّ الْعَالَمِينَ', 'Lord of the worlds', 'Surah Al-Fatihah 1:2'),
+  simpleItem('Common nouns review', 'Review key nouns learned so far in context.', 'بَيْتُ اللَّه', 'the House of Allah (the Kaaba)', 'Surah Al-Baqarah 2:125'),
+  simpleItem('Stage 9 review: nouns', 'Bring together everything learned about nouns and gender.', 'الرَّحْمَٰنِ الرَّحِيمِ', 'the Most Merciful, the Especially Merciful', 'Surah Al-Fatihah 1:3'),
+];
+
+// --- Stage 10: Demonstratives & Definite Article (10 lessons) ---
+const stage10Items = [
+  simpleItem('This (masculine): هذا', 'Learn the masculine word for "this".', 'هَٰذَا الْكِتَابُ', 'this is the Book', 'used to introduce the Quran in commentary'),
+  simpleItem('This (feminine): هذه', 'Learn the feminine word for "this".', 'هَٰذِهِ', 'this (feminine)', 'used throughout the Quran'),
+  simpleItem('That: ذلك', 'Learn the word for "that", used to open Surah Al-Baqarah.', 'ذَٰلِكَ الْكِتَابُ', 'that is the Book', 'Surah Al-Baqarah 2:2'),
+  simpleItem('Sun letters', 'Learn which letters absorb the ل of ال (Ar-Rahman, not Al-Rahman).', 'الرَّحْمَٰن', 'the Most Merciful', 'Surah Al-Fatihah 1:3'),
+  simpleItem('Moon letters', 'Learn which letters keep the ل of ال pronounced clearly.', 'الْقَمَر', 'the moon', 'Surah Al-Qamar 54:1'),
+  simpleItem('The Idafa (possessive) construction', 'Learn how two nouns link to show possession.', 'رَبِّ الْعَالَمِينَ', 'Lord of the worlds', 'Surah Al-Fatihah 1:2'),
+  simpleItem('Idafa in practice: House of Allah', 'See the Idafa construction in a famous phrase.', 'بَيْتُ اللَّه', 'House of Allah (the Kaaba)', 'Surah Al-Baqarah 2:125'),
+  simpleItem('Attached pronouns: my/your', 'Learn how ي and ك attach to nouns to mean "my" and "your".', 'رَبِّي', 'my Lord', 'used throughout the Quran'),
+  simpleItem('Attached pronouns: his/her', 'Learn how ه and ها attach to nouns.', 'رَبُّهُ', 'his Lord', 'used throughout the Quran'),
+  simpleItem('Stage 10 review: demonstratives', 'Review this/that and the sun/moon letter rule.', 'ذَٰلِكَ الصِّرَاطُ الْمُسْتَقِيم', 'that is the straight path', 'Surah Al-An’am 6:153'),
+];
+
+// --- Stage 11: Prepositions & Location (10 lessons) ---
+const stage11Items = [
+  simpleItem('Fi: in', 'Learn the preposition "in".', 'فِي قُلُوبِهِم', 'in their hearts', 'Surah Al-Baqarah 2:10'),
+  simpleItem('Ala: on', 'Learn the preposition "on/upon".', 'عَلَيْهِم', 'upon them', 'used throughout the Quran'),
+  simpleItem('Min: from', 'Learn the preposition "from".', 'مِنَ اللَّه', 'from Allah', 'used throughout the Quran'),
+  simpleItem('Ila: to', 'Learn the preposition "to/towards".', 'إِلَى اللَّه', 'to Allah', 'Surah Al-Baqarah 2:156, "to Him we return"'),
+  simpleItem('Bi: with/by', 'Learn the preposition "with/by", seen in Bismillah.', 'بِسْمِ اللَّه', 'in/by the name of Allah', 'Surah Al-Fatihah 1:1'),
+  simpleItem('Taht: under', 'Learn the word for "under".', 'تَحْتَهَا الْأَنْهَار', 'beneath which rivers flow', 'a phrase describing Paradise, used repeatedly in the Quran'),
+  simpleItem('Fawq: above', 'Learn the word for "above".', 'فَوْقَ', 'above', 'used throughout the Quran'),
+  simpleItem('Amam: in front of', 'Learn the word for "in front of".', 'أَمَام', 'in front of', 'a common directional word in Arabic'),
+  simpleItem('Khalf: behind', 'Learn the word for "behind".', 'خَلْف', 'behind', 'Surah Qaf 50:6, describing the sky above them'),
+  simpleItem('Stage 11 review: prepositions', 'Review the core location words learned in this stage.', 'مِن تَحْتِهَا الْأَنْهَار', 'from beneath which rivers flow', 'Surah Al-Baqarah 2:25'),
+];
+
+// --- Stage 12: Questions & Possession (Idafa) (10 lessons) ---
+const stage12Items = [
+  simpleItem('Man: who', 'Learn the question word "who".', 'مَن ذَا الَّذِي', 'who is the one who', 'Surah Al-Baqarah 2:255 (Ayat al-Kursi)'),
+  simpleItem('Ma: what', 'Learn the question word "what".', 'وَمَا أَدْرَاكَ', 'and what will make you know', 'used to introduce important surahs, e.g. Al-Qadr 97:2'),
+  simpleItem('Ayna: where', 'Learn the question word "where".', 'أَيْنَ مَا', 'wherever', 'Surah An-Nisa 4:78'),
+  simpleItem('Mata: when', 'Learn the question word "when".', 'مَتَى', 'when', 'used throughout the Quran to ask about the Hour'),
+  simpleItem('Kayfa: how', 'Learn the question word "how".', 'كَيْفَ', 'how', 'Surah Al-Ghashiyah 88:17, "do they not look at the camels, how they were created"'),
+  simpleItem('Hal: yes/no questions', 'Learn how "hal" introduces a yes/no question.', 'هَلْ أَتَاكَ', 'has there come to you', 'Surah Al-Ghashiyah 88:1'),
+  simpleItem('Idafa review: Lord of the Worlds', 'Practice the Idafa construction again in a new phrase.', 'مَالِكِ يَوْمِ الدِّين', 'Master of the Day of Judgement', 'Surah Al-Fatihah 1:4'),
+  simpleItem('Idafa review: Day of Judgement', 'See "day" + "judgement" linked as an Idafa.', 'يَوْمِ الدِّين', 'the Day of Judgement', 'Surah Al-Fatihah 1:4'),
+  simpleItem('Combining questions & Idafa', 'Practice asking "whose" using question words and Idafa together.', 'لِمَنِ الْمُلْك', 'to whom belongs the dominion', 'Surah Ghafir 40:16'),
+  simpleItem('Stage 12 review: questions', 'Review all the question words learned in this stage.', 'مَا شَأْنُكُم', 'what is your affair', 'a common Quranic question construction'),
+];
+
+// --- Stage 13: Pronouns & Past Tense Verbs (10 lessons) ---
+const stage13Items = [
+  simpleItem('Huwa: he', 'Learn the pronoun "he".', 'قُلْ هُوَ اللَّهُ أَحَد', 'Say: He is Allah, One', 'Surah Al-Ikhlas 112:1'),
+  simpleItem('Hiya: she', 'Learn the pronoun "she".', 'هِيَ', 'she', 'used throughout the Quran'),
+  simpleItem('Nahnu: we', 'Learn the pronoun "we", often used for Allah’s majesty.', 'إِنَّا نَحْنُ نَزَّلْنَا', 'indeed it is We who sent it down', 'Surah Al-Hijr 15:9'),
+  simpleItem('Ana: I', 'Learn the pronoun "I".', 'إِنَّنِي أَنَا اللَّه', 'indeed, I am Allah', 'Surah Taha 20:14'),
+  simpleItem('Past tense: Kataba (wrote)', 'Learn the past-tense root for "to write".', 'كَتَبَ', 'he wrote', 'used throughout the Quran'),
+  simpleItem('Past tense: Dhahaba (went)', 'Learn the past-tense root for "to go".', 'ذَهَبَ', 'he went', 'Surah Yusuf 12:17'),
+  simpleItem('Past tense: Qara’a (read)', 'Learn the past-tense root for "to read/recite".', 'قَرَأَ', 'he read/recited', 'related to the word Quran itself'),
+  simpleItem('Past tense: Khalaqa (created)', 'Learn the past-tense verb "he created".', 'خَلَقَ السَّمَاوَاتِ', 'He created the heavens', 'Surah Al-Anbya 21:30'),
+  simpleItem('Past tense conjugation: I/we', 'Learn how the verb ending changes for "I" and "we".', 'خَلَقْنَا', 'We created', 'Surah Al-Insan 76:2'),
+  simpleItem('Stage 13 review: pronouns & verbs', 'Review pronouns and past-tense verbs together.', 'إِيَّاكَ نَعْبُدُ', 'You alone we worship', 'Surah Al-Fatihah 1:5'),
+];
+
+// --- Stage 14: Present Tense & Plurals (10 lessons) ---
+const stage14Items = [
+  simpleItem('Present tense: Ya‘lamu (he knows)', 'Learn the present-tense prefix ya-.', 'يَعْلَمُ', 'he knows', 'Surah Al-Hadid 57:4'),
+  simpleItem('Present tense: Yarzuqu (He provides)', 'See another present-tense verb describing Allah.', 'يَرْزُقُ', 'He provides', 'used throughout the Quran'),
+  simpleItem('Present tense: Na‘budu (we worship)', 'Learn the present-tense prefix na-.', 'نَعْبُدُ', 'we worship', 'Surah Al-Fatihah 1:5'),
+  simpleItem('Present tense: Nasta‘een (we ask for help)', 'See the present tense used again in Al-Fatihah.', 'نَسْتَعِينُ', 'we ask for help', 'Surah Al-Fatihah 1:5'),
+  simpleItem('The imperative: Read!', 'Learn the command form, the very first Quranic revelation.', 'اقْرَأْ', 'Read!', 'Surah Al-Alaq 96:1'),
+  simpleItem('Broken plural: Prophets', 'See a broken (irregular) plural in practice.', 'أَنْبِيَاء', 'prophets (plural)', 'Surah An-Nisa 4:69'),
+  simpleItem('Broken plural: Worlds', 'See another broken plural pattern.', 'عَالَمِين', 'worlds (plural)', 'Surah Al-Fatihah 1:2'),
+  simpleItem('Negation: La (no)', 'Learn how "la" negates a present-tense verb.', 'لَا تَأْخُذُهُ سِنَةٌ وَلَا نَوْم', 'neither drowsiness nor sleep overtakes Him', 'Surah Al-Baqarah 2:255 (Ayat al-Kursi)'),
+  simpleItem('Negation: Lam (did not)', 'Learn how "lam" negates a verb in the past.', 'لَمْ يَلِدْ وَلَمْ يُولَد', 'He neither begets nor is born', 'Surah Al-Ikhlas 112:3'),
+  simpleItem('Stage 14 review: present tense', 'Review present-tense verbs, plurals, and negation.', 'وَلَمْ يَكُن لَّهُ كُفُوًا أَحَد', 'nor is there to Him any equivalent', 'Surah Al-Ikhlas 112:4'),
+];
+
+// --- Stage 15: Complex Sentences & Quranic Patterns (10 lessons, reading Al-Fatihah in full) ---
+const readingItem = (title, arabicWord, meaning, reference) => simpleItem(title, `Read ${title} word by word and understand its meaning.`, arabicWord, meaning, reference, 'reading', 'Read the verse below word by word, then check your understanding.');
+const stage15Items = [
+  readingItem('Al-Fatihah, Ayah 1', 'بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ', 'In the name of Allah, the Most Gracious, the Most Merciful.', 'Surah Al-Fatihah 1:1'),
+  readingItem('Al-Fatihah, Ayah 2', 'الْحَمْدُ لِلَّهِ رَبِّ الْعَالَمِينَ', 'All praise is due to Allah, Lord of the worlds.', 'Surah Al-Fatihah 1:2'),
+  readingItem('Al-Fatihah, Ayah 3', 'الرَّحْمَٰنِ الرَّحِيمِ', 'The Most Gracious, the Most Merciful.', 'Surah Al-Fatihah 1:3'),
+  readingItem('Al-Fatihah, Ayah 4', 'مَالِكِ يَوْمِ الدِّينِ', 'Master of the Day of Judgement.', 'Surah Al-Fatihah 1:4'),
+  readingItem('Al-Fatihah, Ayah 5', 'إِيَّاكَ نَعْبُدُ وَإِيَّاكَ نَسْتَعِينُ', 'You alone we worship, and You alone we ask for help.', 'Surah Al-Fatihah 1:5'),
+  readingItem('Al-Fatihah, Ayah 6', 'اهْدِنَا الصِّرَاطَ الْمُسْتَقِيمَ', 'Guide us to the straight path.', 'Surah Al-Fatihah 1:6'),
+  readingItem('Al-Fatihah, Ayah 7', 'صِرَاطَ الَّذِينَ أَنْعَمْتَ عَلَيْهِمْ', 'The path of those You have blessed.', 'Surah Al-Fatihah 1:7'),
+  simpleItem('Conditional: In (if)', 'Learn how "in" introduces a possible condition.', 'إِن تَعُدُّوا', 'if you count', 'Surah Ibrahim 14:34'),
+  simpleItem('Conditional: Law (if, hypothetical)', 'Learn how "law" introduces a hypothetical condition.', 'لَوْ كَانَ فِيهِمَا آلِهَةٌ إِلَّا اللَّه', 'if there were gods besides Allah', 'Surah Al-Anbya 21:22'),
+  simpleItem('Stage 15 review: Al-Fatihah', 'Review all seven ayahs of Al-Fatihah together.', 'وَلَا الضَّالِّين', 'nor of those who are astray', 'Surah Al-Fatihah 1:7'),
+];
+
+// --- Stage 16: Fluency & Quranic Application (Capstone) (10 lessons) ---
+const stage16Items = [
+  readingItem('Al-Ikhlas, Ayah 1-2', 'قُلْ هُوَ اللَّهُ أَحَدٌ ۝ اللَّهُ الصَّمَدُ', 'Say: He is Allah, One. Allah, the Eternal Refuge.', 'Surah Al-Ikhlas 112:1-2'),
+  readingItem('Al-Ikhlas, Ayah 3-4', 'لَمْ يَلِدْ وَلَمْ يُولَدْ ۝ وَلَمْ يَكُنْ لَهُ كُفُوًا أَحَدٌ', 'He neither begets nor is born, nor is there any equivalent to Him.', 'Surah Al-Ikhlas 112:3-4'),
+  readingItem('An-Nas, Ayah 1', 'قُلْ أَعُوذُ بِرَبِّ النَّاسِ', 'Say: I seek refuge in the Lord of mankind.', 'Surah An-Nas 114:1'),
+  readingItem('Al-Falaq, Ayah 1', 'قُلْ أَعُوذُ بِرَبِّ الْفَلَقِ', 'Say: I seek refuge in the Lord of the daybreak.', 'Surah Al-Falaq 113:1'),
+  simpleItem('The root system: K-T-B', 'See how kataba (wrote), kitab (book), and maktabah (library) share one root.', 'مَكْتَبَة', 'library', 'built on the same root as kitab (book) and kataba (wrote)'),
+  simpleItem('The root system: A-L-M', 'See how ‘ilm (knowledge) and ‘alim (scholar) share one root.', 'عَالِم', 'scholar', 'Surah Fatir 35:28, "only those of knowledge fear Allah among His servants"'),
+  simpleItem('Classical vs Modern Arabic', 'Understand that the Quran preserved Classical Arabic for 1400+ years.', 'فُصْحَى', 'classical/formal Arabic', 'the register in which the Quran was revealed'),
+  simpleItem('Tajweed terms: Makki & Madani', 'Learn how surahs are classified by where they were revealed.', 'مَكِّيَّة', 'Meccan (revealed in Makkah)', 'a classification used for every surah of the Quran'),
+  simpleItem('Reading comprehension', 'Apply everything learned to a short new passage.', 'وَالْعَصْرِ', 'By time', 'Surah Al-Asr 103:1'),
+  simpleItem('Capstone: Your Arabic & Quran Journey', 'Celebrate finishing the full 16-stage ArabiKids journey.', 'رَبِّ زِدْنِي عِلْمًا', 'My Lord, increase me in knowledge', 'Surah Taha 20:114', 'capstone', 'You’ve learned letters, harakat, vocabulary, grammar, and now you can read real Quranic verses. This dua asks Allah for even more knowledge as your journey continues.'),
+];
+
+// ---------------------------------------------------------------------------
+// ASSEMBLE
+// ---------------------------------------------------------------------------
+
+const STAGE_ITEMS = {
+  stage1: stage1Items,
+  stage2: stage2Items,
+  stage3: stage3Items,
+  stage4: stage4Items,
+  stage5: stage5Items,
+  stage6: stage6Items,
+  stage7: stage7Items,
+  stage8: stage8Items,
+  stage9: stage9Items,
+  stage10: stage10Items,
+  stage11: stage11Items,
+  stage12: stage12Items,
+  stage13: stage13Items,
+  stage14: stage14Items,
+  stage15: stage15Items,
+  stage16: stage16Items,
+};
 
 async function seed() {
-  console.log('Clearing existing lesson data...');
-  await supabase.from('exercises').delete().neq('id', 0);
-  await supabase.from('user_progress').delete().neq('id', 0);
+  console.log('Clearing existing v2 data...');
+  await supabase.from('placement_results').delete().neq('id', 0);
+  await supabase.from('child_stage_progress').delete().neq('id', 0);
+  await supabase.from('child_lesson_progress').delete().neq('id', 0);
+  await supabase.from('exercise_questions').delete().neq('id', 0);
+  await supabase.from('stage_exercises').delete().neq('id', 0);
   await supabase.from('lessons').delete().neq('id', 0);
+  await supabase.from('stages').delete().neq('id', 0);
+  await supabase.from('levels').delete().neq('id', 0);
 
-  const allLessons = [...buildJuniorLessons(), ...buildExplorerLessons()];
-  console.log(`Seeding ${allLessons.length} lessons...`);
-
-  for (const lesson of allLessons) {
-    const { exercises, ...lessonRow } = lesson;
-    const { data: inserted, error: lessonError } = await supabase
-      .from('lessons')
-      .insert(lessonRow)
+  console.log('Seeding levels...');
+  const levelIdByKey = {};
+  for (const level of LEVELS) {
+    const { data, error } = await supabase
+      .from('levels')
+      .insert({ name: level.name, order_index: level.order_index, description: level.description })
       .select('id')
       .single();
+    if (error) throw new Error(`Failed to insert level ${level.name}: ${error.message}`);
+    levelIdByKey[level.key] = data.id;
+  }
 
-    if (lessonError) {
-      throw new Error(`Failed to insert lesson "${lesson.title}": ${lessonError.message}`);
-    }
+  console.log('Seeding stages...');
+  const stageIdByKey = {};
+  for (const stage of STAGES) {
+    const { data, error } = await supabase
+      .from('stages')
+      .insert({
+        level_id: levelIdByKey[stage.levelKey],
+        name: stage.name,
+        order_index: stage.order_index,
+        min_placement_age: stage.min_placement_age,
+        is_free: stage.is_free,
+      })
+      .select('id')
+      .single();
+    if (error) throw new Error(`Failed to insert stage ${stage.name}: ${error.message}`);
+    stageIdByKey[stage.key] = data.id;
+  }
 
-    const exerciseRows = exercises.map((ex, i) => ({
-      lesson_id: inserted.id,
-      exercise_number: i + 1,
-      title: ex.title,
-      instruction: ex.instruction,
-      options: ex.options,
-      correct_answer: ex.correct_answer,
-      explanation: ex.explanation,
+  console.log('Seeding lessons + stage checkpoints...');
+  let totalLessons = 0;
+  let totalCheckpoints = 0;
+  for (const stage of STAGES) {
+    const items = STAGE_ITEMS[stage.key];
+    const stageId = stageIdByKey[stage.key];
+    const lessons = buildLessons(stage.key, items).map((l) => ({
+      stage_id: stageId,
+      order_index: l.order_index,
+      title: l.title,
+      lesson_goal: l.lesson_goal,
+      arabic_word: l.arabic_word,
+      arabic_word_meaning: l.arabic_word_meaning,
+      content: l.content,
+      is_free: stage.is_free,
+      estimated_minutes: l.estimated_minutes,
     }));
 
-    const { error: exerciseError } = await supabase.from('exercises').insert(exerciseRows);
-    if (exerciseError) {
-      throw new Error(`Failed to insert exercises for "${lesson.title}": ${exerciseError.message}`);
+    const { error: lessonsError } = await supabase.from('lessons').insert(lessons);
+    if (lessonsError) throw new Error(`Failed to insert lessons for ${stage.name}: ${lessonsError.message}`);
+    totalLessons += lessons.length;
+
+    const checkpoints = buildStageCheckpoints(items);
+    for (const cp of checkpoints) {
+      const { data: seRow, error: seError } = await supabase
+        .from('stage_exercises')
+        .insert({ stage_id: stageId, checkpoint_order: cp.checkpoint_order, is_mastery: cp.is_mastery })
+        .select('id')
+        .single();
+      if (seError) throw new Error(`Failed to insert checkpoint for ${stage.name}: ${seError.message}`);
+
+      const questionRows = cp.questions.map((q) => ({
+        stage_exercise_id: seRow.id,
+        question_number: q.question_number,
+        title: q.title,
+        instruction: q.instruction,
+        options: q.options,
+        correct_answer: q.correct_answer,
+        explanation: q.explanation,
+      }));
+      const { error: qError } = await supabase.from('exercise_questions').insert(questionRows);
+      if (qError) throw new Error(`Failed to insert questions for ${stage.name} checkpoint ${cp.checkpoint_order}: ${qError.message}`);
+      totalCheckpoints += 1;
     }
   }
 
-  console.log(`Seed complete: ${allLessons.length} lessons.`);
+  console.log(`Seed complete: ${LEVELS.length} levels, ${STAGES.length} stages, ${totalLessons} lessons, ${totalCheckpoints} checkpoints.`);
 
   console.log('Seeding admin user (email: admin@arabikids.com / password: Admin123!)...');
   const ADMIN_EMAIL = 'admin@arabikids.com';
@@ -468,7 +576,7 @@ async function seed() {
     email: ADMIN_EMAIL,
     password: ADMIN_PASSWORD,
     email_confirm: true,
-    user_metadata: { name: 'ArabiKids Admin', age_group: 'junior' },
+    user_metadata: { name: 'ArabiKids Admin' },
   });
 
   if (createError) {
@@ -484,10 +592,9 @@ async function seed() {
     adminUserId = created.user.id;
   }
 
-  // handle_new_user() trigger already inserted a public.users row with role='parent'; promote it.
   const { error: promoteError } = await supabase
     .from('users')
-    .update({ role: 'admin', subscription_status: 'active' })
+    .update({ role: 'admin', subscription_status: 'active', subscription_tier: 'family' })
     .eq('id', adminUserId);
 
   if (promoteError) {

@@ -11,8 +11,6 @@ export default function Signup() {
     email: '',
     password: '',
     confirmPassword: '',
-    childName: '',
-    ageGroup: 'junior',
     acceptTerms: false,
   });
   const [error, setError] = useState('');
@@ -39,7 +37,7 @@ export default function Signup() {
     setSubmitting(true);
     try {
       const { needsEmailConfirmation } = await register(form);
-      functionsApi.subscribeEnginemailer({ name: form.name, email: form.email, ageGroup: form.ageGroup }).catch(() => {});
+      functionsApi.subscribeEnginemailer({ name: form.name, email: form.email }).catch(() => {});
       if (needsEmailConfirmation) {
         setConfirmEmailSent(true);
       } else {
@@ -58,8 +56,8 @@ export default function Signup() {
         <div className="card auth-card" style={{ textAlign: 'center' }}>
           <h1 className="page-title">Check Your Email</h1>
           <p className="page-subtitle" style={{ marginBottom: 0 }}>
-            We've sent a confirmation link to <strong>{form.email}</strong>. Click it to activate your account, then log in to start
-            your first free lesson.
+            We've sent a confirmation link to <strong>{form.email}</strong>. Click it to activate your account, then log in to add
+            your child's profile and start their first free lesson.
           </p>
         </div>
       </div>
@@ -73,7 +71,7 @@ export default function Signup() {
           Create Your Account
         </h1>
         <p className="page-subtitle" style={{ textAlign: 'center' }}>
-          Start with 5 free lessons in each age group.
+          Start with Stage 1 free — no credit card needed.
         </p>
         {error && <p className="error-text">{error}</p>}
         <form onSubmit={handleSubmit}>
@@ -112,17 +110,6 @@ export default function Signup() {
               value={form.confirmPassword}
               onChange={(e) => update('confirmPassword', e.target.value)}
             />
-          </div>
-          <div className="form-group">
-            <label htmlFor="childName">Child&apos;s Name</label>
-            <input id="childName" required value={form.childName} onChange={(e) => update('childName', e.target.value)} />
-          </div>
-          <div className="form-group">
-            <label htmlFor="ageGroup">Age Group</label>
-            <select id="ageGroup" value={form.ageGroup} onChange={(e) => update('ageGroup', e.target.value)}>
-              <option value="junior">Junior (ages 3-7)</option>
-              <option value="explorer">Explorer (ages 8-17)</option>
-            </select>
           </div>
           <div className="form-group" style={{ display: 'flex', alignItems: 'flex-start', gap: 8 }}>
             <input

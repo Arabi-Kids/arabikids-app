@@ -1,24 +1,48 @@
 import { useEffect, useState } from 'react';
-import { listAdminLessons, updateLesson } from '../lib/adminDb.js';
+import { listAdminLevelsAndStages, listAdminLessonsForStage, updateLesson } from '../lib/adminDb.js';
 
 export default function AdminLessonsManager() {
-  const [ageGroup, setAgeGroup] = useState('junior');
+  const [levels, setLevels] = useState([]);
+  const [stages, setStages] = useState([]);
+  const [selectedLevelId, setSelectedLevelId] = useState(null);
+  const [selectedStageId, setSelectedStageId] = useState(null);
   const [lessons, setLessons] = useState([]);
   const [editingId, setEditingId] = useState(null);
   const [draft, setDraft] = useState({ title: '', contentText: '' });
   const [draftError, setDraftError] = useState('');
   const [error, setError] = useState('');
 
-  function loadLessons() {
-    listAdminLessons().then(setLessons).catch((err) => setError(err.message));
+  useEffect(() => {
+    listAdminLevelsAndStages()
+      .then(({ levels: lv, stages: st }) => {
+        setLevels(lv);
+        setStages(st);
+        setSelectedLevelId(lv[0]?.id ?? null);
+        const firstStage = st.filter((s) => s.level_id === lv[0]?.id)[0];
+        setSelectedStageId(firstStage?.id ?? null);
+      })
+      .catch((err) => setError(err.message));
+  }, []);
+
+  function loadLessons(stageId) {
+    if (!stageId) return;
+    listAdminLessonsForStage(stageId).then(setLessons).catch((err) => setError(err.message));
   }
 
-  useEffect(loadLessons, []);
+  useEffect(() => {
+    loadLessons(selectedStageId);
+  }, [selectedStageId]);
+
+  function selectLevel(levelId) {
+    setSelectedLevelId(levelId);
+    const firstStage = stages.filter((s) => s.level_id === levelId)[0];
+    setSelectedStageId(firstStage?.id ?? null);
+  }
 
   async function toggleFree(lesson) {
     try {
       await updateLesson(lesson.id, { is_free: !lesson.is_free });
-      loadLessons();
+      loadLessons(selectedStageId);
     } catch (err) {
       setError(err.message);
     }
@@ -42,32 +66,58 @@ export default function AdminLessonsManager() {
       await updateLesson(lesson.id, { title: draft.title, content: parsedContent });
       setEditingId(null);
       setDraftError('');
-      loadLessons();
+      loadLessons(selectedStageId);
     } catch (err) {
       setError(err.message);
     }
   }
 
-  const filtered = lessons.filter((l) => l.age_group === ageGroup);
+  const stagesForLevel = stages.filter((s) => s.level_id === selectedLevelId);
 
   return (
     <div>
       <h1 style={{ color: '#fff', fontWeight: 900, marginBottom: 24 }}>Lessons Manager</h1>
       {error && <p style={{ color: '#e57373' }}>{error}</p>}
 
-      <div style={{ display: 'flex', gap: 12, marginBottom: 20 }}>
-        <button
-          onClick={() => setAgeGroup('junior')}
-          style={{ padding: '8px 18px', borderRadius: 999, border: 'none', fontWeight: 800, cursor: 'pointer', background: ageGroup === 'junior' ? 'var(--admin-accent)' : 'rgba(255,255,255,0.08)', color: '#fff' }}
-        >
-          Junior (45)
-        </button>
-        <button
-          onClick={() => setAgeGroup('explorer')}
-          style={{ padding: '8px 18px', borderRadius: 999, border: 'none', fontWeight: 800, cursor: 'pointer', background: ageGroup === 'explorer' ? 'var(--admin-accent)' : 'rgba(255,255,255,0.08)', color: '#fff' }}
-        >
-          Explorer (45)
-        </button>
+      <div style={{ display: 'flex', gap: 12, marginBottom: 16, flexWrap: 'wrap' }}>
+        {levels.map((level) => (
+          <button
+            key={level.id}
+            onClick={() => selectLevel(level.id)}
+            style={{
+              padding: '8px 18px',
+              borderRadius: 999,
+              border: 'none',
+              fontWeight: 800,
+              cursor: 'pointer',
+              background: selectedLevelId === level.id ? 'var(--admin-accent)' : 'rgba(255,255,255,0.08)',
+              color: '#fff',
+            }}
+          >
+            {level.name}
+          </button>
+        ))}
+      </div>
+
+      <div style={{ display: 'flex', gap: 8, marginBottom: 20, flexWrap: 'wrap' }}>
+        {stagesForLevel.map((stage) => (
+          <button
+            key={stage.id}
+            onClick={() => setSelectedStageId(stage.id)}
+            style={{
+              padding: '6px 14px',
+              borderRadius: 999,
+              border: selectedStageId === stage.id ? 'none' : '1px solid rgba(255,255,255,0.2)',
+              fontWeight: 700,
+              fontSize: '0.85rem',
+              cursor: 'pointer',
+              background: selectedStageId === stage.id ? 'var(--admin-accent)' : 'transparent',
+              color: selectedStageId === stage.id ? '#fff' : 'var(--admin-muted)',
+            }}
+          >
+            Stage {stage.order_index}: {stage.name}
+          </button>
+        ))}
       </div>
 
       <div className="admin-card">
@@ -76,9 +126,9 @@ export default function AdminLessonsManager() {
             <tr><th>#</th><th>Title</th><th>Arabic Word</th><th>Free?</th><th>Actions</th></tr>
           </thead>
           <tbody>
-            {filtered.map((l) => (
+            {lessons.map((l) => (
               <tr key={l.id}>
-                <td>{l.lesson_number}</td>
+                <td>{l.order_index}</td>
                 <td>
                   {editingId === l.id ? (
                     <input
@@ -110,6 +160,9 @@ export default function AdminLessonsManager() {
                 </td>
               </tr>
             ))}
+            {lessons.length === 0 && (
+              <tr><td colSpan={5} style={{ textAlign: 'center', color: 'var(--admin-muted)' }}>No lessons in this stage.</td></tr>
+            )}
           </tbody>
         </table>
       </div>

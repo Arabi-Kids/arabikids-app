@@ -1,10 +1,13 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.jsx';
+import { useActiveChild } from '../context/ActiveChildContext.jsx';
 import { functionsApi } from '../lib/functions.js';
+import { getCurriculum, renameChildProfile } from '../lib/db.js';
 
 export default function Account() {
   const { user, isPaid, changePassword } = useAuth();
+  const { childProfiles, refreshChildren } = useActiveChild();
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
   const [loading, setLoading] = useState(false);
@@ -12,6 +15,18 @@ export default function Account() {
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
+
+  const [stagesById, setStagesById] = useState({});
+  const [editingChildId, setEditingChildId] = useState(null);
+  const [editingName, setEditingName] = useState('');
+
+  useEffect(() => {
+    getCurriculum()
+      .then(({ stages }) => {
+        setStagesById(Object.fromEntries(stages.map((s) => [s.id, s])));
+      })
+      .catch(() => {});
+  }, []);
 
   async function handleCancel() {
     setError('');
@@ -66,6 +81,21 @@ export default function Account() {
     }
   }
 
+  function startRename(child) {
+    setEditingChildId(child.id);
+    setEditingName(child.name);
+  }
+
+  async function saveRename(childId) {
+    try {
+      await renameChildProfile(childId, editingName);
+      setEditingChildId(null);
+      await refreshChildren();
+    } catch (err) {
+      setError(err.message);
+    }
+  }
+
   if (!user) return null;
 
   return (
@@ -76,7 +106,6 @@ export default function Account() {
         <h3 style={{ color: 'var(--color-blue)', marginTop: 0 }}>Profile</h3>
         <p><strong>Parent Name:</strong> {user.name}</p>
         <p><strong>Email:</strong> {user.email}</p>
-        {user.childName && <p><strong>Child:</strong> {user.childName} ({user.ageGroup})</p>}
       </div>
 
       {(error || message) && (
@@ -84,6 +113,41 @@ export default function Account() {
           {error || message}
         </p>
       )}
+
+      <div className="card" style={{ marginBottom: 20 }}>
+        <h3 style={{ color: 'var(--color-blue)', marginTop: 0 }}>Children</h3>
+        {childProfiles.length === 0 && <p style={{ color: '#5a6a7a' }}>No children added yet.</p>}
+        {childProfiles.map((child) => (
+          <div key={child.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 0', borderBottom: '1px solid #ecebe2' }}>
+            {editingChildId === child.id ? (
+              <>
+                <input value={editingName} onChange={(e) => setEditingName(e.target.value)} style={{ flex: 1, marginRight: 10 }} />
+                <button className="btn btn-outline" style={{ padding: '6px 14px' }} onClick={() => saveRename(child.id)}>
+                  Save
+                </button>
+              </>
+            ) : (
+              <>
+                <div>
+                  <p style={{ margin: 0, fontWeight: 700 }}>{child.name}</p>
+                  <p style={{ margin: 0, color: '#8ea0b6', fontSize: '0.85rem' }}>
+                    {stagesById[child.currentStageId]
+                      ? `Stage ${stagesById[child.currentStageId].orderIndex}: ${stagesById[child.currentStageId].name}`
+                      : 'Not yet placed'}
+                    {' · '}🔥 {child.currentStreak} day streak
+                  </p>
+                </div>
+                <button className="btn btn-outline" style={{ padding: '6px 14px' }} onClick={() => startRename(child)}>
+                  Rename
+                </button>
+              </>
+            )}
+          </div>
+        ))}
+        <Link to="/add-child" className="btn btn-outline" style={{ marginTop: 16, display: 'inline-block' }}>
+          + Add a Child
+        </Link>
+      </div>
 
       <div className="card" style={{ marginBottom: 20 }}>
         <h3 style={{ color: 'var(--color-blue)', marginTop: 0 }}>Change Password</h3>
@@ -120,8 +184,9 @@ export default function Account() {
           <strong>Status:</strong>{' '}
           <span className={isPaid() ? 'badge badge-free' : 'badge badge-locked'}>{user.subscriptionStatus}</span>
         </p>
+        <p><strong>Tier:</strong> {user.subscriptionTier === 'family' ? 'Family (multiple children)' : 'Standard (1 child)'}</p>
         {user.subscriptionPlan && (
-          <p><strong>Plan:</strong> {user.subscriptionPlan === 'annual' ? 'Annual ($89.99/yr)' : 'Monthly ($9.99/mo)'}</p>
+          <p><strong>Plan:</strong> {user.subscriptionPlan === 'annual' ? 'Annual' : 'Monthly'}</p>
         )}
         {user.currentPeriodEnd && (
           <p><strong>Renews:</strong> {new Date(user.currentPeriodEnd).toLocaleDateString()}</p>

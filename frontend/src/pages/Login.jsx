@@ -14,8 +14,8 @@ export default function Login() {
     setError('');
     setSubmitting(true);
     try {
-      const loggedInUser = await login(form.email, form.password);
-      navigate(`/lessons/${loggedInUser.ageGroup || 'junior'}`);
+      await login(form.email, form.password);
+      navigate('/lessons');
     } catch (err) {
       setError(err.message);
     } finally {

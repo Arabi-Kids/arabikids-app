@@ -65,14 +65,15 @@ export default function AdminUsers() {
       <div className="admin-card">
         <table className="admin-table">
           <thead>
-            <tr><th>Name</th><th>Email</th><th>Child</th><th>Status</th><th>Manual Override</th></tr>
+            <tr><th>Name</th><th>Email</th><th>Children</th><th>Tier</th><th>Status</th><th>Manual Override</th></tr>
           </thead>
           <tbody>
             {users.map((u) => (
               <tr key={u.id}>
                 <td>{u.name}</td>
                 <td>{u.email}</td>
-                <td>{u.child_name || '-'}</td>
+                <td>{u.children.length > 0 ? u.children.map((c) => c.name).join(', ') : '-'}</td>
+                <td style={{ textTransform: 'capitalize' }}>{u.subscription_tier}</td>
                 <td>{u.subscription_status}</td>
                 <td>
                   <select
@@ -90,7 +91,7 @@ export default function AdminUsers() {
               </tr>
             ))}
             {users.length === 0 && (
-              <tr><td colSpan={5} style={{ textAlign: 'center', color: 'var(--admin-muted)' }}>No users found.</td></tr>
+              <tr><td colSpan={6} style={{ textAlign: 'center', color: 'var(--admin-muted)' }}>No users found.</td></tr>
             )}
           </tbody>
         </table>

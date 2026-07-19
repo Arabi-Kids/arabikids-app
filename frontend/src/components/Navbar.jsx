@@ -1,12 +1,13 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.jsx';
+import { useActiveChild } from '../context/ActiveChildContext.jsx';
 
 export default function Navbar() {
   const { user, logout } = useAuth();
+  const { childProfiles, activeChildId, setActiveChildId } = useActiveChild();
   const navigate = useNavigate();
   const [menuOpen, setMenuOpen] = useState(false);
-  const group = user?.ageGroup || 'junior';
 
   async function handleLogout() {
     setMenuOpen(false);
@@ -39,8 +40,22 @@ export default function Navbar() {
           <Link to="/pricing" onClick={closeMenu}>Pricing</Link>
           <Link to="/about" onClick={closeMenu}>About</Link>
           <Link to="/contact" onClick={closeMenu}>Contact</Link>
-          {user && <Link to={`/lessons/${group}`} onClick={closeMenu}>Lessons</Link>}
+          {user && <Link to="/lessons" onClick={closeMenu}>Lessons</Link>}
           {user && <Link to="/progress" onClick={closeMenu}>Progress</Link>}
+          {user && childProfiles.length > 1 && (
+            <select
+              aria-label="Active child"
+              value={activeChildId ?? ''}
+              onChange={(e) => setActiveChildId(e.target.value)}
+              style={{ padding: '6px 10px', borderRadius: 8, border: '2px solid #e0dccd' }}
+            >
+              {childProfiles.map((child) => (
+                <option key={child.id} value={child.id}>
+                  {child.name}
+                </option>
+              ))}
+            </select>
+          )}
           {user ? (
             <>
               <Link to="/account" onClick={closeMenu}>Account</Link>

@@ -53,11 +53,11 @@ export function AuthProvider({ children }) {
   );
 
   const register = useCallback(
-    async ({ name, email, password, childName, ageGroup }) => {
+    async ({ name, email, password }) => {
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
-        options: { data: { name, child_name: childName, age_group: ageGroup } },
+        options: { data: { name } },
       });
       if (error) throw new Error(error.message);
       if (!data.user) throw new Error('Sign up failed — please try again.');

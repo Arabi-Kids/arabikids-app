@@ -8,11 +8,12 @@ function planLabel(plan) {
 }
 
 function toCsv(subs) {
-  const header = ['Name', 'Email', 'Plan', 'Status', 'Renews'];
+  const header = ['Name', 'Email', 'Plan', 'Tier', 'Status', 'Renews'];
   const rows = subs.map((s) => [
     s.name,
     s.email,
     planLabel(s.subscription_plan),
+    s.subscription_tier,
     s.subscription_status,
     s.current_period_end ? new Date(s.current_period_end).toLocaleDateString() : '',
   ]);
@@ -58,7 +59,7 @@ export default function AdminSubscriptions() {
       <div className="admin-card">
         <table className="admin-table">
           <thead>
-            <tr><th>Name</th><th>Email</th><th>Plan</th><th>Status</th><th>Renews</th></tr>
+            <tr><th>Name</th><th>Email</th><th>Plan</th><th>Tier</th><th>Status</th><th>Renews</th></tr>
           </thead>
           <tbody>
             {subs.map((s) => (
@@ -66,12 +67,13 @@ export default function AdminSubscriptions() {
                 <td>{s.name}</td>
                 <td>{s.email}</td>
                 <td style={{ textTransform: 'capitalize' }}>{planLabel(s.subscription_plan)}</td>
+                <td style={{ textTransform: 'capitalize' }}>{s.subscription_tier}</td>
                 <td>{s.subscription_status}</td>
                 <td>{s.current_period_end ? new Date(s.current_period_end).toLocaleDateString() : '-'}</td>
               </tr>
             ))}
             {subs.length === 0 && (
-              <tr><td colSpan={5} style={{ textAlign: 'center', color: 'var(--admin-muted)' }}>No active subscriptions yet.</td></tr>
+              <tr><td colSpan={6} style={{ textAlign: 'center', color: 'var(--admin-muted)' }}>No active subscriptions yet.</td></tr>
             )}
           </tbody>
         </table>
