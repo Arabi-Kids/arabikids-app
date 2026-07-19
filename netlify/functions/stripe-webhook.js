@@ -13,6 +13,7 @@ function mapStripeStatus(stripeStatus) {
 async function updateUserFromSubscription(supabase, subscription, eventCreatedAt) {
   const userId = subscription.metadata?.userId;
   const plan = subscription.metadata?.plan || null;
+  const tier = subscription.metadata?.tier || 'standard';
   const status = mapStripeStatus(subscription.status);
   const periodEnd = subscription.current_period_end ? new Date(subscription.current_period_end * 1000).toISOString() : null;
 
@@ -29,6 +30,7 @@ async function updateUserFromSubscription(supabase, subscription, eventCreatedAt
     .update({
       subscription_status: status,
       subscription_plan: plan,
+      subscription_tier: tier,
       stripe_subscription_id: subscription.id,
       current_period_end: periodEnd,
       stripe_last_event_at: eventCreatedAt.toISOString(),

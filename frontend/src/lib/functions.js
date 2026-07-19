@@ -24,7 +24,7 @@ async function callFunction(path, body) {
 }
 
 export const functionsApi = {
-  createCheckout: (plan) => callFunction('/create-checkout', { plan }),
+  createCheckout: (plan, tier = 'standard') => callFunction('/create-checkout', { plan, tier }),
   billingPortal: () => callFunction('/billing-portal'),
   cancelSubscription: () => callFunction('/cancel-subscription'),
   subscribeEnginemailer: (payload) => callFunction('/subscribe-enginemailer', payload),

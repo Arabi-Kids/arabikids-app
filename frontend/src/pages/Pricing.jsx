@@ -4,42 +4,14 @@ import { useAuth } from '../context/AuthContext.jsx';
 import { functionsApi } from '../lib/functions.js';
 import HudMascot from '../components/HudMascot.jsx';
 
-const PLANS = [
-  {
-    id: 'free',
-    name: 'Free',
-    price: '$0',
-    period: '',
-    perks: ['Stage 1 free to try', 'No credit card required', 'Full access to intro content'],
-  },
-  {
-    id: 'monthly',
-    name: 'Monthly',
-    price: '$9.99',
-    period: '/ month',
-    perks: ['All 16 stages unlocked (~150 lessons)', 'One child profile', 'Progress tracking', 'Cancel anytime'],
-  },
-  {
-    id: 'annual',
-    name: 'Annual',
-    price: '$89.99',
-    period: '/ year',
-    highlight: true,
-    perks: ['Everything in Monthly', 'Save over 25% vs monthly', 'Priority support', 'Best for full-year learning'],
-  },
-];
-
-const COMPARISON_ROWS = [
-  ['Free stage to try', '✓', '✓', '✓'],
-  ['Full 16-stage curriculum', '—', '✓', '✓'],
-  ['Progress tracking', '✓', '✓', '✓'],
-  ['Quranic connection on every lesson', '✓', '✓', '✓'],
-  ['Price', '$0', '$9.99/mo', '$89.99/yr'],
-];
+const TIER_PRICING = {
+  standard: { monthly: '$9.99', annual: '$89.99', childLine: 'One child profile' },
+  family: { monthly: '$14.99', annual: '$134.99', childLine: 'Multiple child profiles (1.5x Standard price)' },
+};
 
 const FAQS = [
   { q: 'Do I need a credit card to start?', a: 'No. The free plan gives you Stage 1 to try with no credit card required.' },
-  { q: 'Can I add more than one child?', a: 'Each Standard plan covers one child profile. A Family plan for multiple children is coming soon — contact us if you need it sooner.' },
+  { q: 'Can I add more than one child?', a: 'Yes — switch to the Family plan above. It covers as many children as you like for 1.5x the Standard price, on either monthly or annual billing.' },
   { q: 'Can I cancel anytime?', a: 'Yes. Monthly and annual plans can be cancelled anytime from your Account page, effective at the end of the current billing period.' },
   { q: 'Is the content only for Arabic speakers?', a: 'No, ArabiKids is built specifically for Muslim children growing up outside the Arab world, with transliteration and translation throughout.' },
   { q: 'What ages is this for?', a: 'ArabiKids covers ages 3-17 in one continuous curriculum — your child starts at whichever of the 16 stages fits them best.' },
@@ -48,8 +20,44 @@ const FAQS = [
 export default function Pricing() {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const [tier, setTier] = useState('standard');
   const [loadingPlan, setLoadingPlan] = useState(null);
   const [error, setError] = useState('');
+
+  const pricing = TIER_PRICING[tier];
+  const plans = [
+    {
+      id: 'free',
+      name: 'Free',
+      price: '$0',
+      period: '',
+      perks: ['Stage 1 free to try', 'No credit card required', 'Full access to intro content'],
+    },
+    {
+      id: 'monthly',
+      name: 'Monthly',
+      price: pricing.monthly,
+      period: '/ month',
+      perks: ['All 16 stages unlocked (~150 lessons)', pricing.childLine, 'Progress tracking', 'Cancel anytime'],
+    },
+    {
+      id: 'annual',
+      name: 'Annual',
+      price: pricing.annual,
+      period: '/ year',
+      highlight: true,
+      perks: ['Everything in Monthly', 'Save over 25% vs monthly', 'Priority support', 'Best for full-year learning'],
+    },
+  ];
+
+  const comparisonRows = [
+    ['Free stage to try', '✓', '✓', '✓'],
+    ['Full 16-stage curriculum', '—', '✓', '✓'],
+    ['Child profiles', '1', tier === 'family' ? 'Multiple' : '1', tier === 'family' ? 'Multiple' : '1'],
+    ['Progress tracking', '✓', '✓', '✓'],
+    ['Quranic connection on every lesson', '✓', '✓', '✓'],
+    ['Price', '$0', `${pricing.monthly}/mo`, `${pricing.annual}/yr`],
+  ];
 
   async function handleChoose(planId) {
     if (planId === 'free') {
@@ -63,7 +71,7 @@ export default function Pricing() {
     setError('');
     setLoadingPlan(planId);
     try {
-      const { url } = await functionsApi.createCheckout(planId);
+      const { url } = await functionsApi.createCheckout(planId, tier);
       if (!url) throw new Error('Could not start checkout — please try again.');
       window.location.href = url;
     } catch (err) {
@@ -82,10 +90,31 @@ export default function Pricing() {
         Start free. Upgrade only when you're ready to unlock the full 16-stage curriculum.
       </p>
       {error && <p className="error-text">{error}</p>}
+
+      <div
+        role="group"
+        aria-label="Choose how many children"
+        style={{ display: 'inline-flex', background: 'var(--color-sky)', borderRadius: 999, padding: 4, gap: 4, marginBottom: 8 }}
+      >
+        {[
+          { id: 'standard', label: '1 child' },
+          { id: 'family', label: '2+ children (Family)' },
+        ].map((option) => (
+          <button
+            key={option.id}
+            type="button"
+            onClick={() => setTier(option.id)}
+            className={tier === option.id ? 'btn btn-primary' : 'btn'}
+            style={{ padding: '8px 18px', fontSize: '0.9rem', background: tier === option.id ? undefined : 'transparent', color: tier === option.id ? undefined : 'var(--color-blue)' }}
+          >
+            {option.label}
+          </button>
+        ))}
+      </div>
     </div>
     <div className="container" style={{ paddingBottom: '60px' }}>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 24, maxWidth: 940, margin: '0 auto 24px' }}>
-        {PLANS.map((plan) => (
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 24, maxWidth: 940, margin: '0 auto' }}>
+        {plans.map((plan) => (
           <div
             key={plan.id}
             className="card"
@@ -123,14 +152,6 @@ export default function Pricing() {
           </div>
         ))}
       </div>
-
-      <p style={{ textAlign: 'center', color: '#8ea0b6', maxWidth: 640, margin: '0 auto' }}>
-        Have more than one child? A Family plan is coming soon.{' '}
-        <a href="mailto:ArabiKidsApp@gmail.com" style={{ color: 'var(--color-blue)', fontWeight: 700 }}>
-          Email us
-        </a>{' '}
-        if you'd like it sooner.
-      </p>
     </div>
 
     <section className="section-sky" style={{ padding: '56px 0' }}>
@@ -142,7 +163,7 @@ export default function Pricing() {
               <tr><th></th><th>Free</th><th>Monthly</th><th>Annual</th></tr>
             </thead>
             <tbody>
-              {COMPARISON_ROWS.map((row) => (
+              {comparisonRows.map((row) => (
                 <tr key={row[0]}>
                   {row.map((cell, i) => <td key={i}>{cell}</td>)}
                 </tr>
@@ -150,6 +171,9 @@ export default function Pricing() {
             </tbody>
           </table>
         </div>
+        <p style={{ textAlign: 'center', color: '#8ea0b6', marginTop: 16 }}>
+          Prices shown reflect the {tier === 'family' ? 'Family' : 'Standard'} plan selected above.
+        </p>
       </div>
     </section>
 

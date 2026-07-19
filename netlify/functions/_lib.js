@@ -14,9 +14,17 @@ function getStripe() {
   return new Stripe(process.env.STRIPE_SECRET_KEY, { apiVersion: '2024-06-20' });
 }
 
+// Family is priced at 1.5x Standard — a separate Stripe Price per tier/period
+// (not a quantity multiplier), so each has its own env-configured price ID.
 const PRICE_IDS = {
-  monthly: process.env.STRIPE_MONTHLY_PRICE_ID,
-  annual: process.env.STRIPE_ANNUAL_PRICE_ID,
+  standard: {
+    monthly: process.env.STRIPE_MONTHLY_PRICE_ID,
+    annual: process.env.STRIPE_ANNUAL_PRICE_ID,
+  },
+  family: {
+    monthly: process.env.STRIPE_FAMILY_MONTHLY_PRICE_ID,
+    annual: process.env.STRIPE_FAMILY_ANNUAL_PRICE_ID,
+  },
 };
 
 // Verifies the caller's Supabase access token (sent as `Authorization: Bearer <token>`
