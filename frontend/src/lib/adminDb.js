@@ -119,12 +119,36 @@ export async function listAdminLessonsForStage(stageId) {
   return data;
 }
 
+export async function createLesson(stageId, lesson) {
+  const { data: existing, error: existingError } = await supabaseAdmin
+    .from('lessons')
+    .select('order_index')
+    .eq('stage_id', stageId)
+    .order('order_index', { ascending: false })
+    .limit(1);
+  if (existingError) throw new Error(existingError.message);
+  const nextOrderIndex = (existing[0]?.order_index ?? 0) + 1;
+
+  const { error } = await supabaseAdmin.from('lessons').insert({ ...lesson, stage_id: stageId, order_index: nextOrderIndex });
+  if (error) throw new Error(error.message);
+}
+
 export async function updateLesson(lessonId, updates) {
   const { error } = await supabaseAdmin.from('lessons').update(updates).eq('id', lessonId);
   if (error) throw new Error(error.message);
 }
 
+export async function deleteLesson(lessonId) {
+  const { error } = await supabaseAdmin.from('lessons').delete().eq('id', lessonId);
+  if (error) throw new Error(error.message);
+}
+
 export async function updateStage(stageId, updates) {
   const { error } = await supabaseAdmin.from('stages').update(updates).eq('id', stageId);
+  if (error) throw new Error(error.message);
+}
+
+export async function updateLevel(levelId, updates) {
+  const { error } = await supabaseAdmin.from('levels').update(updates).eq('id', levelId);
   if (error) throw new Error(error.message);
 }
