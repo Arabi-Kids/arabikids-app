@@ -1,6 +1,10 @@
 [build]
   base = "frontend"
-  command = "npm install && npm run build"
+  # base = "frontend" means Netlify only runs `npm install` inside frontend/
+  # by default — the Netlify Functions live at the repo-root ../netlify/functions
+  # and depend on packages declared in the repo-root package.json, which never
+  # gets installed otherwise. `npm install --prefix ..` installs those first.
+  command = "npm install --prefix .. && npm install && npm run build"
   publish = "dist"
   functions = "../netlify/functions"
 
