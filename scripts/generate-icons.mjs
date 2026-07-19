@@ -20,6 +20,31 @@ const GOLD = [0xc8, 0x96, 0x0c];
 const WHITE = [0xff, 0xff, 0xff];
 const SUPERSAMPLE = 4;
 
+function bezierPoint(p0, p1, p2, t) {
+  const mt = 1 - t;
+  return [mt * mt * p0[0] + 2 * mt * t * p1[0] + t * t * p2[0], mt * mt * p0[1] + 2 * mt * t * p1[1] + t * t * p2[1]];
+}
+
+// True if (x,y) falls inside a tapered-width band following a quadratic
+// bezier from p0 (wide end) to p2 (thin end) — used for the hamza's
+// rounded-hook-to-point silhouette (a simple ring/arc read as a plain "info"
+// icon dot; real hamza glyphs are a fat curl tapering to a thin tail).
+function insideTaperedCurve(x, y, p0, p1, p2, widthStart, widthEnd, steps = 20) {
+  let best = Infinity;
+  let bestT = 0;
+  for (let i = 0; i <= steps; i++) {
+    const t = i / steps;
+    const [bx, by] = bezierPoint(p0, p1, p2, t);
+    const d = Math.hypot(x - bx, y - by);
+    if (d < best) {
+      best = d;
+      bestT = t;
+    }
+  }
+  const width = widthStart + (widthEnd - widthStart) * bestT;
+  return best <= width / 2;
+}
+
 function insideRoundedSquare(x, y, size, radius) {
   if (x >= radius && x <= size - radius) return true;
   if (y >= radius && y <= size - radius) return true;
@@ -47,24 +72,16 @@ function pixelA(x, y, size, cx, cy, contentRadius, maskable = false) {
   const barTop = barCenterY - barHalfH;
   if (Math.abs(x - cx) <= barHalfW && y >= barTop && y <= barCenterY + barHalfH) rgb = WHITE;
 
-  // Hamza: a small open hook perched just above/right of the stroke's top —
-  // a short arc (not a near-closed ring, or it reads as a dotted "i") so it
-  // reads as a curling hook rather than a loop.
-  const hamzaCx = cx + contentRadius * 0.05;
-  const hamzaCy = barTop - contentRadius * 0.03;
-  const hamzaRadius = contentRadius * 0.125;
-  const hamzaStroke = contentRadius * 0.05;
-  const hdx = x - hamzaCx;
-  const hdy = y - hamzaCy;
-  const hr = Math.hypot(hdx, hdy);
-  if (hr >= hamzaRadius - hamzaStroke / 2 && hr <= hamzaRadius + hamzaStroke / 2) {
-    let angle = (Math.atan2(-hdy, hdx) * 180) / Math.PI; // 0=right, 90=up, standard math convention
-    if (angle < 0) angle += 360;
-    const gapCenter = 205; // gap faces lower-left; visible arc curls from right, over the top
-    const gapHalfWidth = 125;
-    const diff = Math.min(Math.abs(angle - gapCenter), 360 - Math.abs(angle - gapCenter));
-    if (diff > gapHalfWidth) rgb = WHITE;
-  }
+  // Hamza: a fat rounded curl tapering to a thin pointed tail, sitting just
+  // above the stroke's top — matches the real أ hamza silhouette (checked
+  // against Amiri, the Arabic typeface already used elsewhere in the app).
+  const hs = contentRadius * 0.32;
+  const hox = cx;
+  const hoy = barTop - contentRadius * 0.13;
+  const hp0 = [hox - hs * 0.5, hoy - hs * 0.12];
+  const hp1 = [hox + hs * 0.22, hoy - hs * 0.5];
+  const hp2 = [hox + hs * 0.15, hoy + hs * 0.38];
+  if (insideTaperedCurve(x, y, hp0, hp1, hp2, hs * 0.48, hs * 0.06)) rgb = WHITE;
 
   return rgb;
 }
