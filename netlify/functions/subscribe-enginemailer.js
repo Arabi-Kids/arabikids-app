@@ -1,25 +1,22 @@
 const { json } = require('./_lib');
 
 // POST /api/subscribe-enginemailer  { name, email }
-// Called (fire-and-forget) right after a successful signup. Ported from the
-// old backend/utils/enginemailer.js — thin wrapper around Enginemailer's REST
-// API v3.5. Not auth-gated: it only ever adds the caller's own just-submitted
-// name/email to the marketing list, nothing privileged.
-const API_URL = process.env.ENGINEMAILER_API_URL;
+// Called (fire-and-forget) right after a successful signup. Not auth-gated:
+// it only ever adds the caller's own just-submitted email, nothing privileged.
+//
+// NOTE: the endpoint/field shape here is verified against Enginemailer's real
+// docs (enginemailer.zendesk.com/hc/en-us/articles/360000736852-Insert-Subscriber),
+// confirmed working against the live account. The original code this replaced
+// (ported from backend/utils/enginemailer.js) called a fictional
+// "/Subscriber/Add" endpoint with a { ListId, Email, Fields } shape that
+// doesn't exist in Enginemailer's actual API — it always 404'd.
+//
+// Enginemailer has no "list"; subscribers are tagged with one or more
+// numeric "sub category" ids (see GetSubCategory). ENGINEMAILER_LIST_ID here
+// holds that sub-category id — "1" ("Default") for this account.
 const API_KEY = process.env.ENGINEMAILER_API_KEY;
-const LIST_ID = process.env.ENGINEMAILER_LIST_ID;
-const WELCOME_TEMPLATE_ID = process.env.ENGINEMAILER_WELCOME_TEMPLATE_ID;
-
-async function post(path, body) {
-  const res = await fetch(`${API_URL}${path}`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', ApiKey: API_KEY },
-    body: JSON.stringify(body),
-  });
-  const data = await res.json().catch(() => ({}));
-  if (!res.ok) throw new Error(`Enginemailer error (${res.status}): ${JSON.stringify(data)}`);
-  return data;
-}
+const SUBCATEGORY_ID = process.env.ENGINEMAILER_LIST_ID;
+const INSERT_URL = 'https://api.enginemailer.com/restapi/subscriber/emsubscriber/insertSubscriber';
 
 exports.handler = async (event) => {
   if (event.httpMethod !== 'POST') return json(405, { message: 'Method not allowed.' });
@@ -29,19 +26,27 @@ exports.handler = async (event) => {
     return json(200, { skipped: true });
   }
 
-  let name, email;
+  let email;
   try {
-    ({ name, email } = JSON.parse(event.body || '{}'));
+    ({ email } = JSON.parse(event.body || '{}'));
   } catch {
     return json(400, { message: 'Invalid request body.' });
   }
   if (!email) return json(400, { message: 'Email is required.' });
 
   try {
-    await post('/Subscriber/Add', { ListId: LIST_ID, Email: email, Fields: { Name: name } });
-    if (WELCOME_TEMPLATE_ID) {
-      await post('/Email/SendTemplate', { TemplateId: WELCOME_TEMPLATE_ID, To: email, MergeFields: { Name: name } });
-    }
+    const res = await fetch(INSERT_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', APIKey: API_KEY },
+      body: JSON.stringify({
+        email,
+        subcategories: SUBCATEGORY_ID ? [Number(SUBCATEGORY_ID)] : [],
+        sourcetype: 'ArabiKids Signup',
+      }),
+    });
+    const data = await res.json().catch(() => ({}));
+    const ok = res.ok && data?.Result?.Status === 'OK';
+    if (!ok) throw new Error(`Enginemailer error: ${JSON.stringify(data)}`);
     return json(200, { subscribed: true });
   } catch (err) {
     // Non-fatal — signup already succeeded via Supabase Auth before this is called.

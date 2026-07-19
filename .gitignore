@@ -28,3 +28,4 @@ frontend/run-dev.bat
 
 # Stray local screenshot artifact
 arabikids-frontend-screenshot.png
+deno.lock
