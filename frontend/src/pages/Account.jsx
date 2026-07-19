@@ -134,7 +134,6 @@ export default function Account() {
                     {stagesById[child.currentStageId]
                       ? `Stage ${stagesById[child.currentStageId].orderIndex}: ${stagesById[child.currentStageId].name}`
                       : 'Not yet placed'}
-                    {' · '}🔥 {child.currentStreak} day streak
                   </p>
                 </div>
                 <button className="btn btn-outline" style={{ padding: '6px 14px' }} onClick={() => startRename(child)}>

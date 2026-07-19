@@ -14,6 +14,7 @@ export default function AddChild() {
   const [name, setName] = useState('');
   const [dateOfBirth, setDateOfBirth] = useState('');
   const [selectedStageId, setSelectedStageId] = useState(null);
+  const [stageManuallySet, setStageManuallySet] = useState(false);
   const [error, setError] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
@@ -32,9 +33,10 @@ export default function AddChild() {
   const eligibleStages = maxStage ? stages.filter((s) => s.orderIndex <= maxStage.orderIndex) : stages;
 
   useEffect(() => {
-    if (!selectedStageId && eligibleStages.length) setSelectedStageId(eligibleStages[eligibleStages.length - 1].id);
+    if (stageManuallySet || !eligibleStages.length) return;
+    setSelectedStageId(eligibleStages[eligibleStages.length - 1].id);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [eligibleStages.length]);
+  }, [maxStageId, eligibleStages.length, stageManuallySet]);
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -79,7 +81,14 @@ export default function AddChild() {
           </div>
           <div className="form-group">
             <label htmlFor="startStage">Starting Stage</label>
-            <select id="startStage" value={selectedStageId ?? ''} onChange={(e) => setSelectedStageId(Number(e.target.value))}>
+            <select
+              id="startStage"
+              value={selectedStageId ?? ''}
+              onChange={(e) => {
+                setSelectedStageId(Number(e.target.value));
+                setStageManuallySet(true);
+              }}
+            >
               {levels.map((level) => (
                 <optgroup key={level.id} label={level.name}>
                   {level.stages
