@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.jsx';
 import { functionsApi } from '../lib/functions.js';
+import HudMascot from '../components/HudMascot.jsx';
 
 export default function Signup() {
   const { register } = useAuth();
@@ -54,6 +55,7 @@ export default function Signup() {
     return (
       <div className="container">
         <div className="card auth-card" style={{ textAlign: 'center' }}>
+          <HudMascot pose="celebrate" size={64} style={{ margin: '0 auto 12px' }} />
           <h1 className="page-title">Check Your Email</h1>
           <p className="page-subtitle" style={{ marginBottom: 0 }}>
             We've sent a confirmation link to <strong>{form.email}</strong>. Click it to activate your account, then log in to add
@@ -67,6 +69,7 @@ export default function Signup() {
   return (
     <div className="container">
       <div className="card auth-card">
+        <HudMascot pose="mark" size={56} style={{ margin: '0 auto 12px', display: 'block' }} />
         <h1 className="page-title" style={{ textAlign: 'center' }}>
           Create Your Account
         </h1>

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { functionsApi } from '../lib/functions.js';
+import HudMascot from '../components/HudMascot.jsx';
 
 export default function ForgotPassword() {
   const [email, setEmail] = useState('');
@@ -26,6 +27,7 @@ export default function ForgotPassword() {
     return (
       <div className="container">
         <div className="card auth-card" style={{ textAlign: 'center' }}>
+          <HudMascot pose="mark" size={56} style={{ margin: '0 auto 12px' }} />
           <h1 className="page-title">Check Your Email</h1>
           <p className="page-subtitle" style={{ marginBottom: 0 }}>
             If an account exists for <strong>{email}</strong>, a password reset link is on its way.
@@ -38,6 +40,7 @@ export default function ForgotPassword() {
   return (
     <div className="container">
       <div className="card auth-card">
+        <HudMascot pose="mark" size={56} style={{ margin: '0 auto 12px', display: 'block' }} />
         <h1 className="page-title" style={{ textAlign: 'center' }}>
           Forgot Password
         </h1>

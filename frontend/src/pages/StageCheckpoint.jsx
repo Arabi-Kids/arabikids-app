@@ -3,6 +3,7 @@ import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useActiveChild } from '../context/ActiveChildContext.jsx';
 import { getCurriculum, getStageCheckpoint, completeCheckpointForChild } from '../lib/db.js';
 import ExerciseCard from '../components/ExerciseCard.jsx';
+import HudMascot from '../components/HudMascot.jsx';
 
 export default function StageCheckpoint() {
   const { stageId, checkpointOrder } = useParams();
@@ -107,7 +108,8 @@ export default function StageCheckpoint() {
           {checkpoint.isMastery ? (
             results.passed ? (
               <>
-                <p style={{ margin: 0 }}>🎉 Stage complete! (Stage video coming soon — reward content is produced separately.)</p>
+                <HudMascot pose="celebrate" size={72} style={{ margin: '0 auto 8px' }} />
+                <p style={{ margin: 0 }}>Stage complete! (Stage video coming soon — reward content is produced separately.)</p>
                 <div style={{ display: 'flex', gap: 12, justifyContent: 'center', marginTop: 16, flexWrap: 'wrap' }}>
                   <Link to="/lessons" className="btn btn-outline">Back to Lesson Hub</Link>
                   {nextStage && (

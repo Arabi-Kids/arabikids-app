@@ -3,6 +3,7 @@ import { Link, useParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.jsx';
 import { useActiveChild } from '../context/ActiveChildContext.jsx';
 import { getCurriculum, listStageLessonsForChild } from '../lib/db.js';
+import { StarSparkleIcon } from '../components/Icons.jsx';
 
 export default function StageLessons() {
   const { stageId } = useParams();
@@ -78,7 +79,9 @@ export default function StageLessons() {
               {lesson.locked ? (
                 <span className="badge badge-locked">🔒 {lesson.paywalled ? 'Subscribe' : 'Locked'}</span>
               ) : lesson.completed ? (
-                <span className="badge badge-gold">⭐ Done</span>
+                <span className="badge badge-gold" style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                  <StarSparkleIcon style={{ width: 12, height: 12 }} /> Done
+                </span>
               ) : lesson.isFree ? (
                 <span className="badge badge-free">Free</span>
               ) : null}

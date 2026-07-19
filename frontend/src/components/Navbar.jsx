@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.jsx';
 import { useActiveChild } from '../context/ActiveChildContext.jsx';
+import HudMascot from './HudMascot.jsx';
 
 export default function Navbar() {
   const { user, logout } = useAuth();
@@ -22,7 +23,12 @@ export default function Navbar() {
   return (
     <header className="navbar-header">
       <div className="container navbar-inner">
-        <Link to="/" style={{ fontWeight: 900, fontSize: '1.5rem', color: 'var(--color-blue)' }} onClick={closeMenu}>
+        <Link
+          to="/"
+          style={{ display: 'flex', alignItems: 'center', gap: 8, fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: '1.4rem', color: 'var(--color-blue)' }}
+          onClick={closeMenu}
+        >
+          <HudMascot pose="mark" size={34} />
           Arabi<span style={{ color: 'var(--color-gold)' }}>Kids</span>
         </Link>
 

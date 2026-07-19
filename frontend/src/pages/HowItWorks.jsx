@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import HudMascot from '../components/HudMascot.jsx';
 
 const STEPS = [
   { num: 1, title: 'Sign Up', text: 'Create a free parent account, then add a profile for each child — every child gets their own starting stage.' },
@@ -18,102 +19,117 @@ const LEVELS = [
 
 export default function HowItWorks() {
   return (
-    <div className="container" style={{ padding: '60px 0' }}>
-      <h1 className="page-title" style={{ textAlign: 'center' }}>
-        How ArabiKids Works
-      </h1>
-      <p className="page-subtitle" style={{ textAlign: 'center' }}>
-        Arabic and Quran, taught together, every step of the way.
-      </p>
-
-      <div style={{ maxWidth: 720, margin: '0 auto 60px' }}>
-        {STEPS.map((step) => (
-          <div key={step.num} className="card" style={{ display: 'flex', gap: 20, alignItems: 'center', marginBottom: 16 }}>
-            <div
-              style={{
-                minWidth: 48,
-                height: 48,
-                borderRadius: '50%',
-                background: 'var(--color-blue)',
-                color: '#fff',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontWeight: 900,
-                fontSize: '1.2rem',
-              }}
-            >
-              {step.num}
-            </div>
-            <div>
-              <h3 style={{ margin: '0 0 4px', color: 'var(--color-blue)' }}>{step.title}</h3>
-              <p style={{ margin: 0, color: '#5a6a7a' }}>{step.text}</p>
-            </div>
-          </div>
-        ))}
+    <div>
+      <div className="container" style={{ padding: '60px 0 40px', textAlign: 'center' }}>
+        <HudMascot pose="mark" size={64} style={{ marginBottom: 12 }} />
+        <h1 className="page-title">How ArabiKids Works</h1>
+        <p className="page-subtitle">Arabic and Quran, taught together, every step of the way.</p>
       </div>
 
-      <h2 className="page-title" style={{ textAlign: 'center' }}>
-        Four Levels, Sixteen Stages
-      </h2>
-      <p className="page-subtitle" style={{ textAlign: 'center' }}>
-        One continuous curriculum, ages 3-17 — your child starts at the stage that fits them best.
-      </p>
-      <div style={{ maxWidth: 800, margin: '0 auto 60px', overflowX: 'auto' }}>
-        <table className="table">
-          <thead>
-            <tr>
-              <th>Level</th>
-              <th>Stages</th>
-              <th>Focus</th>
-            </tr>
-          </thead>
-          <tbody>
-            {LEVELS.map((level) => (
-              <tr key={level.name}>
-                <td style={{ fontWeight: 700, color: 'var(--color-blue)' }}>{level.name}</td>
-                <td>{level.stages}</td>
-                <td>{level.focus}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+      <section style={{ background: '#fff', padding: '20px 0 60px' }}>
+        <div className="container" style={{ maxWidth: 720 }}>
+          {STEPS.map((step) => (
+            <div key={step.num} className="card" style={{ display: 'flex', gap: 20, alignItems: 'center', marginBottom: 16 }}>
+              <div
+                style={{
+                  minWidth: 48,
+                  height: 48,
+                  borderRadius: '50%',
+                  background: 'var(--color-blue)',
+                  color: '#fff',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontWeight: 900,
+                  fontSize: '1.2rem',
+                }}
+              >
+                {step.num}
+              </div>
+              <div>
+                <h3 style={{ margin: '0 0 4px', color: 'var(--color-blue)' }}>{step.title}</h3>
+                <p style={{ margin: 0, color: '#5a6a7a' }}>{step.text}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
 
-      <h2 className="page-title" style={{ textAlign: 'center' }}>
-        Sample Lesson Walkthrough
-      </h2>
-      <div className="card" style={{ maxWidth: 640, margin: '0 auto' }}>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
-          <div>
-            <span className="badge badge-free">Step 1</span>
-            <p style={{ margin: '8px 0 0', fontWeight: 700 }}>Concept: Learn the letter ب (baa)</p>
-          </div>
-          <div>
-            <span className="badge badge-free">Step 2</span>
-            <p className="arabic-text" dir="rtl" style={{ margin: '8px 0 0', fontSize: '1.8rem' }}>بِسْمِ</p>
-            <p style={{ margin: 0, color: '#6b7a8a' }}>"in the name of"</p>
-          </div>
-          <div>
-            <span className="badge badge-locked">Step 3</span>
-            <p style={{ margin: '8px 0 0', color: '#4b5a6a' }}>
-              Quranic Connection: this is the opening word of Surah Al-Fatihah, 1:1.
-            </p>
-          </div>
-          <div>
-            <span className="badge badge-free">Step 4</span>
-            <p style={{ margin: '8px 0 0', color: '#4b5a6a' }}>
-              Mark the lesson complete and move on — every few lessons, a checkpoint reviews everything so far.
-            </p>
+      <section className="section-sky" style={{ padding: '60px 0' }}>
+        <div className="container">
+          <h2 className="page-title" style={{ textAlign: 'center' }}>
+            Four Levels, Sixteen Stages
+          </h2>
+          <p className="page-subtitle" style={{ textAlign: 'center' }}>
+            One continuous curriculum, ages 3-17 — your child starts at the stage that fits them best.
+          </p>
+          <div style={{ maxWidth: 800, margin: '0 auto', overflowX: 'auto' }}>
+            <table className="table" style={{ background: '#fff', borderRadius: 'var(--radius-md)' }}>
+              <thead>
+                <tr>
+                  <th>Level</th>
+                  <th>Stages</th>
+                  <th>Focus</th>
+                </tr>
+              </thead>
+              <tbody>
+                {LEVELS.map((level) => (
+                  <tr key={level.name}>
+                    <td style={{ fontWeight: 700, color: 'var(--color-blue)' }}>{level.name}</td>
+                    <td>{level.stages}</td>
+                    <td>{level.focus}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         </div>
-      </div>
+      </section>
 
-      <div style={{ textAlign: 'center', marginTop: 40 }}>
-        <Link to="/signup" className="btn btn-primary">
-          Start Free Trial
-        </Link>
-      </div>
+      <section style={{ background: '#fff', padding: '60px 0' }}>
+        <div className="container">
+          <h2 className="page-title" style={{ textAlign: 'center' }}>
+            Sample Lesson Walkthrough
+          </h2>
+          <div className="card" style={{ maxWidth: 640, margin: '0 auto' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
+              <div>
+                <span className="badge badge-free">Step 1</span>
+                <p style={{ margin: '8px 0 0', fontWeight: 700 }}>Concept: Learn the letter ب (baa)</p>
+              </div>
+              <div>
+                <span className="badge badge-free">Step 2</span>
+                <p className="arabic-text" dir="rtl" style={{ margin: '8px 0 0', fontSize: '1.8rem' }}>بِسْمِ</p>
+                <p style={{ margin: 0, color: '#6b7a8a' }}>"in the name of"</p>
+              </div>
+              <div>
+                <span className="badge badge-locked">Step 3</span>
+                <p style={{ margin: '8px 0 0', color: '#4b5a6a' }}>
+                  Quranic Connection: this is the opening word of Surah Al-Fatihah, 1:1.
+                </p>
+              </div>
+              <div>
+                <span className="badge badge-free">Step 4</span>
+                <p style={{ margin: '8px 0 0', color: '#4b5a6a' }}>
+                  Mark the lesson complete and move on — every few lessons, a checkpoint reviews everything so far.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section style={{ background: 'var(--color-green)', color: '#fff', padding: '56px 0' }}>
+        <div className="container" style={{ textAlign: 'center' }}>
+          <HudMascot pose="celebrate" size={80} style={{ marginBottom: 12 }} />
+          <h2 style={{ fontFamily: 'var(--font-display)', fontSize: '1.7rem', fontWeight: 800, marginBottom: 20 }}>
+            Ready to start the journey?
+          </h2>
+          <Link to="/signup" className="btn" style={{ background: 'var(--color-gold)', color: '#fff' }}>
+            Start Free Trial
+          </Link>
+        </div>
+      </section>
     </div>
   );
 }

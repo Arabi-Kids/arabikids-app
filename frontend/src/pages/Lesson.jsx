@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useActiveChild } from '../context/ActiveChildContext.jsx';
 import { getLessonDetail, completeLessonForChild } from '../lib/db.js';
+import HudMascot from '../components/HudMascot.jsx';
 
 export default function Lesson() {
   const { stageId, orderIndex } = useParams();
@@ -133,7 +134,10 @@ export default function Lesson() {
         </button>
       ) : (
         <div className="card" style={{ textAlign: 'center', background: 'rgba(26,122,74,0.08)' }}>
-          <h3 style={{ margin: '0 0 8px' }}>🎉 Lesson complete!</h3>
+          <h3 style={{ margin: '0 0 8px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+            <HudMascot pose="celebrate" size={32} />
+            Lesson complete!
+          </h3>
           <p style={{ margin: 0 }}>
             {lesson.checkpointDue ? "Time for a quick checkpoint to review what you've learned." : 'Ready for the next lesson?'}
           </p>

@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.jsx';
 import { useActiveChild } from '../context/ActiveChildContext.jsx';
 import { getCurriculum, createChildProfile, computeMaxStageForAge, ageFromDob } from '../lib/db.js';
+import HudMascot from '../components/HudMascot.jsx';
 
 export default function AddChild() {
   const { user } = useAuth();
@@ -63,6 +64,7 @@ export default function AddChild() {
   return (
     <div className="container">
       <div className="card auth-card" style={{ maxWidth: 480 }}>
+        <HudMascot pose="mark" size={56} style={{ margin: '0 auto 12px', display: 'block' }} />
         <h1 className="page-title" style={{ textAlign: 'center' }}>
           {childProfiles.length === 0 ? 'Add Your First Child' : 'Add a Child'}
         </h1>

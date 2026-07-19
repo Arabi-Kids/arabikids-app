@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import HudMascot from './HudMascot.jsx';
 
 export default function Footer() {
   return (
@@ -7,12 +8,15 @@ export default function Footer() {
         className="container"
         style={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: 16 }}
       >
-        <div>
-          <div style={{ fontWeight: 800 }}>
-            Arabi<span style={{ color: 'var(--color-gold-light)' }}>Kids</span>
-          </div>
-          <div style={{ opacity: 0.85, fontSize: '0.85rem', marginTop: 4 }}>
-            Teaching the Language of the Quran — One Kid at a Time.
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <HudMascot pose="mark" size={30} style={{ opacity: 0.9 }} />
+          <div>
+            <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700 }}>
+              Arabi<span style={{ color: 'var(--color-gold-light)' }}>Kids</span>
+            </div>
+            <div style={{ opacity: 0.85, fontSize: '0.85rem', marginTop: 4 }}>
+              Teaching the Language of the Quran — One Kid at a Time.
+            </div>
           </div>
         </div>
         <div style={{ display: 'flex', gap: 20, flexWrap: 'wrap', alignItems: 'center' }}>

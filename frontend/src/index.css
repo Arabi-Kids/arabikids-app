@@ -4,8 +4,11 @@
   --color-gold: #c8960c;
   --color-gold-light: #f0b93d;
   --color-green: #1a7a4a;
+  --color-terracotta: #c1602c;
+  --color-sky: #e7eff9;
   --color-bg: #fbf9f3;
   --color-text: #1f2a37;
+  --font-display: 'Baloo 2', 'Nunito', system-ui, sans-serif;
   --radius-lg: 20px;
   --radius-md: 12px;
   --shadow-soft: 0 8px 24px rgba(27, 79, 138, 0.12);
@@ -112,10 +115,12 @@ button {
 }
 
 .page-title {
+  font-family: var(--font-display);
   font-size: 2.25rem;
-  font-weight: 900;
+  font-weight: 800;
   color: var(--color-blue);
   margin: 0 0 8px;
+  text-wrap: balance;
 }
 
 .page-subtitle {
@@ -214,6 +219,97 @@ button {
   text-align: right;
 }
 
+/* ---------------- Sky-wash section + Hud hero ---------------- */
+.section-sky {
+  background: var(--color-sky);
+}
+
+.hero-section {
+  position: relative;
+  overflow: hidden;
+  padding: 64px 0 0;
+  background: var(--color-bg);
+}
+
+.hero-star-field {
+  position: absolute;
+  inset: 0;
+  opacity: 0.6;
+  background-image: radial-gradient(circle, rgba(27, 79, 138, 0.1) 1.6px, transparent 1.7px);
+  background-size: 26px 26px;
+  mask-image: radial-gradient(circle at 80% 35%, black 0%, black 25%, transparent 65%);
+  -webkit-mask-image: radial-gradient(circle at 80% 35%, black 0%, black 25%, transparent 65%);
+}
+
+.hero-grid {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: 1.1fr 0.9fr;
+  align-items: center;
+  gap: 24px;
+  min-height: 380px;
+  padding-bottom: 48px;
+}
+
+.hero-kicker {
+  display: inline-block;
+  background: rgba(200, 150, 12, 0.14);
+  color: #a06e0a;
+  font-weight: 800;
+  font-size: 0.72rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 6px 14px;
+  border-radius: 999px;
+  margin-bottom: 16px;
+}
+
+.hero-h1 {
+  font-family: var(--font-display);
+  font-size: 2.75rem;
+  line-height: 1.1;
+  color: var(--color-blue-dark);
+  font-weight: 800;
+  margin: 0 0 16px;
+  text-wrap: balance;
+}
+
+.hero-h1-accent {
+  color: var(--color-gold);
+}
+
+.hero-sub {
+  color: #4b5a6a;
+  font-size: 1.1rem;
+  max-width: 420px;
+  line-height: 1.6;
+  margin: 0 0 28px;
+}
+
+.hero-ctas {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.hero-art {
+  display: flex;
+  justify-content: center;
+}
+
+.hero-arch {
+  position: relative;
+  z-index: 1;
+  line-height: 0;
+}
+
+.hero-arch svg {
+  display: block;
+  width: 100%;
+  height: 40px;
+}
+
 /* ---------------- Navbar (public site) ---------------- */
 .navbar-header {
   background: #fff;
@@ -283,6 +379,30 @@ button {
 
   .stat-grid {
     grid-template-columns: 1fr;
+  }
+
+  .hero-grid {
+    grid-template-columns: 1fr;
+    text-align: center;
+    min-height: 0;
+  }
+
+  .hero-sub {
+    max-width: none;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .hero-ctas {
+    justify-content: center;
+  }
+
+  .hero-art {
+    order: -1;
+  }
+
+  .hero-h1 {
+    font-size: 2.1rem;
   }
 }
 

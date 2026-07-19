@@ -3,6 +3,8 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.jsx';
 import { useActiveChild } from '../context/ActiveChildContext.jsx';
 import { getCurriculum } from '../lib/db.js';
+import HudMascot from '../components/HudMascot.jsx';
+import { StarSparkleIcon } from '../components/Icons.jsx';
 
 function stageState(stage, currentStageOrder, isPaidUser) {
   if (stage.orderIndex > currentStageOrder) return 'locked';
@@ -29,6 +31,7 @@ export default function LessonHub() {
   if (childProfiles.length === 0) {
     return (
       <div className="container" style={{ padding: 60, textAlign: 'center' }}>
+        <HudMascot pose="mark" size={72} style={{ margin: '0 auto 12px' }} />
         <h1 className="page-title">Add Your First Child</h1>
         <p className="page-subtitle">Set up a child profile to start their Arabic & Quran journey.</p>
         <Link to="/add-child" className="btn btn-primary">Add Child</Link>
@@ -70,7 +73,11 @@ export default function LessonHub() {
                     {state === 'locked' && <span className="badge badge-locked">🔒 Locked</span>}
                     {state === 'locked-payment' && <span className="badge badge-locked">🔒 Subscribe</span>}
                     {state === 'active' && isCurrent && <span className="badge badge-free">In Progress</span>}
-                    {state === 'active' && !isCurrent && <span className="badge badge-gold">⭐ Done</span>}
+                    {state === 'active' && !isCurrent && (
+                      <span className="badge badge-gold" style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                        <StarSparkleIcon style={{ width: 12, height: 12 }} /> Done
+                      </span>
+                    )}
                   </div>
                   <p style={{ margin: 0, fontWeight: 700 }}>{stage.name}</p>
                 </Link>

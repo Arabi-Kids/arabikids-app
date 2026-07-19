@@ -1,4 +1,6 @@
 import { Link } from 'react-router-dom';
+import HudMascot from '../components/HudMascot.jsx';
+import { BookIcon, PathIcon, TargetIcon, DeviceIcon } from '../components/Icons.jsx';
 
 const TRUST_STRIP = [
   ['16', 'Stages, One Journey'],
@@ -8,10 +10,10 @@ const TRUST_STRIP = [
 ];
 
 const FEATURES = [
-  { icon: '📖', title: 'Quran-Connected', text: 'Every letter and word links directly to a Quranic verse or name of Allah.' },
-  { icon: '🎈', title: 'One Continuous Path', text: 'From first letters to fluent reading — no separate tracks, just the right stage for your child.' },
-  { icon: '🎯', title: 'Interactive', text: 'Every stage ends in a checkpoint review, not passive video watching.' },
-  { icon: '📱', title: 'Any Device', text: 'Works on phone, tablet or laptop, so kids can learn wherever you are.' },
+  { Icon: BookIcon, title: 'Quran-Connected', text: 'Every letter and word links directly to a Quranic verse or name of Allah.' },
+  { Icon: PathIcon, title: 'One Continuous Path', text: 'From first letters to fluent reading — no separate tracks, just the right stage for your child.' },
+  { Icon: TargetIcon, title: 'Interactive', text: 'Every stage ends in a checkpoint review, not passive video watching.' },
+  { Icon: DeviceIcon, title: 'Any Device', text: 'Works on phone, tablet or laptop, so kids can learn wherever you are.' },
 ];
 
 const LEVELS = [
@@ -36,32 +38,42 @@ const TESTIMONIALS = [
 export default function Home() {
   return (
     <div>
-      <section
-        style={{
-          background: 'linear-gradient(135deg, var(--color-blue) 0%, var(--color-blue-dark) 100%)',
-          color: '#fff',
-          padding: '90px 0 70px',
-        }}
-      >
-        <div className="container" style={{ textAlign: 'center' }}>
-          <h1 style={{ fontSize: '3rem', fontWeight: 900, margin: '16px 0' }}>
-            Arabi<span style={{ color: 'var(--color-gold-light)' }}>Kids</span>
-          </h1>
-          <p style={{ fontSize: '1.3rem', maxWidth: 640, margin: '0 auto 8px', fontWeight: 700 }}>
-            Teaching the Language of the Quran — One Kid at a Time.
-          </p>
-          <p style={{ fontSize: '1.1rem', maxWidth: 560, margin: '0 auto 32px', opacity: 0.9 }}>
-            ArabiKids teaches Arabic and Quran together, never separately, so every child understands
-            what they recite.
-          </p>
-          <div style={{ display: 'flex', gap: 16, justifyContent: 'center', flexWrap: 'wrap' }}>
-            <Link to="/signup" className="btn btn-primary">
-              Start Free Trial
-            </Link>
-            <Link to="/how-it-works" className="btn" style={{ background: '#fff', color: 'var(--color-blue)' }}>
-              See How It Works
-            </Link>
+      <section className="hero-section">
+        <div className="hero-star-field" aria-hidden="true"></div>
+        <div className="container hero-grid">
+          <div className="hero-copy">
+            <span className="hero-kicker">Stage 1 free · no card needed</span>
+            <h1 className="hero-h1">
+              Teaching the language
+              <br />
+              of the <span className="hero-h1-accent">Qur&apos;an</span>,
+              <br />
+              one kid at a time.
+            </h1>
+            <p className="hero-sub">
+              ArabiKids teaches Arabic and Quran together, never separately, so every child
+              understands what they recite.
+            </p>
+            <div className="hero-ctas">
+              <Link to="/signup" className="btn btn-primary">
+                Start Free Trial
+              </Link>
+              <Link to="/how-it-works" className="btn btn-outline">
+                See How It Works
+              </Link>
+            </div>
           </div>
+          <div className="hero-art">
+            <HudMascot pose="hero" size={220} />
+          </div>
+        </div>
+        <div className="hero-arch" aria-hidden="true">
+          <svg viewBox="0 0 400 40" preserveAspectRatio="none">
+            <path
+              d="M0 40 L0 18 Q25 0 50 18 Q75 0 100 18 Q125 0 150 18 Q175 0 200 18 Q225 0 250 18 Q275 0 300 18 Q325 0 350 18 Q375 0 400 18 L400 40 Z"
+              fill="var(--color-blue-dark)"
+            />
+          </svg>
         </div>
       </section>
 
@@ -108,7 +120,21 @@ export default function Home() {
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 24 }}>
             {FEATURES.map((f) => (
               <div key={f.title} className="card" style={{ textAlign: 'center' }}>
-                <div style={{ fontSize: '2.5rem', marginBottom: 12 }}>{f.icon}</div>
+                <div
+                  style={{
+                    width: 52,
+                    height: 52,
+                    borderRadius: '50%',
+                    background: 'var(--color-sky)',
+                    color: 'var(--color-blue)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    margin: '0 auto 14px',
+                  }}
+                >
+                  <f.Icon style={{ width: 26, height: 26 }} />
+                </div>
                 <h3 style={{ color: 'var(--color-blue)', margin: '0 0 8px' }}>{f.title}</h3>
                 <p style={{ color: '#5a6a7a', margin: 0 }}>{f.text}</p>
               </div>

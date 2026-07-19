@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.jsx';
 import { functionsApi } from '../lib/functions.js';
+import HudMascot from '../components/HudMascot.jsx';
 
 const PLANS = [
   {
@@ -73,14 +74,16 @@ export default function Pricing() {
   }
 
   return (
-    <div className="container" style={{ padding: '60px 0' }}>
-      <h1 className="page-title" style={{ textAlign: 'center' }}>
-        Simple, Family-Friendly Pricing
-      </h1>
-      <p className="page-subtitle" style={{ textAlign: 'center' }}>
+    <div>
+    <div className="container" style={{ padding: '60px 0 24px', textAlign: 'center' }}>
+      <HudMascot pose="mark" size={64} style={{ marginBottom: 12 }} />
+      <h1 className="page-title">Simple, Family-Friendly Pricing</h1>
+      <p className="page-subtitle">
         Start free. Upgrade only when you're ready to unlock the full 16-stage curriculum.
       </p>
-      {error && <p className="error-text" style={{ textAlign: 'center' }}>{error}</p>}
+      {error && <p className="error-text">{error}</p>}
+    </div>
+    <div className="container" style={{ paddingBottom: '60px' }}>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 24, maxWidth: 940, margin: '0 auto 24px' }}>
         {PLANS.map((plan) => (
           <div
@@ -121,30 +124,36 @@ export default function Pricing() {
         ))}
       </div>
 
-      <p style={{ textAlign: 'center', color: '#8ea0b6', maxWidth: 640, margin: '0 auto 60px' }}>
+      <p style={{ textAlign: 'center', color: '#8ea0b6', maxWidth: 640, margin: '0 auto' }}>
         Have more than one child? A Family plan is coming soon.{' '}
         <a href="mailto:ArabiKidsApp@gmail.com" style={{ color: 'var(--color-blue)', fontWeight: 700 }}>
           Email us
         </a>{' '}
         if you'd like it sooner.
       </p>
+    </div>
 
-      <h2 className="page-title" style={{ textAlign: 'center' }}>Compare Plans</h2>
-      <div style={{ maxWidth: 720, margin: '0 auto 60px', overflowX: 'auto' }}>
-        <table className="table">
-          <thead>
-            <tr><th></th><th>Free</th><th>Monthly</th><th>Annual</th></tr>
-          </thead>
-          <tbody>
-            {COMPARISON_ROWS.map((row) => (
-              <tr key={row[0]}>
-                {row.map((cell, i) => <td key={i}>{cell}</td>)}
-              </tr>
-            ))}
-          </tbody>
-        </table>
+    <section className="section-sky" style={{ padding: '56px 0' }}>
+      <div className="container">
+        <h2 className="page-title" style={{ textAlign: 'center' }}>Compare Plans</h2>
+        <div style={{ maxWidth: 720, margin: '0 auto', overflowX: 'auto' }}>
+          <table className="table" style={{ background: '#fff', borderRadius: 'var(--radius-md)' }}>
+            <thead>
+              <tr><th></th><th>Free</th><th>Monthly</th><th>Annual</th></tr>
+            </thead>
+            <tbody>
+              {COMPARISON_ROWS.map((row) => (
+                <tr key={row[0]}>
+                  {row.map((cell, i) => <td key={i}>{cell}</td>)}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
+    </section>
 
+    <div className="container" style={{ padding: '56px 0' }}>
       <h2 className="page-title" style={{ textAlign: 'center' }}>Frequently Asked Questions</h2>
       <div style={{ maxWidth: 640, margin: '0 auto 40px' }}>
         {FAQS.map((f) => (
@@ -160,6 +169,7 @@ export default function Pricing() {
           Get Started Free
         </button>
       </div>
+    </div>
     </div>
   );
 }

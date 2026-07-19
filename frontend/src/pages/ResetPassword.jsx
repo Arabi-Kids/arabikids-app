@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase.js';
+import HudMascot from '../components/HudMascot.jsx';
 
 export default function ResetPassword() {
   const navigate = useNavigate();
@@ -71,6 +72,7 @@ export default function ResetPassword() {
     return (
       <div className="container">
         <div className="card auth-card" style={{ textAlign: 'center' }}>
+          <HudMascot pose="celebrate" size={64} style={{ margin: '0 auto 12px' }} />
           <h1 className="page-title">Password Updated</h1>
           <p className="page-subtitle" style={{ marginBottom: 20 }}>Your password has been changed successfully.</p>
           <button className="btn btn-primary" onClick={() => navigate('/lessons')}>
@@ -85,6 +87,7 @@ export default function ResetPassword() {
     return (
       <div className="container">
         <div className="card auth-card" style={{ textAlign: 'center' }}>
+          <HudMascot pose="lost" size={64} style={{ margin: '0 auto 12px' }} />
           <h1 className="page-title">Link Expired</h1>
           <p className="page-subtitle" style={{ marginBottom: 20 }}>
             This password reset link is invalid or has expired. Please request a new one.
@@ -104,6 +107,7 @@ export default function ResetPassword() {
   return (
     <div className="container">
       <div className="card auth-card">
+        <HudMascot pose="mark" size={56} style={{ margin: '0 auto 12px', display: 'block' }} />
         <h1 className="page-title" style={{ textAlign: 'center' }}>
           Set a New Password
         </h1>

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useActiveChild } from '../context/ActiveChildContext.jsx';
 import { getChildProgressSummary } from '../lib/db.js';
+import HudMascot from '../components/HudMascot.jsx';
 
 const TOTAL_STAGES = 16;
 
@@ -20,6 +21,7 @@ export default function Progress() {
   if (childProfiles.length === 0) {
     return (
       <div className="container" style={{ padding: 60, textAlign: 'center' }}>
+        <HudMascot pose="mark" size={72} style={{ margin: '0 auto 12px' }} />
         <h1 className="page-title">No Child Yet</h1>
         <Link to="/add-child" className="btn btn-primary">Add a Child</Link>
       </div>
