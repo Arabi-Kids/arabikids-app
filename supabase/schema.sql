@@ -13,27 +13,38 @@
 create extension if not exists pgcrypto;
 
 -- ---------------------------------------------------------------------------
--- Drop v1 tables (clean rebuild — no production data yet)
+-- Drop everything except `users` (clean, re-runnable rebuild — no production
+-- data yet other than auth-linked accounts, which `users` preserves via an
+-- ALTER-based upgrade below instead of a drop).
 -- ---------------------------------------------------------------------------
+drop table if exists public.placement_results cascade;
+drop table if exists public.child_stage_progress cascade;
+drop table if exists public.child_lesson_progress cascade;
+drop table if exists public.child_profiles cascade;
+drop table if exists public.exercise_questions cascade;
+drop table if exists public.stage_exercises cascade;
+drop table if exists public.lessons cascade;
+drop table if exists public.stages cascade;
+drop table if exists public.levels cascade;
 drop table if exists public.user_progress cascade;
 drop table if exists public.exercises cascade;
-drop table if exists public.lessons cascade;
+drop table if exists public.contact_messages cascade;
 drop function if exists public.list_lessons(text);
 
 -- ---------------------------------------------------------------------------
 -- TABLES
 -- ---------------------------------------------------------------------------
 
-create table public.users (
+-- `users` already exists from v1 — created here with `if not exists` so this
+-- script also works on a truly fresh project, then upgraded via ALTER below
+-- either way (both are safe no-ops if already applied).
+create table if not exists public.users (
   id uuid primary key references auth.users(id) on delete cascade,
   name text not null,
   email text not null,
   role text not null default 'parent' check (role in ('parent', 'admin')),
   subscription_status text not null default 'free' check (subscription_status in ('free', 'active', 'past_due', 'canceled')),
   subscription_plan text check (subscription_plan in ('monthly', 'annual')),
-  -- Independent of subscription_plan (billing cadence): how many child
-  -- profiles the account is allowed. Standard = 1, Family = 2+ (uncapped for
-  -- now — see enforce_child_limit() below).
   subscription_tier text not null default 'standard' check (subscription_tier in ('standard', 'family')),
   stripe_customer_id text,
   stripe_subscription_id text,
@@ -42,6 +53,18 @@ create table public.users (
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
+
+-- Upgrade path from v1 (table already existed without subscription_tier, and
+-- with child_name/age_group — those move to child_profiles instead).
+alter table public.users add column if not exists subscription_tier text not null default 'standard';
+do $$
+begin
+  if not exists (select 1 from pg_constraint where conname = 'users_subscription_tier_check') then
+    alter table public.users add constraint users_subscription_tier_check check (subscription_tier in ('standard', 'family'));
+  end if;
+end $$;
+alter table public.users drop column if exists child_name;
+alter table public.users drop column if exists age_group;
 
 create table public.levels (
   id serial primary key,
@@ -246,9 +269,12 @@ as $$
   );
 $$;
 
--- USERS
+-- USERS (table isn't dropped/recreated like the others, so its policies need
+-- an explicit drop-if-exists first to stay re-runnable).
+drop policy if exists "users_select" on public.users;
 create policy "users_select" on public.users for select
   using (auth.uid() = id or public.is_admin());
+drop policy if exists "users_update" on public.users;
 create policy "users_update" on public.users for update
   using (auth.uid() = id or public.is_admin())
   with check (auth.uid() = id or public.is_admin());
