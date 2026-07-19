@@ -25,7 +25,7 @@ export default function AdminLogin() {
 
   return (
     <div className="admin-login-shell">
-      <div className="admin-card" style={{ width: 360 }}>
+      <div className="admin-card" style={{ width: '100%', maxWidth: 360 }}>
         <div style={{ textAlign: 'center', marginBottom: 24 }}>
           <div style={{ fontWeight: 900, fontSize: '1.4rem', color: '#fff' }}>
             Arabi<span style={{ color: 'var(--admin-accent)' }}>Kids</span>

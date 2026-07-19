@@ -369,7 +369,7 @@ export default function AdminLessonsManager() {
         <div className="admin-card" style={{ marginTop: 20 }}>
           <h3 style={{ marginTop: 0, color: '#fff' }}>New Lesson</h3>
           {newLessonError && <p style={{ color: '#e57373', fontWeight: 700 }}>{newLessonError}</p>}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 12 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 12, marginBottom: 12 }}>
             <input
               className="admin-input"
               style={{ marginBottom: 0 }}

@@ -481,6 +481,7 @@ button {
   border-radius: 14px;
   padding: 20px;
   border: 1px solid rgba(255,255,255,0.06);
+  overflow-x: auto;
 }
 
 .admin-table {
@@ -509,6 +510,7 @@ button {
   align-items: center;
   justify-content: center;
   background: var(--admin-bg);
+  padding: 20px;
 }
 
 .admin-input {
@@ -520,4 +522,45 @@ button {
   color: #fff;
   font-size: 1rem;
   margin-bottom: 14px;
+}
+
+/* ---------------- Admin portal: mobile ---------------- */
+@media (max-width: 780px) {
+  .admin-shell {
+    flex-direction: column;
+  }
+
+  .admin-sidebar {
+    width: auto;
+    flex-direction: row;
+    align-items: center;
+    gap: 4px;
+    padding: 14px 16px;
+    overflow-x: auto;
+    white-space: nowrap;
+  }
+
+  .admin-sidebar .admin-logo {
+    margin-bottom: 0;
+    margin-right: 8px;
+    font-size: 1.05rem;
+    flex-shrink: 0;
+  }
+
+  .admin-sidebar a {
+    padding: 8px 12px;
+    font-size: 0.85rem;
+    flex-shrink: 0;
+  }
+
+  .admin-sidebar button {
+    margin-top: 0 !important;
+    margin-left: auto;
+    flex-shrink: 0;
+    white-space: nowrap;
+  }
+
+  .admin-main {
+    padding: 20px 16px;
+  }
 }
