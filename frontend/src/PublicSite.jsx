@@ -12,6 +12,8 @@ import About from './pages/About.jsx';
 import Contact from './pages/Contact.jsx';
 import Login from './pages/Login.jsx';
 import Signup from './pages/Signup.jsx';
+import ForgotPassword from './pages/ForgotPassword.jsx';
+import ResetPassword from './pages/ResetPassword.jsx';
 import ThankYou from './pages/ThankYou.jsx';
 import LessonHub from './pages/LessonHub.jsx';
 import Lesson from './pages/Lesson.jsx';
@@ -35,6 +37,8 @@ export default function PublicSite() {
             <Route path="/contact" element={<Contact />} />
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<Signup />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
+            <Route path="/reset-password" element={<ResetPassword />} />
             <Route
               path="/thank-you"
               element={

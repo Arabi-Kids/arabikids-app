@@ -95,13 +95,6 @@ export function AuthProvider({ children }) {
     if (error) throw new Error(error.message);
   }, []);
 
-  const requestPasswordReset = useCallback(async (email) => {
-    const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${window.location.origin}/login`,
-    });
-    if (error) throw new Error(error.message);
-  }, []);
-
   const isPaid = useCallback(() => user?.subscriptionStatus === 'active' || user?.subscriptionStatus === 'past_due', [user]);
   const isAdmin = useCallback(() => user?.role === 'admin', [user]);
 
@@ -113,7 +106,6 @@ export function AuthProvider({ children }) {
     register,
     logout,
     changePassword,
-    requestPasswordReset,
     isPaid,
     isAdmin,
     refreshProfile: () => loadProfile(session?.user?.id),

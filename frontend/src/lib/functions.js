@@ -28,4 +28,5 @@ export const functionsApi = {
   billingPortal: () => callFunction('/billing-portal'),
   cancelSubscription: () => callFunction('/cancel-subscription'),
   subscribeEnginemailer: (payload) => callFunction('/subscribe-enginemailer', payload),
+  requestPasswordReset: (email) => callFunction('/request-password-reset', { email }),
 };
