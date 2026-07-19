@@ -108,9 +108,10 @@ export default function Terms() {
       <section style={SECTION_STYLE}>
         <h3 style={HEADING_STYLE}>11. Governing Law</h3>
         <p style={BODY_STYLE}>
-          These Terms are governed by the laws of{' '}
-          <strong style={{ color: '#c0392b' }}>[Jurisdiction to be confirmed]</strong>, without regard to
-          conflict of law principles.
+          These Terms are governed by the laws of Malaysia, without regard to conflict of law principles.
+          If you are using ArabiKids as a consumer in a country whose laws give you mandatory consumer
+          protection rights that cannot be waived by contract, nothing in these Terms takes those rights
+          away from you.
         </p>
       </section>
 
