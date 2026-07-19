@@ -4,6 +4,7 @@ import { useActiveChild } from '../context/ActiveChildContext.jsx';
 import { getLessonDetail, completeLessonForChild } from '../lib/db.js';
 import { badgeInfo } from '../lib/badges.js';
 import HudMascot from '../components/HudMascot.jsx';
+import SpeakButton from '../components/SpeakButton.jsx';
 
 export default function Lesson() {
   const { stageId, orderIndex } = useParams();
@@ -103,7 +104,10 @@ export default function Lesson() {
         <p style={{ fontSize: '1.1rem', marginTop: 12 }}>{content.concept}</p>
         {content.type === 'reading' && (
           <div style={{ marginTop: 12 }}>
-            <p className="arabic-text" dir="rtl" style={{ fontSize: '1.8rem', textAlign: 'center', lineHeight: 2 }}>{content.passage}</p>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12 }}>
+              <p className="arabic-text" dir="rtl" style={{ fontSize: '1.8rem', textAlign: 'center', lineHeight: 2, margin: 0 }}>{content.passage}</p>
+              <SpeakButton text={content.passage} rate={0.7} />
+            </div>
             <p style={{ color: '#6b7a8a', textAlign: 'center', fontStyle: 'italic' }}>{content.translation}</p>
           </div>
         )}
@@ -111,11 +115,17 @@ export default function Lesson() {
 
       <div className="card" style={{ marginBottom: 20, textAlign: 'center' }}>
         <span className="badge badge-free">Arabic Word</span>
-        <p className="arabic-text" dir="rtl" style={{ fontSize: '2.5rem', margin: '16px 0 8px' }}>{lesson.arabicWord}</p>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12, margin: '16px 0 8px' }}>
+          <p className="arabic-text" dir="rtl" style={{ fontSize: '2.5rem', margin: 0 }}>{lesson.arabicWord}</p>
+          <SpeakButton text={lesson.arabicWord} size={22} />
+        </div>
         <p style={{ fontWeight: 700, color: 'var(--color-blue)' }}>{lesson.arabicWordMeaning}</p>
         {content.secondWord && (
           <>
-            <p className="arabic-text" dir="rtl" style={{ fontSize: '2rem', margin: '20px 0 8px' }}>{content.secondWord.arabic}</p>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12, margin: '20px 0 8px' }}>
+              <p className="arabic-text" dir="rtl" style={{ fontSize: '2rem', margin: 0 }}>{content.secondWord.arabic}</p>
+              <SpeakButton text={content.secondWord.arabic} size={22} />
+            </div>
             <p style={{ fontWeight: 700, color: 'var(--color-blue)' }}>{content.secondWord.translation}</p>
           </>
         )}
@@ -123,7 +133,10 @@ export default function Lesson() {
 
       <div className="card" style={{ marginBottom: 28, background: 'rgba(200,150,12,0.06)', border: '1px solid rgba(200,150,12,0.25)' }}>
         <span className="badge badge-locked">Quranic Connection</span>
-        <p className="arabic-text" dir="rtl" style={{ fontSize: '1.5rem', margin: '14px 0 4px' }}>{content.quranicConnection?.arabic}</p>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, margin: '14px 0 4px' }}>
+          <p className="arabic-text" dir="rtl" style={{ fontSize: '1.5rem', margin: 0 }}>{content.quranicConnection?.arabic}</p>
+          <SpeakButton text={content.quranicConnection?.arabic} size={18} />
+        </div>
         <p style={{ margin: '0 0 8px', color: '#4b5a6a', fontStyle: 'italic' }}>"{content.quranicConnection?.translation}"</p>
         <p style={{ margin: 0, color: 'var(--color-blue-dark)', fontWeight: 700 }}>{content.quranicConnection?.reference}</p>
         {content.quranicConnection?.note && <p style={{ margin: '8px 0 0', color: '#6b7a8a' }}>{content.quranicConnection.note}</p>}
