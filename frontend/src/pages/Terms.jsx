@@ -116,7 +116,7 @@ export default function Terms() {
 
       <section>
         <h3 style={HEADING_STYLE}>12. Contact Us</h3>
-        <p style={BODY_STYLE}><strong>ArabiKidsHQ@gmail.com</strong></p>
+        <p style={BODY_STYLE}><strong>ArabiKidsApp@gmail.com</strong></p>
       </section>
     </div>
   );
