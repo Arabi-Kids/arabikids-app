@@ -1,29 +1,36 @@
 import { Link } from 'react-router-dom';
 
 const TRUST_STRIP = [
-  ['90', 'Lessons'],
-  ['Ages 3-17', 'Two Learning Tracks'],
-  ['Madinah Curriculum', 'Trusted Method'],
+  ['16', 'Stages, One Journey'],
+  ['~150', 'Lessons'],
+  ['Ages 3-17', 'Beginner to Advanced'],
   ['Malaysia & Global', 'Muslim Families Everywhere'],
 ];
 
 const FEATURES = [
   { icon: '📖', title: 'Quran-Connected', text: 'Every letter and word links directly to a Quranic verse or name of Allah.' },
-  { icon: '🎈', title: 'Age-Appropriate', text: 'Junior (3-7) and Explorer (8-17) tracks, each built for how that age learns best.' },
-  { icon: '🎯', title: 'Interactive', text: 'Every lesson ends in three hands-on exercises, not passive video watching.' },
+  { icon: '🎈', title: 'One Continuous Path', text: 'From first letters to fluent reading — no separate tracks, just the right stage for your child.' },
+  { icon: '🎯', title: 'Interactive', text: 'Every stage ends in a checkpoint review, not passive video watching.' },
   { icon: '📱', title: 'Any Device', text: 'Works on phone, tablet or laptop, so kids can learn wherever you are.' },
 ];
 
+const LEVELS = [
+  { name: 'Beginner', desc: 'Letters & Sounds', sample: 'Letter ب (baa) → بِسْمِ → Surah Al-Fatihah 1:1' },
+  { name: 'Elementary', desc: 'Words Take Shape', sample: 'كِتَاب (book) → often refers to the Quran' },
+  { name: 'Intermediate', desc: 'Grammar Foundations', sample: 'رَبِّ الْعَالَمِينَ → "Lord of the worlds" → Al-Fatihah 1:2' },
+  { name: 'Advanced', desc: 'Verbs, Sentences & Application', sample: 'إِيَّاكَ نَعْبُدُ → "You alone we worship" → Al-Fatihah 1:5' },
+];
+
 const STEPS = [
-  { num: 1, title: 'Choose a Track', text: 'Pick Junior (ages 3-7) or Explorer (ages 8-17) based on your child\'s age.' },
+  { num: 1, title: 'Add Your Child', text: 'Create a free parent account and add a profile for each child — every child gets their own stage and progress.' },
   { num: 2, title: 'Learn Arabic & Quran Together', text: 'Every lesson teaches a concept, an Arabic word, and its Quranic connection — never separately.' },
-  { num: 3, title: 'Practice & Progress', text: 'Kids complete 3 exercises per lesson while parents track streaks and scores.' },
+  { num: 3, title: 'Practice & Progress', text: 'Every few lessons, a quick checkpoint reviews what\'s been learned while parents track streaks and scores.' },
 ];
 
 const TESTIMONIALS = [
-  { quote: 'My daughter now recognises words from Surah Al-Fatihah in her own reading. It finally clicked.', name: 'Parent, Junior track' },
-  { quote: 'Finally a curriculum that doesn\'t treat Arabic and Quran as two separate subjects.', name: 'Parent, Explorer track' },
-  { quote: 'Madinah Book 1 made simple and fun for my teenager. He asks to do lessons now.', name: 'Parent, Explorer track' },
+  { quote: 'My daughter now recognises words from Surah Al-Fatihah in her own reading. It finally clicked.', name: 'Parent, Beginner level' },
+  { quote: 'Finally a curriculum that doesn\'t treat Arabic and Quran as two separate subjects.', name: 'Parent, Intermediate level' },
+  { quote: 'Madinah Book 1 made simple and fun for my teenager. He asks to do lessons now.', name: 'Parent, Advanced level' },
 ];
 
 export default function Home() {
@@ -74,30 +81,22 @@ export default function Home() {
 
       <section className="container" style={{ padding: '60px 0' }}>
         <h2 className="page-title" style={{ textAlign: 'center' }}>
-          Two Age Groups, One Method
+          Four Levels, One Journey
         </h2>
         <p className="page-subtitle" style={{ textAlign: 'center' }}>
-          Arabic and Quran, taught together, at the right level for your child.
+          Every child starts at the stage that fits them, then moves through the same continuous path —
+          no separate tracks to choose between.
         </p>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 24 }}>
-          <div className="card">
-            <span className="badge badge-free" style={{ marginBottom: 12 }}>Ages 3-7</span>
-            <h3 style={{ color: 'var(--color-blue)', margin: '4px 0 8px' }}>Junior</h3>
-            <p style={{ color: '#5a6a7a' }}>
-              Simplified phonics-based approach inspired by the Noorania Qaida: alphabet letters, basic
-              Quranic words, colours, numbers and family, taught through visual and playful exercises.
-            </p>
-            <p style={{ color: '#8ea0b6', fontWeight: 700, marginTop: 12 }}>Sample: Letter ب → بِسْمِ → Surah Al-Fatihah 1:1</p>
-          </div>
-          <div className="card">
-            <span className="badge badge-locked" style={{ marginBottom: 12 }}>Ages 8-17</span>
-            <h3 style={{ color: 'var(--color-blue)', margin: '4px 0 8px' }}>Explorer</h3>
-            <p style={{ color: '#5a6a7a' }}>
-              Madinah Arabic Book 1 curriculum: grammar, sentence structure and verb conjugation, reading
-              real Quranic verses word by word.
-            </p>
-            <p style={{ color: '#8ea0b6', fontWeight: 700, marginTop: 12 }}>Sample: إِيَّاكَ نَعْبُدُ → "You alone we worship" → Al-Fatihah 1:5</p>
-          </div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 20 }}>
+          {LEVELS.map((level) => (
+            <div key={level.name} className="card">
+              <span className="badge badge-free" style={{ marginBottom: 12 }}>{level.desc}</span>
+              <h3 style={{ color: 'var(--color-blue)', margin: '4px 0 8px' }}>{level.name}</h3>
+              <p className="arabic-text" dir="rtl" style={{ color: '#8ea0b6', fontWeight: 700, margin: 0, fontSize: '0.9rem' }}>
+                {level.sample}
+              </p>
+            </div>
+          ))}
         </div>
       </section>
 
@@ -170,7 +169,7 @@ export default function Home() {
             Give your child the gift of understanding the Quran
           </h2>
           <p style={{ maxWidth: 600, margin: '0 auto 28px', opacity: 0.9 }}>
-            5 lessons free per age group, no credit card needed.
+            Stage 1 is free for every child, no credit card needed.
           </p>
           <Link to="/signup" className="btn" style={{ background: 'var(--color-gold)', color: '#fff' }}>
             Start Free Trial

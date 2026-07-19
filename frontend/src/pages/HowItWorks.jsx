@@ -1,12 +1,19 @@
 import { Link } from 'react-router-dom';
 
 const STEPS = [
-  { num: 1, title: 'Sign Up', text: 'Create a free parent account and choose your child\'s age group: Junior or Explorer.' },
-  { num: 2, title: 'Start with 5 Free Lessons', text: 'Try 5 lessons in your track for free, no credit card required.' },
+  { num: 1, title: 'Sign Up', text: 'Create a free parent account, then add a profile for each child — every child gets their own starting stage.' },
+  { num: 2, title: 'Start with Stage 1, Free', text: 'Try Stage 1 for free, no credit card required.' },
   { num: 3, title: 'Concept → Arabic Word → Quran', text: 'Every lesson introduces a concept, a real Arabic word, and shows exactly where it appears in the Quran.' },
-  { num: 4, title: 'Practice with 3 Exercises', text: 'Each lesson ends with three interactive checks to make sure the concept really landed.' },
-  { num: 5, title: 'Track Progress', text: 'Parents see completion charts, streaks, and scores on the Progress page.' },
-  { num: 6, title: 'Unlock All 90 Lessons', text: 'Subscribe monthly or annually to unlock the remaining 40 lessons in each track.' },
+  { num: 4, title: 'Checkpoints Along the Way', text: 'Every few lessons, a quick checkpoint reviews what\'s been learned; a final mastery checkpoint unlocks the next stage.' },
+  { num: 5, title: 'Track Progress', text: 'Parents see completion charts, streaks, and scores for each child on the Progress page.' },
+  { num: 6, title: 'Unlock the Full Curriculum', text: 'Subscribe monthly or annually to unlock all 16 stages, from first letters to fluent reading.' },
+];
+
+const LEVELS = [
+  { name: 'Beginner', stages: 'Stages 1-4', focus: 'Letters, harakat, tanween & sukoon' },
+  { name: 'Elementary', stages: 'Stages 5-8', focus: 'First words, Islamic vocabulary & phrases' },
+  { name: 'Intermediate', stages: 'Stages 9-12', focus: 'Nouns, gender, prepositions, questions & Idafa' },
+  { name: 'Advanced', stages: 'Stages 13-16', focus: 'Verbs, sentences & reading real Quranic verses' },
 ];
 
 export default function HowItWorks() {
@@ -47,24 +54,28 @@ export default function HowItWorks() {
       </div>
 
       <h2 className="page-title" style={{ textAlign: 'center' }}>
-        Junior vs Explorer
+        Four Levels, Sixteen Stages
       </h2>
+      <p className="page-subtitle" style={{ textAlign: 'center' }}>
+        One continuous curriculum, ages 3-17 — your child starts at the stage that fits them best.
+      </p>
       <div style={{ maxWidth: 800, margin: '0 auto 60px', overflowX: 'auto' }}>
         <table className="table">
           <thead>
             <tr>
-              <th></th>
-              <th>Junior</th>
-              <th>Explorer</th>
+              <th>Level</th>
+              <th>Stages</th>
+              <th>Focus</th>
             </tr>
           </thead>
           <tbody>
-            <tr><td>Ages</td><td>3-7</td><td>8-17</td></tr>
-            <tr><td>Curriculum</td><td>Noorania Qaida-style phonics</td><td>Madinah Arabic Book 1</td></tr>
-            <tr><td>Focus</td><td>Letters, basic words, colours, numbers, family</td><td>Grammar, sentence structure, verb conjugation</td></tr>
-            <tr><td>Reading</td><td>Simple Quranic words</td><td>Full Quranic verses, word by word</td></tr>
-            <tr><td>Style</td><td>Visual, playful</td><td>Structured, in-depth</td></tr>
-            <tr><td>Lessons</td><td>45 (5 free + 40 paid)</td><td>45 (5 free + 40 paid)</td></tr>
+            {LEVELS.map((level) => (
+              <tr key={level.name}>
+                <td style={{ fontWeight: 700, color: 'var(--color-blue)' }}>{level.name}</td>
+                <td>{level.stages}</td>
+                <td>{level.focus}</td>
+              </tr>
+            ))}
           </tbody>
         </table>
       </div>
@@ -91,7 +102,9 @@ export default function HowItWorks() {
           </div>
           <div>
             <span className="badge badge-free">Step 4</span>
-            <p style={{ margin: '8px 0 0', color: '#4b5a6a' }}>3 quick exercises to check understanding, then on to the next lesson.</p>
+            <p style={{ margin: '8px 0 0', color: '#4b5a6a' }}>
+              Mark the lesson complete and move on — every few lessons, a checkpoint reviews everything so far.
+            </p>
           </div>
         </div>
       </div>
