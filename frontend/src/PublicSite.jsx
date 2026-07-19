@@ -5,6 +5,7 @@ import Navbar from './components/Navbar.jsx';
 import Footer from './components/Footer.jsx';
 import ProtectedRoute from './components/ProtectedRoute.jsx';
 import AddToHomeScreen from './components/AddToHomeScreen.jsx';
+import SessionPacingReminder from './components/SessionPacingReminder.jsx';
 
 import Home from './pages/Home.jsx';
 import HowItWorks from './pages/HowItWorks.jsx';
@@ -115,6 +116,7 @@ export default function PublicSite() {
           </main>
           <Footer />
           <AddToHomeScreen />
+          <SessionPacingReminder />
         </div>
       </ActiveChildProvider>
     </AuthProvider>
