@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.jsx';
 import { useActiveChild } from '../context/ActiveChildContext.jsx';
-import { getCurriculum } from '../lib/db.js';
+import { getCurriculum, listMasteredStageIds } from '../lib/db.js';
 import HudMascot from '../components/HudMascot.jsx';
 import { StarSparkleIcon } from '../components/Icons.jsx';
 
@@ -16,17 +16,22 @@ export default function LessonHub() {
   const { isPaid } = useAuth();
   const { activeChild, childProfiles, loading: childrenLoading } = useActiveChild();
   const [levels, setLevels] = useState([]);
+  const [masteredStageIds, setMasteredStageIds] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
   useEffect(() => {
-    getCurriculum()
-      .then(({ levels: lv }) => setLevels(lv))
+    if (!activeChild) return;
+    Promise.all([getCurriculum(), listMasteredStageIds(activeChild.id)])
+      .then(([{ levels: lv }, mastered]) => {
+        setLevels(lv);
+        setMasteredStageIds(mastered);
+      })
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
-  }, []);
+  }, [activeChild]);
 
-  if (childrenLoading || loading) return <div className="container" style={{ padding: 60 }}>Loading...</div>;
+  if (childrenLoading) return <div className="container" style={{ padding: 60 }}>Loading...</div>;
 
   if (childProfiles.length === 0) {
     return (
@@ -38,6 +43,8 @@ export default function LessonHub() {
       </div>
     );
   }
+
+  if (loading) return <div className="container" style={{ padding: 60 }}>Loading...</div>;
 
   const currentStageOrder = levels
     .flatMap((l) => l.stages)
@@ -60,6 +67,7 @@ export default function LessonHub() {
             {level.stages.map((stage) => {
               const state = stageState(stage, currentStageOrder, isPaid());
               const isCurrent = stage.orderIndex === currentStageOrder;
+              const isMastered = masteredStageIds.includes(stage.id);
               return (
                 <Link
                   key={stage.id}
@@ -73,10 +81,15 @@ export default function LessonHub() {
                     {state === 'locked' && <span className="badge badge-locked">🔒 Locked</span>}
                     {state === 'locked-payment' && <span className="badge badge-locked">🔒 Subscribe</span>}
                     {state === 'active' && isCurrent && <span className="badge badge-free">In Progress</span>}
-                    {state === 'active' && !isCurrent && (
+                    {state === 'active' && !isCurrent && isMastered && (
                       <span className="badge badge-gold" style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
                         <StarSparkleIcon style={{ width: 12, height: 12 }} /> Done
                       </span>
+                    )}
+                    {/* Below the child's current stage but never actually completed —
+                        possible when the placement test starts them ahead of Stage 1. */}
+                    {state === 'active' && !isCurrent && !isMastered && (
+                      <span className="badge badge-locked">Not Started</span>
                     )}
                   </div>
                   <p style={{ margin: 0, fontWeight: 700 }}>{stage.name}</p>

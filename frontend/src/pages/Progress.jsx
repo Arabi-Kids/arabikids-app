@@ -2,7 +2,9 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useActiveChild } from '../context/ActiveChildContext.jsx';
 import { getChildProgressSummary } from '../lib/db.js';
+import { BADGE_CATALOG } from '../lib/badges.js';
 import HudMascot from '../components/HudMascot.jsx';
+import { StarSparkleIcon } from '../components/Icons.jsx';
 
 const TOTAL_STAGES = 16;
 
@@ -52,6 +54,10 @@ export default function Progress() {
               <div className="stat-value">🔥 {data.streak}</div>
               <div className="stat-label">Day Streak</div>
             </div>
+            <div className="stat-card">
+              <div className="stat-value">🔥 {data.longestStreak}</div>
+              <div className="stat-label">Longest Streak</div>
+            </div>
           </div>
 
           <div className="card" style={{ marginBottom: 32 }}>
@@ -62,6 +68,28 @@ export default function Progress() {
             <div style={{ background: '#ecebe2', borderRadius: 999, height: 14, overflow: 'hidden' }}>
               <div style={{ width: `${pct}%`, height: '100%', background: 'var(--color-gold)', borderRadius: 999 }} />
             </div>
+          </div>
+
+          <h3 style={{ color: 'var(--color-blue)' }}>Badges</h3>
+          <div
+            style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: 12, marginBottom: 32 }}
+          >
+            {BADGE_CATALOG.map((badge) => {
+              const earned = data.badges.includes(badge.code);
+              return (
+                <div
+                  key={badge.code}
+                  className="card"
+                  style={{ textAlign: 'center', opacity: earned ? 1 : 0.45, padding: 16 }}
+                >
+                  <StarSparkleIcon
+                    style={{ width: 28, height: 28, color: earned ? 'var(--color-gold)' : '#8ea0b6', margin: '0 auto 8px' }}
+                  />
+                  <p style={{ margin: 0, fontWeight: 700, fontSize: '0.9rem', color: 'var(--color-blue)' }}>{badge.name}</p>
+                  <p style={{ margin: '4px 0 0', fontSize: '0.78rem', color: '#8ea0b6' }}>{badge.description}</p>
+                </div>
+              );
+            })}
           </div>
 
           <h3 style={{ color: 'var(--color-blue)' }}>Recently Completed Lessons</h3>

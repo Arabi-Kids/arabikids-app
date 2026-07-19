@@ -18,6 +18,8 @@ create extension if not exists pgcrypto;
 -- ALTER-based upgrade below instead of a drop).
 -- ---------------------------------------------------------------------------
 drop table if exists public.placement_results cascade;
+drop table if exists public.placement_questions cascade;
+drop table if exists public.child_badges cascade;
 drop table if exists public.child_stage_progress cascade;
 drop table if exists public.child_lesson_progress cascade;
 drop table if exists public.child_profiles cascade;
@@ -163,8 +165,32 @@ create table public.child_stage_progress (
   unique (child_id, stage_id)
 );
 
--- Empty until the adaptive placement-test workstream lands; shaped now so
--- that doesn't need another schema change.
+-- Milestone badges that don't map to a single stage (lesson-count and streak
+-- milestones, level graduations). Per-stage "mastered" badges reuse
+-- child_stage_progress.badge_earned_at above instead of a row here. The
+-- badge catalog (name/description/icon per code) is a static frontend
+-- constant (frontend/src/lib/badges.js) — no admin-editability requirement,
+-- so it doesn't need its own table.
+create table public.child_badges (
+  id serial primary key,
+  child_id uuid not null references public.child_profiles(id) on delete cascade,
+  badge_code text not null,
+  earned_at timestamptz not null default now(),
+  unique (child_id, badge_code)
+);
+
+-- One diagnostic question per stage (16 rows), each testing the core skill
+-- that stage teaches. The placement test bisects over these by order_index
+-- rather than asking all 16 — see nextPlacementStep() in
+-- frontend/src/lib/db.js.
+create table public.placement_questions (
+  id serial primary key,
+  stage_id int not null references public.stages(id),
+  instruction text not null,
+  options jsonb not null,
+  correct_answer text not null
+);
+
 create table public.placement_results (
   id serial primary key,
   child_id uuid not null references public.child_profiles(id) on delete cascade,
@@ -187,6 +213,8 @@ create index idx_lessons_stage on public.lessons(stage_id);
 create index idx_stage_exercises_stage on public.stage_exercises(stage_id);
 create index idx_exercise_questions_stage_exercise on public.exercise_questions(stage_exercise_id);
 create index idx_child_profiles_parent on public.child_profiles(parent_id);
+create index idx_placement_questions_stage on public.placement_questions(stage_id);
+create index idx_child_badges_child on public.child_badges(child_id);
 create index idx_child_lesson_progress_child on public.child_lesson_progress(child_id);
 create index idx_child_lesson_progress_lesson on public.child_lesson_progress(lesson_id);
 create index idx_child_stage_progress_child on public.child_stage_progress(child_id);
@@ -229,6 +257,8 @@ alter table public.exercise_questions enable row level security;
 alter table public.child_profiles enable row level security;
 alter table public.child_lesson_progress enable row level security;
 alter table public.child_stage_progress enable row level security;
+alter table public.child_badges enable row level security;
+alter table public.placement_questions enable row level security;
 alter table public.placement_results enable row level security;
 alter table public.contact_messages enable row level security;
 
@@ -391,7 +421,21 @@ create policy "child_stage_progress_update" on public.child_stage_progress for u
   using (public.owns_child(child_id))
   with check (public.owns_child(child_id));
 
--- PLACEMENT_RESULTS (unused until the placement-test workstream lands)
+-- CHILD_BADGES
+create policy "child_badges_select" on public.child_badges for select
+  using (public.owns_child(child_id) or public.is_admin());
+create policy "child_badges_insert" on public.child_badges for insert
+  with check (public.owns_child(child_id));
+
+-- PLACEMENT_QUESTIONS: public read including correct_answer (same trust level
+-- as the age-based manual stage picker it replaces — a parent could already
+-- freely pick any stage for their child, so there's no real gate to protect
+-- here, unlike real lesson/checkpoint content).
+create policy "placement_questions_select_all" on public.placement_questions for select using (true);
+create policy "placement_questions_admin_write" on public.placement_questions for all
+  using (public.is_admin()) with check (public.is_admin());
+
+-- PLACEMENT_RESULTS
 create policy "placement_results_select" on public.placement_results for select
   using (public.owns_child(child_id) or public.is_admin());
 create policy "placement_results_insert" on public.placement_results for insert

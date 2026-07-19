@@ -4,6 +4,7 @@ import { useActiveChild } from '../context/ActiveChildContext.jsx';
 import { getCurriculum, getStageCheckpoint, completeCheckpointForChild } from '../lib/db.js';
 import ExerciseCard from '../components/ExerciseCard.jsx';
 import HudMascot from '../components/HudMascot.jsx';
+import { badgeInfo } from '../lib/badges.js';
 
 export default function StageCheckpoint() {
   const { stageId, checkpointOrder } = useParams();
@@ -110,6 +111,15 @@ export default function StageCheckpoint() {
               <>
                 <HudMascot pose="celebrate" size={72} style={{ margin: '0 auto 8px' }} />
                 <p style={{ margin: 0 }}>Stage complete! (Stage video coming soon — reward content is produced separately.)</p>
+                {results.newBadges?.length > 0 && (
+                  <div style={{ margin: '12px 0 0' }}>
+                    {results.newBadges.map((code) => (
+                      <span key={code} className="badge badge-gold" style={{ margin: '0 4px' }}>
+                        New Badge: {badgeInfo(code).name}
+                      </span>
+                    ))}
+                  </div>
+                )}
                 <div style={{ display: 'flex', gap: 12, justifyContent: 'center', marginTop: 16, flexWrap: 'wrap' }}>
                   <Link to="/lessons" className="btn btn-outline">Back to Lesson Hub</Link>
                   {nextStage && (

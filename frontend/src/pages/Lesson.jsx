@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useActiveChild } from '../context/ActiveChildContext.jsx';
 import { getLessonDetail, completeLessonForChild } from '../lib/db.js';
+import { badgeInfo } from '../lib/badges.js';
 import HudMascot from '../components/HudMascot.jsx';
 
 export default function Lesson() {
@@ -15,6 +16,7 @@ export default function Lesson() {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [completed, setCompleted] = useState(false);
+  const [newBadges, setNewBadges] = useState([]);
 
   useEffect(() => {
     setLoading(true);
@@ -40,7 +42,8 @@ export default function Lesson() {
     setSubmitting(true);
     setError('');
     try {
-      await completeLessonForChild({ childId: activeChild.id, lessonId: lesson.id });
+      const result = await completeLessonForChild({ childId: activeChild.id, lessonId: lesson.id });
+      setNewBadges(result?.newBadges ?? []);
       setCompleted(true);
     } catch (err) {
       setError(err.message);
@@ -141,6 +144,15 @@ export default function Lesson() {
           <p style={{ margin: 0 }}>
             {lesson.checkpointDue ? "Time for a quick checkpoint to review what you've learned." : 'Ready for the next lesson?'}
           </p>
+          {newBadges.length > 0 && (
+            <div style={{ margin: '16px 0 0' }}>
+              {newBadges.map((code) => (
+                <span key={code} className="badge badge-gold" style={{ margin: '0 4px' }}>
+                  New Badge: {badgeInfo(code).name}
+                </span>
+              ))}
+            </div>
+          )}
           <button className="btn btn-primary" style={{ marginTop: 16 }} onClick={handleContinue}>
             {lesson.checkpointDue ? 'Start Checkpoint →' : 'Next Lesson →'}
           </button>

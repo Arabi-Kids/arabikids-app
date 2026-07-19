@@ -478,9 +478,101 @@ const STAGE_ITEMS = {
   stage16: stage16Items,
 };
 
+// ---------------------------------------------------------------------------
+// PLACEMENT TEST — one diagnostic question per stage, testing the core skill
+// that stage teaches. The test bisects over these (see list_placement_
+// questions() RPC / frontend/src/lib/db.js runPlacementTest) rather than
+// asking all 16 in order.
+// ---------------------------------------------------------------------------
+
+const PLACEMENT_QUESTIONS = {
+  stage1: {
+    instruction: 'Which of these is the Arabic letter "alif"?',
+    options: ['ا', 'ب', 'ت', 'ث'],
+    correct_answer: 'ا',
+  },
+  stage2: {
+    instruction: 'What sound does the mark  ِ  (kasra) make under a letter?',
+    options: ['a short "i" sound', 'a short "a" sound', 'a short "u" sound', 'no sound at all'],
+    correct_answer: 'a short "i" sound',
+  },
+  stage3: {
+    instruction: 'Which harakah (vowel mark) makes a short "u" sound?',
+    options: ['Damma (ُ)', 'Fatha (َ)', 'Kasra (ِ)', 'Sukoon (ْ)'],
+    correct_answer: 'Damma (ُ)',
+  },
+  stage4: {
+    instruction: 'What does a sukoon (ْ) over a letter mean?',
+    options: ['the letter has no vowel sound', 'the letter is doubled', 'the vowel is lengthened', 'the letter is silent (dropped)'],
+    correct_answer: 'the letter has no vowel sound',
+  },
+  stage5: {
+    instruction: 'When Arabic letters connect to form a word, what usually changes?',
+    options: ['their shape', 'their meaning', 'their sound', 'nothing changes'],
+    correct_answer: 'their shape',
+  },
+  stage6: {
+    instruction: 'Which of these is a complete 3-letter word, not just a single letter?',
+    options: ['بَيْت', 'ب', 'ت', 'ك'],
+    correct_answer: 'بَيْت',
+  },
+  stage7: {
+    instruction: 'What does the word "سَلَام" mean?',
+    options: ['peace', 'book', 'light', 'religion'],
+    correct_answer: 'peace',
+  },
+  stage8: {
+    instruction: 'What does the phrase "بِسْمِ اللَّه" mean?',
+    options: ['In the name of Allah', 'Praise be to Allah', 'Allah is Greatest', 'There is no god but Allah'],
+    correct_answer: 'In the name of Allah',
+  },
+  stage9: {
+    instruction: 'Which ending typically marks a feminine noun in Arabic (e.g. مُعَلِّمَة)?',
+    options: ['ة  (taa marbuta)', 'ون', 'ين', 'ات'],
+    correct_answer: 'ة  (taa marbuta)',
+  },
+  stage10: {
+    instruction: 'What does the prefix "ال" (al-) do to an Arabic noun?',
+    options: ['makes it definite ("the")', 'makes it plural', 'makes it feminine', 'turns it into a question'],
+    correct_answer: 'makes it definite ("the")',
+  },
+  stage11: {
+    instruction: 'What does the preposition "فِي" mean?',
+    options: ['in', 'on', 'with', 'from'],
+    correct_answer: 'in',
+  },
+  stage12: {
+    instruction: 'In an Idafa (possessive) phrase like "كِتَابُ اللهِ", what does it mean?',
+    options: ['The book of Allah', 'A book about Allah', 'Books and Allah', "Allah's books"],
+    correct_answer: 'The book of Allah',
+  },
+  stage13: {
+    instruction: 'The verb ending "تُ" (as in كَتَبْتُ) tells you the subject is:',
+    options: ['I (past tense)', 'you (past tense)', 'she (past tense)', 'they (past tense)'],
+    correct_answer: 'I (past tense)',
+  },
+  stage14: {
+    instruction: 'The prefix "يَ" at the start of a verb (e.g. يَكْتُبُ) tells you it is:',
+    options: ['present tense, he/it', 'present tense, I', 'past tense, they', 'present tense, we'],
+    correct_answer: 'present tense, he/it',
+  },
+  stage15: {
+    instruction: 'In "إِيَّاكَ نَعْبُدُ" (You alone we worship), what does "نَعْبُدُ" mean?',
+    options: ['we worship', 'you worship', 'he worships', 'they worship'],
+    correct_answer: 'we worship',
+  },
+  stage16: {
+    instruction: 'Which surah is traditionally recited in every unit (rakah) of the five daily prayers?',
+    options: ['Al-Fatihah', 'Al-Ikhlas', 'An-Nas', 'Al-Kawthar'],
+    correct_answer: 'Al-Fatihah',
+  },
+};
+
 async function seed() {
   console.log('Clearing existing v2 data...');
   await supabase.from('placement_results').delete().neq('id', 0);
+  await supabase.from('placement_questions').delete().neq('id', 0);
+  await supabase.from('child_badges').delete().neq('id', 0);
   await supabase.from('child_stage_progress').delete().neq('id', 0);
   await supabase.from('child_lesson_progress').delete().neq('id', 0);
   await supabase.from('exercise_questions').delete().neq('id', 0);
@@ -517,6 +609,18 @@ async function seed() {
       .single();
     if (error) throw new Error(`Failed to insert stage ${stage.name}: ${error.message}`);
     stageIdByKey[stage.key] = data.id;
+  }
+
+  console.log('Seeding placement test questions...');
+  for (const stage of STAGES) {
+    const q = PLACEMENT_QUESTIONS[stage.key];
+    const { error } = await supabase.from('placement_questions').insert({
+      stage_id: stageIdByKey[stage.key],
+      instruction: q.instruction,
+      options: q.options,
+      correct_answer: q.correct_answer,
+    });
+    if (error) throw new Error(`Failed to insert placement question for ${stage.name}: ${error.message}`);
   }
 
   console.log('Seeding lessons + stage checkpoints...');
@@ -565,7 +669,7 @@ async function seed() {
     }
   }
 
-  console.log(`Seed complete: ${LEVELS.length} levels, ${STAGES.length} stages, ${totalLessons} lessons, ${totalCheckpoints} checkpoints.`);
+  console.log(`Seed complete: ${LEVELS.length} levels, ${STAGES.length} stages, ${totalLessons} lessons, ${totalCheckpoints} checkpoints, ${STAGES.length} placement questions.`);
 
   console.log('Seeding admin user (email: admin@arabikids.com / password: Admin123!)...');
   const ADMIN_EMAIL = 'admin@arabikids.com';

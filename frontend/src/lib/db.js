@@ -1,4 +1,5 @@
 import { supabase } from './supabase.js';
+import { LESSON_COUNT_BADGES, STREAK_BADGES, LEVEL_BADGE_BY_ORDER } from './badges.js';
 
 // All helpers here return camelCase-shaped objects so page components don't
 // deal with snake_case Postgres columns directly.
@@ -92,6 +93,57 @@ export function ageFromDob(dob) {
   const monthDiff = now.getMonth() - birth.getMonth();
   if (monthDiff < 0 || (monthDiff === 0 && now.getDate() < birth.getDate())) age -= 1;
   return age;
+}
+
+// ---------------------------------------------------------------------------
+// Placement test — one diagnostic question per stage, bisected into a short
+// ~4-5 question test instead of asking all 16 (assumes mastery is roughly
+// monotonic: a child who passes stage 10's question can be presumed to know
+// stages 1-9's material too).
+// ---------------------------------------------------------------------------
+
+/** Given the 16 placement questions, the highest stage order index the child
+ * is eligible for by age, and every answer given so far (in order, each
+ * `{ stageOrderIndex, correct }`), returns either the next question to ask
+ * or the converged placement. Stateless — recomputes the [lo, hi] bounds
+ * from the answer history every call, so the caller only needs to persist
+ * the answers array. */
+export function nextPlacementStep(questions, maxOrderIndex, answeredSoFar) {
+  let lo = 1;
+  let hi = maxOrderIndex;
+  for (const a of answeredSoFar) {
+    if (a.correct) lo = Math.max(lo, a.stageOrderIndex);
+    else hi = Math.min(hi, a.stageOrderIndex - 1);
+  }
+  if (lo >= hi || answeredSoFar.length >= 5) {
+    return { done: true, placedOrderIndex: Math.max(1, lo) };
+  }
+  const mid = Math.ceil((lo + hi) / 2);
+  const question = questions.find((q) => q.stageOrderIndex === mid);
+  return { done: false, question };
+}
+
+export async function getPlacementQuestions() {
+  const { data, error } = await supabase
+    .from('placement_questions')
+    .select('id, stage_id, instruction, options, correct_answer, stages!inner(order_index)')
+    .order('id');
+  if (error) throw new Error(error.message);
+  return data.map((q) => ({
+    id: q.id,
+    stageId: q.stage_id,
+    stageOrderIndex: q.stages.order_index,
+    instruction: q.instruction,
+    options: q.options,
+    correctAnswer: q.correct_answer,
+  }));
+}
+
+export async function submitPlacementResult({ childId, rawAnswers, placedStageId }) {
+  const { error } = await supabase
+    .from('placement_results')
+    .insert({ child_id: childId, raw_answers: rawAnswers, placed_stage_id: placedStageId });
+  if (error) throw new Error(error.message);
 }
 
 // ---------------------------------------------------------------------------
@@ -239,6 +291,14 @@ export async function completeLessonForChild({ childId, lessonId }) {
     { onConflict: 'child_id,lesson_id' }
   );
   if (upsertError) throw new Error(upsertError.message);
+
+  // Only the first completion of a given lesson should move the streak/badge
+  // needle — repeat visits (attempts incrementing on an already-completed
+  // lesson) shouldn't re-trigger it.
+  if (!existing?.completed_at) {
+    return updateStreakAndBadges(childId);
+  }
+  return { newBadges: [] };
 }
 
 // ---------------------------------------------------------------------------
@@ -288,11 +348,13 @@ export async function completeCheckpointForChild({ childId, checkpoint, answers,
   const score = Math.round((correct / checkpoint.questions.length) * 100);
   const passed = score >= PASS_THRESHOLD;
 
+  let newBadges = [];
   if (checkpoint.isMastery && passed) {
     const nowIso = new Date().toISOString();
-    const { error: progressError } = await supabase
-      .from('child_stage_progress')
-      .upsert({ child_id: childId, stage_id: checkpoint.stageId, mastery_passed_at: nowIso }, { onConflict: 'child_id,stage_id' });
+    const { error: progressError } = await supabase.from('child_stage_progress').upsert(
+      { child_id: childId, stage_id: checkpoint.stageId, mastery_passed_at: nowIso, badge_earned_at: nowIso },
+      { onConflict: 'child_id,stage_id' }
+    );
     if (progressError) throw new Error(progressError.message);
 
     if (nextStageId) {
@@ -302,9 +364,109 @@ export async function completeCheckpointForChild({ childId, checkpoint, answers,
         .eq('id', childId);
       if (advanceError) throw new Error(advanceError.message);
     }
+
+    newBadges = await checkLevelBadge(childId, checkpoint.stageId);
   }
 
-  return { score, passed, results };
+  return { score, passed, results, newBadges };
+}
+
+// ---------------------------------------------------------------------------
+// Badges + streaks
+// ---------------------------------------------------------------------------
+
+async function awardBadges(childId, candidateCodes) {
+  if (!candidateCodes.length) return [];
+  const { data: existing, error: existingError } = await supabase.from('child_badges').select('badge_code').eq('child_id', childId);
+  if (existingError) throw new Error(existingError.message);
+
+  const already = new Set(existing.map((b) => b.badge_code));
+  const toInsert = [...new Set(candidateCodes)].filter((code) => !already.has(code));
+  if (!toInsert.length) return [];
+
+  const { error: insertError } = await supabase
+    .from('child_badges')
+    .insert(toInsert.map((badge_code) => ({ child_id: childId, badge_code })));
+  if (insertError) throw new Error(insertError.message);
+  return toInsert;
+}
+
+/** Recomputes the streak from lesson-completion history, persists it to
+ * child_profiles (current_streak / longest_streak), and awards any
+ * newly-crossed lesson-count or streak badges. */
+export async function updateStreakAndBadges(childId) {
+  const [{ data: lessonRows, error: lessonError }, { data: childRow, error: childError }] = await Promise.all([
+    supabase.from('child_lesson_progress').select('completed_at').eq('child_id', childId).not('completed_at', 'is', null),
+    supabase.from('child_profiles').select('longest_streak').eq('id', childId).single(),
+  ]);
+  if (lessonError) throw new Error(lessonError.message);
+  if (childError) throw new Error(childError.message);
+
+  const totalCompleted = lessonRows.length;
+  const current = computeStreak(lessonRows.map((r) => r.completed_at));
+  const longest = Math.max(childRow.longest_streak, current);
+
+  const { error: updateError } = await supabase
+    .from('child_profiles')
+    .update({ current_streak: current, longest_streak: longest })
+    .eq('id', childId);
+  if (updateError) throw new Error(updateError.message);
+
+  const candidates = [
+    ...LESSON_COUNT_BADGES.filter((b) => totalCompleted >= b.threshold).map((b) => b.code),
+    ...STREAK_BADGES.filter((b) => longest >= b.threshold).map((b) => b.code),
+  ];
+  const newBadges = await awardBadges(childId, candidates);
+  return { current, longest, newBadges };
+}
+
+/** After a mastery checkpoint passes, checks whether every stage in that
+ * stage's level is now mastered and awards the level-graduate badge if so. */
+async function checkLevelBadge(childId, stageId) {
+  const { data: stageRow, error: stageError } = await supabase
+    .from('stages')
+    .select('level_id, levels(order_index)')
+    .eq('id', stageId)
+    .single();
+  if (stageError) throw new Error(stageError.message);
+
+  const { data: levelStages, error: levelStagesError } = await supabase.from('stages').select('id').eq('level_id', stageRow.level_id);
+  if (levelStagesError) throw new Error(levelStagesError.message);
+
+  const { data: masteredRows, error: masteredError } = await supabase
+    .from('child_stage_progress')
+    .select('stage_id')
+    .eq('child_id', childId)
+    .in(
+      'stage_id',
+      levelStages.map((s) => s.id)
+    )
+    .not('mastery_passed_at', 'is', null);
+  if (masteredError) throw new Error(masteredError.message);
+
+  if (masteredRows.length < levelStages.length) return [];
+  const badgeCode = LEVEL_BADGE_BY_ORDER[stageRow.levels.order_index];
+  if (!badgeCode) return [];
+  return awardBadges(childId, [badgeCode]);
+}
+
+/** Stage IDs the child has actually mastered (passed the mastery checkpoint
+ * for) — distinct from "below their current stage," since the placement
+ * test can put a child ahead of stages they never actually completed. */
+export async function listMasteredStageIds(childId) {
+  const { data, error } = await supabase
+    .from('child_stage_progress')
+    .select('stage_id')
+    .eq('child_id', childId)
+    .not('mastery_passed_at', 'is', null);
+  if (error) throw new Error(error.message);
+  return data.map((r) => r.stage_id);
+}
+
+export async function listChildBadges(childId) {
+  const { data, error } = await supabase.from('child_badges').select('badge_code, earned_at').eq('child_id', childId);
+  if (error) throw new Error(error.message);
+  return data;
 }
 
 // ---------------------------------------------------------------------------
@@ -326,20 +488,23 @@ function computeStreak(completedDates) {
 }
 
 export async function getChildProgressSummary(childId) {
-  const { data: lessonRows, error: lessonError } = await supabase
-    .from('child_lesson_progress')
-    .select('completed_at, last_attempt_at, lesson_id, lessons(order_index, title, stages(name, order_index))')
-    .eq('child_id', childId);
+  const [{ data: lessonRows, error: lessonError }, { data: stageRows, error: stageError }, { data: childRow, error: childError }, badgeRows] =
+    await Promise.all([
+      supabase
+        .from('child_lesson_progress')
+        .select('completed_at, last_attempt_at, lesson_id, lessons(order_index, title, stages(name, order_index))')
+        .eq('child_id', childId),
+      supabase.from('child_stage_progress').select('stage_id, mastery_passed_at').eq('child_id', childId).not('mastery_passed_at', 'is', null),
+      supabase.from('child_profiles').select('longest_streak').eq('id', childId).single(),
+      listChildBadges(childId),
+    ]);
   if (lessonError) throw new Error(lessonError.message);
-
-  const { data: stageRows, error: stageError } = await supabase
-    .from('child_stage_progress')
-    .select('stage_id, mastery_passed_at')
-    .eq('child_id', childId)
-    .not('mastery_passed_at', 'is', null);
   if (stageError) throw new Error(stageError.message);
+  if (childError) throw new Error(childError.message);
 
   const completedLessons = lessonRows.filter((r) => r.completed_at);
+  // Computed live (not read from the persisted column) so the current streak
+  // stays accurate even if a day has passed since the last badge-check run.
   const streak = computeStreak(completedLessons.map((r) => r.completed_at));
 
   const recent = [...completedLessons]
@@ -357,6 +522,8 @@ export async function getChildProgressSummary(childId) {
     totalLessonsAttempted: lessonRows.length,
     stagesCompleted: stageRows.length,
     streak,
+    longestStreak: Math.max(childRow.longest_streak, streak),
+    badges: badgeRows.map((b) => b.badge_code),
     recent,
   };
 }
