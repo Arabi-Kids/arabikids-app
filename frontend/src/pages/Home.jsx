@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import HudMascot from '../components/HudMascot.jsx';
+import HeroAnimation from '../components/HeroAnimation.jsx';
 import { BookIcon, PathIcon, TargetIcon, DeviceIcon } from '../components/Icons.jsx';
 
 const TRUST_STRIP = [
@@ -64,7 +64,7 @@ export default function Home() {
             </div>
           </div>
           <div className="hero-art">
-            <HudMascot pose="hero" size={220} />
+            <HeroAnimation />
           </div>
         </div>
         <div className="hero-arch" aria-hidden="true">

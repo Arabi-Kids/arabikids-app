@@ -310,6 +310,86 @@ button {
   height: 40px;
 }
 
+/* ---------------- Hero "how it works" animation ---------------- */
+.hero-animation {
+  position: relative;
+  width: 260px;
+  height: 220px;
+  max-width: 100%;
+}
+
+.hero-animation-video {
+  width: 260px;
+  max-width: 100%;
+  border-radius: var(--radius-lg);
+}
+
+.hero-animation-step {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 16px;
+  background: #fff;
+  border-radius: var(--radius-lg);
+  box-shadow: 0 12px 30px rgba(18, 58, 102, 0.15);
+  opacity: 0;
+  animation: heroStepFade 9s infinite;
+}
+
+@keyframes heroStepFade {
+  0% { opacity: 0; transform: translateY(10px) scale(0.96); }
+  4% { opacity: 1; transform: translateY(0) scale(1); }
+  28% { opacity: 1; transform: translateY(0) scale(1); }
+  33% { opacity: 0; transform: translateY(-10px) scale(0.96); }
+  100% { opacity: 0; }
+}
+
+.hero-animation-badge {
+  display: inline-block;
+  background: var(--color-sky);
+  color: var(--color-blue);
+  font-weight: 800;
+  font-size: 0.75rem;
+  padding: 4px 10px;
+  border-radius: 999px;
+  margin-bottom: 12px;
+}
+
+.hero-animation-arabic {
+  font-size: 2.4rem;
+  margin: 0 0 6px;
+  color: var(--color-blue-dark);
+}
+
+.hero-animation-sub {
+  margin: 0;
+  color: #6b7a8a;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.hero-animation-mascot {
+  position: absolute;
+  bottom: -14px;
+  right: -14px;
+  z-index: 2;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-animation-step {
+    animation: none;
+    opacity: 0;
+  }
+  .hero-animation-step:first-child {
+    opacity: 1;
+    position: static;
+  }
+}
+
 /* ---------------- Navbar (public site) ---------------- */
 .navbar-header {
   background: #fff;
