@@ -228,7 +228,10 @@ function letterPairItem([l1, n1, w1, m1, r1, t1], [l2, n2, w2, m2, r2, t2]) {
     type: 'letter-pair',
     concept: `Learn to recognise, sound out and write the letters ${l1} (${n1}) and ${l2} (${n2}).`,
     extra: {
-      letters: [l1, l2],
+      letters: [
+        { letter: l1, name: n1 },
+        { letter: l2, name: n2 },
+      ],
       secondWord: { arabic: w2, translation: m2, reference: r2, transliteration: t2 },
     },
   };

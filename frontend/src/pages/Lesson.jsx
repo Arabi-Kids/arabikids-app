@@ -114,6 +114,34 @@ export default function Lesson() {
         )}
       </div>
 
+      {content.letters && (
+        <div className="card" style={{ marginBottom: 20 }}>
+          <span className="badge badge-gold">Hear the Letters</span>
+          <p style={{ margin: '10px 0 16px', color: '#4b5a6a' }}>Tap each letter to hear how it sounds.</p>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+            {content.letters.map((item, i) => (
+              <button
+                key={i}
+                type="button"
+                onClick={() => speakSmart(item.letter, { rate: 0.6 })}
+                style={{
+                  background: 'rgba(27,79,138,0.05)',
+                  border: '2px solid var(--color-blue)',
+                  borderRadius: 'var(--radius-md)',
+                  padding: '20px 12px',
+                  cursor: 'pointer',
+                  textAlign: 'center',
+                }}
+              >
+                <p className="arabic-text" dir="rtl" style={{ fontSize: '2.5rem', margin: '0 0 6px' }}>{item.letter}</p>
+                <p style={{ margin: 0, fontWeight: 700, color: 'var(--color-blue)' }}>{item.name}</p>
+                <p style={{ margin: '8px 0 0', fontSize: '0.75rem', color: '#8ea0b6' }}>🔊 Tap to hear</p>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
       {content.maddPair && (
         <div className="card" style={{ marginBottom: 20 }}>
           <span className="badge badge-gold">Short vs Long</span>
