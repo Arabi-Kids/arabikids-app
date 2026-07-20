@@ -23,3 +23,26 @@
   from = "/*"
   to = "/index.html"
   status = 200
+
+# index.html/sw.js/manifest.webmanifest keep the same URL across every deploy
+# (unlike the hashed JS/CSS asset filenames, which are automatically
+# cache-busted), so Netlify's edge CDN can keep serving a stale copy to a
+# given edge node for a little while after a deploy unless told not to.
+# no-cache still allows a conditional revalidation request (cheap, uses
+# ETag) - it just forbids serving a cached copy without checking first, so
+# new deploys are visible immediately instead of only after that edge node's
+# cache happens to expire.
+[[headers]]
+  for = "/index.html"
+  [headers.values]
+    Cache-Control = "no-cache"
+
+[[headers]]
+  for = "/sw.js"
+  [headers.values]
+    Cache-Control = "no-cache"
+
+[[headers]]
+  for = "/manifest.webmanifest"
+  [headers.values]
+    Cache-Control = "no-cache"
