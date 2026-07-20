@@ -1,6 +1,14 @@
 import { Link, useParams } from 'react-router-dom';
 import { getPillar } from '../lib/pillars.js';
 import HudMascot from '../components/HudMascot.jsx';
+import ZaydMascot from '../components/ZaydMascot.jsx';
+import AmalMascot from '../components/AmalMascot.jsx';
+
+// Per spec section 11's design direction: the boy/girl character set is used
+// specifically for Pillar 2 (Islamic Practical Life) and Pillar 3 (Character
+// & Stories) previews - Pillar 4 and the not-found state keep Hud, ArabiKids'
+// main recurring guide.
+const PILLAR_MASCOTS = new Set(['practical-life', 'character-stories']);
 
 export default function ComingSoonPillar() {
   const { pillarKey } = useParams();
@@ -20,7 +28,14 @@ export default function ComingSoonPillar() {
       <Link to="/lessons" style={{ color: 'var(--color-blue)', fontWeight: 700 }}>
         ← Back to Lessons Hub
       </Link>
-      <HudMascot pose="mark" size={80} style={{ margin: '24px auto 12px' }} />
+      {PILLAR_MASCOTS.has(pillar.key) ? (
+        <div style={{ display: 'flex', justifyContent: 'center', gap: 4, margin: '24px auto 12px' }}>
+          <ZaydMascot pose="hero" size={76} />
+          <AmalMascot pose="hero" size={76} />
+        </div>
+      ) : (
+        <HudMascot pose="mark" size={80} style={{ margin: '24px auto 12px' }} />
+      )}
       <span className="badge badge-locked">Coming Soon</span>
       <h1 className="page-title" style={{ marginTop: 12 }}>
         {pillar.icon} {pillar.name}

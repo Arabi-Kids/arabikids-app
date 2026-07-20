@@ -1,0 +1,102 @@
+import { cloneElement } from 'react';
+
+// Amal — girl character in a hijab + modest dress, for Pillar 2/3
+// illustrations (wudu/salah steps, Seerah scenes). Same viewBox/pose API as
+// HudMascot.jsx / ZaydMascot.jsx so all three drop in interchangeably.
+const SKIN = '#d9a066';
+const DRESS = '#3f8f6f';
+const DRESS_DARK = '#357a5f';
+const HIJAB = '#c8960c';
+const HIJAB_DARK = '#a97c09';
+const DARK = '#1c1a17';
+
+function Face({ pose }) {
+  return (
+    <>
+      <circle cx="80" cy="84" r="26" fill={SKIN} />
+      {pose === 'lost' ? (
+        <path d="M68 84 Q74 80 80 84" stroke={DARK} strokeWidth="2.2" fill="none" strokeLinecap="round" />
+      ) : (
+        <>
+          <circle cx="71" cy="84" r="3.2" fill={DARK} />
+          <circle cx="89" cy="84" r="3.2" fill={DARK} />
+          <circle cx="72.2" cy="82.8" r="0.9" fill="#fff" />
+          <circle cx="90.2" cy="82.8" r="0.9" fill="#fff" />
+        </>
+      )}
+      <path d="M70 94 Q80 101 90 94" stroke={DARK} strokeWidth="2.2" fill="none" strokeLinecap="round" />
+      <circle cx="61" cy="92" r="4" fill="#e8875f" opacity="0.35" />
+      <circle cx="99" cy="92" r="4" fill="#e8875f" opacity="0.35" />
+    </>
+  );
+}
+
+function Hijab() {
+  // Simple flat-icon technique: one solid drape shape wide/tall enough to
+  // peek out around the face circle drawn on top of it (Body() draws this
+  // BEFORE Face) - much more reliable than trying to cut a face-shaped hole
+  // out of a single compound path.
+  return <ellipse cx="80" cy="95" rx="46" ry="62" fill={HIJAB} />;
+}
+
+function Body({ pose }) {
+  const tilt = pose === 'lost' ? 'rotate(-6 80 120)' : undefined;
+  return (
+    <g transform={tilt}>
+      <Hijab />
+      <path d="M52 150 Q52 108 80 106 Q108 108 108 150 Z" fill={DRESS} />
+      <path d="M52 150 Q52 108 80 106 Q108 108 108 150" stroke={DRESS_DARK} strokeWidth="2" fill="none" />
+      {pose === 'celebrate' ? (
+        <>
+          <path d="M64 112 Q42 96 38 70" stroke={DRESS} strokeWidth="12" fill="none" strokeLinecap="round" />
+          <path d="M96 112 Q118 96 122 70" stroke={DRESS} strokeWidth="12" fill="none" strokeLinecap="round" />
+        </>
+      ) : pose === 'lost' ? (
+        <>
+          <path d="M62 116 Q48 126 52 138" stroke={DRESS} strokeWidth="12" fill="none" strokeLinecap="round" />
+          <path d="M98 114 Q114 108 116 92" stroke={DRESS} strokeWidth="12" fill="none" strokeLinecap="round" />
+        </>
+      ) : (
+        <>
+          <path d="M60 116 Q50 134 58 150" stroke={DRESS} strokeWidth="12" fill="none" strokeLinecap="round" />
+          <path d="M100 116 Q110 134 102 150" stroke={DRESS} strokeWidth="12" fill="none" strokeLinecap="round" />
+        </>
+      )}
+      <Face pose={pose} />
+    </g>
+  );
+}
+
+const POSES = {
+  hero: (
+    <svg viewBox="0 0 160 160" role="img" aria-label="Amal">
+      <Body pose="hero" />
+    </svg>
+  ),
+  celebrate: (
+    <svg viewBox="0 0 160 160" role="img" aria-label="Amal celebrating">
+      <path d="M28 44 L32 52 M132 44 L128 52 M80 16 L80 26" stroke={HIJAB} strokeWidth="3" strokeLinecap="round" />
+      <Body pose="celebrate" />
+    </svg>
+  ),
+  lost: (
+    <svg viewBox="0 0 160 160" role="img" aria-label="Amal looking lost">
+      <text x="100" y="42" fontSize="26" fontWeight="800" fill={HIJAB} fontFamily="system-ui, sans-serif">?</text>
+      <Body pose="lost" />
+    </svg>
+  ),
+  mark: (
+    <svg viewBox="30 24 100 96" role="img" aria-label="Amal">
+      <Body pose="hero" />
+    </svg>
+  ),
+};
+
+export default function AmalMascot({ pose = 'hero', size = 120, className, style }) {
+  const svg = POSES[pose] ?? POSES.hero;
+  return (
+    <span className={className} style={{ display: 'inline-block', width: size, height: size, lineHeight: 0, ...style }}>
+      {cloneElement(svg, { style: { width: '100%', height: '100%' } })}
+    </span>
+  );
+}
