@@ -3,10 +3,15 @@
 // icons. Same supersampled pngjs pipeline as generate-icons.mjs.
 //
 // Background handling per file:
-//   - favicon-32, icon-192, icon-512: transparent (no background), per request.
-//   - apple-touch-icon: transparent too, BUT iOS does not support alpha on
-//     touch icons and will render the transparent area as solid black —
-//     that's an Apple platform limitation, not a bug in this script.
+//   - favicon-32: off-white (--color-bg elsewhere in the app) — plain
+//     transparent blurred into an unreadable blob at 32px with nothing to
+//     contrast against.
+//   - icon-192, icon-512: transparent (no background), per request — these
+//     are the actual installed-app/home-screen icons, and read cleanly at
+//     their size.
+//   - apple-touch-icon: kept navy — iOS does not support alpha on touch
+//     icons and renders transparent areas as solid black regardless of
+//     what's in the file, an Apple platform limitation, not a bug here.
 //   - icon-maskable-512: MUST keep an opaque background that fills the full
 //     canvas — Android's adaptive-icon system crops a maskable icon into a
 //     circle/squircle/etc and expects the whole square to be solid, or the
@@ -25,6 +30,7 @@ const TERRACOTTA = [0xc1, 0x60, 0x2c];
 const BLACK = [0x1c, 0x1a, 0x17];
 const WHITE = [0xff, 0xff, 0xff];
 const NAVY = [0x12, 0x3a, 0x66];
+const OFFWHITE = [0xfb, 0xf9, 0xf3]; // matches --color-bg elsewhere in the app
 const SUPERSAMPLE = 4;
 
 function bezierPoint(p0, p1, p2, t) {
@@ -152,13 +158,13 @@ function save(png, filename) {
 }
 
 const jobs = [
-  // favicon-32 and apple-touch-icon keep a navy background: at 32px the mark
-  // alone blurs into an unreadable blob with no fill for contrast, and iOS
-  // renders transparent touch icons as solid black anyway (Apple platform
-  // limitation) - better to choose the fill intentionally than let the OS
-  // pick an ugly default. icon-192/icon-512 (the actual PWA/home-screen
-  // icons on Android and everywhere else) stay transparent as requested.
-  [32, 'favicon-32.png', { background: NAVY }],
+  // favicon: off-white (matches the app's own parchment background) instead
+  // of navy, at the user's request. apple-touch-icon keeps navy - iOS
+  // renders transparent touch icons as solid black regardless (Apple
+  // platform limitation), so better to choose the fill intentionally than
+  // let the OS pick an ugly default. icon-192/icon-512 (the actual
+  // PWA/home-screen icons on Android and everywhere else) stay transparent.
+  [32, 'favicon-32.png', { background: OFFWHITE }],
   [180, 'apple-touch-icon.png', { background: NAVY }],
   [192, 'icon-192.png', { background: null }],
   [512, 'icon-512.png', { background: null }],
