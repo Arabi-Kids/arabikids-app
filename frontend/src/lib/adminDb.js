@@ -148,6 +148,20 @@ export async function updateStage(stageId, updates) {
   if (error) throw new Error(error.message);
 }
 
+export async function listContactMessages({ status = 'all' } = {}) {
+  let query = supabaseAdmin.from('contact_messages').select('*').order('created_at', { ascending: false });
+  if (status === 'open') query = query.eq('handled', false);
+  if (status === 'handled') query = query.eq('handled', true);
+  const { data, error } = await query;
+  if (error) throw new Error(error.message);
+  return data;
+}
+
+export async function setContactMessageHandled(messageId, handled) {
+  const { error } = await supabaseAdmin.from('contact_messages').update({ handled }).eq('id', messageId);
+  if (error) throw new Error(error.message);
+}
+
 export async function updateLevel(levelId, updates) {
   const { error } = await supabaseAdmin.from('levels').update(updates).eq('id', levelId);
   if (error) throw new Error(error.message);

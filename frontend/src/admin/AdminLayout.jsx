@@ -20,6 +20,7 @@ export default function AdminLayout() {
         <NavLink to="/admin/users" className={({ isActive }) => (isActive ? 'active' : '')}>Users</NavLink>
         <NavLink to="/admin/subscriptions" className={({ isActive }) => (isActive ? 'active' : '')}>Subscriptions</NavLink>
         <NavLink to="/admin/lessons" className={({ isActive }) => (isActive ? 'active' : '')}>Lessons Manager</NavLink>
+        <NavLink to="/admin/support" className={({ isActive }) => (isActive ? 'active' : '')}>Support</NavLink>
         <button
           onClick={handleLogout}
           style={{

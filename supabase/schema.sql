@@ -442,10 +442,12 @@ create policy "placement_results_insert" on public.placement_results for insert
   with check (public.owns_child(child_id));
 
 -- CONTACT_MESSAGES: anyone (including anonymous visitors) can submit; only
--- admins can read the inbox.
+-- admins can read the inbox or mark a message handled.
 create policy "contact_insert" on public.contact_messages for insert
   with check (true);
 create policy "contact_select_admin" on public.contact_messages for select
+  using (public.is_admin());
+create policy "contact_update_admin" on public.contact_messages for update
   using (public.is_admin());
 
 -- ---------------------------------------------------------------------------
