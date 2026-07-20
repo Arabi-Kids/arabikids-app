@@ -1,17 +1,17 @@
 import { useState } from 'react';
-import { speakArabic, isSpeechSupported } from '../lib/speech.js';
+import { speakSmart } from '../lib/speech.js';
 import { SpeakerIcon } from './Icons.jsx';
 
 export default function SpeakButton({ text, size = 20, rate, style }) {
   const [playing, setPlaying] = useState(false);
 
-  if (!isSpeechSupported() || !text) return null;
+  if (!text) return null;
 
   return (
     <button
       type="button"
       aria-label={`Listen to ${text}`}
-      onClick={() => speakArabic(text, { rate, onStart: () => setPlaying(true), onEnd: () => setPlaying(false) })}
+      onClick={() => speakSmart(text, { rate, onStart: () => setPlaying(true), onEnd: () => setPlaying(false) })}
       style={{
         display: 'inline-flex',
         alignItems: 'center',

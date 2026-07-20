@@ -5,7 +5,7 @@ import { getLessonDetail, completeLessonForChild } from '../lib/db.js';
 import { badgeInfo } from '../lib/badges.js';
 import HudMascot from '../components/HudMascot.jsx';
 import SpeakButton from '../components/SpeakButton.jsx';
-import { speakArabic } from '../lib/speech.js';
+import { speakSmart } from '../lib/speech.js';
 
 export default function Lesson() {
   const { stageId, orderIndex } = useParams();
@@ -126,7 +126,7 @@ export default function Lesson() {
                 <button
                   key={key}
                   type="button"
-                  onClick={() => speakArabic(item.arabic, { rate: 0.6 })}
+                  onClick={() => speakSmart(item.arabic, { rate: 0.6 })}
                   style={{
                     background: isLong ? 'rgba(200,150,12,0.08)' : 'rgba(27,79,138,0.05)',
                     border: `2px solid ${isLong ? 'var(--color-gold)' : 'var(--color-blue)'}`,
