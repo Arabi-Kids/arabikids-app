@@ -120,6 +120,151 @@ const HARAKAT = [
   ['شَدَّة وسُكُون (Shaddah & Sukoon)', 'a doubled letter and a silent letter, as in اللّٰه', 'اللّٰه', 'Allah', 'used throughout the Quran', 'Allah'],
 ];
 
+// Position-form word anchors (spec 4a step 2-3): for each letter, a real
+// Quranic word showing it in each shape it can actually take. The 6
+// non-connecting letters (ا د ذ ر ز و) never take an initial/medial shape -
+// they can only follow a connection, never pass one on - so they only get a
+// 'final' entry here (their isolated form is already the single word/audio
+// already curated per letter above). Every entry below was checked
+// programmatically against real Arabic joining rules (which letter connects
+// to which, letter-by-letter within each word) before being accepted, not
+// hand-guessed - see the position-derivation note in CLAUDE.md history if
+// this table ever needs regenerating.
+export const LETTER_POSITIONS = {
+  'ا': {
+    final: { word: 'تَبَارَكَ', meaning: 'blessed is He', reference: 'Surah Al-Mulk 67:1', transliteration: 'Tabaraka' },
+  },
+  'ب': {
+    initial: { word: 'بِسْمِ', meaning: 'in the name of', reference: 'Surah Al-Fatihah 1:1', transliteration: 'Bismi' },
+    medial: { word: 'تَبَارَكَ', meaning: 'blessed is He', reference: 'Surah Al-Mulk 67:1', transliteration: 'Tabaraka' },
+    final: { word: 'أَب', meaning: 'father', reference: 'Surah Yusuf 12:4, Yusuf speaking to his father', transliteration: 'Ab' },
+  },
+  'ت': {
+    initial: { word: 'تَبَارَكَ', meaning: 'blessed is He', reference: 'Surah Al-Mulk 67:1', transliteration: 'Tabaraka' },
+    medial: { word: 'كِتَاب', meaning: 'book', reference: 'often refers to the Quran', transliteration: 'Kitab' },
+    final: { word: 'بَيْت', meaning: 'house', reference: 'Surah Al-Baqarah 2:125', transliteration: 'Bayt' },
+  },
+  'ث': {
+    initial: { word: 'ثَبَات', meaning: 'steadfastness', reference: 'a quality asked for in dua', transliteration: 'Thabat' },
+    medial: { word: 'كَثِير', meaning: 'much / many', reference: 'Surah Al-Baqarah 2:26', transliteration: 'Katheer' },
+    final: { word: 'حَدِيث', meaning: 'narration / speech', reference: 'Surah An-Nisa 4:87', transliteration: 'Hadeeth' },
+  },
+  'ج': {
+    initial: { word: 'جَنَّة', meaning: 'Paradise', reference: 'mentioned throughout the Quran', transliteration: 'Jannah' },
+    medial: { word: 'مَسْجِد', meaning: 'mosque', reference: 'Surah Al-Baqarah 2:144', transliteration: 'Masjid' },
+    final: { word: 'حَجّ', meaning: 'pilgrimage', reference: 'Surah Al-Baqarah 2:196', transliteration: 'Hajj' },
+  },
+  'ح': {
+    initial: { word: 'حَمْد', meaning: 'praise', reference: 'Surah Al-Fatihah 1:2', transliteration: 'Hamd' },
+    medial: { word: 'ضُحَى', meaning: 'morning brightness', reference: 'Surah Ad-Duha 93:1', transliteration: 'Duha' },
+    final: { word: 'فَتْح', meaning: 'victory / opening', reference: 'Surah Al-Fath 48:1', transliteration: 'Fath' },
+  },
+  'خ': {
+    initial: { word: 'خَالِق', meaning: 'the Creator', reference: 'a name of Allah', transliteration: 'Khaliq' },
+    medial: { word: 'أَخْضَر', meaning: 'green', reference: 'Surah Al-Insan 76:21, the green garments of Paradise', transliteration: 'Akhdar' },
+    final: { word: 'أَخ', meaning: 'brother', reference: 'Surah Yusuf 12:8, the brothers of Yusuf', transliteration: 'Akh' },
+  },
+  'د': {
+    final: { word: 'حَمْد', meaning: 'praise', reference: 'Surah Al-Fatihah 1:2', transliteration: 'Hamd' },
+  },
+  'ذ': {
+    final: { word: 'هَٰذِهِ', meaning: 'this (feminine)', reference: 'used throughout the Quran', transliteration: 'Hadhihi' },
+  },
+  'ر': {
+    final: { word: 'ذِكْر', meaning: 'remembrance', reference: 'remembrance of Allah', transliteration: 'Dhikr' },
+  },
+  'ز': {
+    final: { word: 'إِنَّا نَحْنُ نَزَّلْنَا', meaning: 'indeed it is We who sent it down', reference: 'Surah Al-Hijr 15:9', transliteration: 'Inna nahnu nazzalna' },
+  },
+  'س': {
+    initial: { word: 'سَلَام', meaning: 'peace', reference: 'a name of Allah and Islamic greeting', transliteration: 'Salam' },
+    medial: { word: 'بِسْمِ', meaning: 'in the name of', reference: 'Surah Al-Fatihah 1:1', transliteration: 'Bismi' },
+    final: { word: 'شَمْس', meaning: 'sun', reference: 'Surah Ash-Shams 91:1', transliteration: 'Shams' },
+  },
+  'ش': {
+    initial: { word: 'شُكْر', meaning: 'gratitude', reference: 'being thankful to Allah', transliteration: 'Shukr' },
+    medial: { word: 'عَشْر', meaning: 'ten', reference: 'Surah Al-Fajr 89:2, "by the ten nights"', transliteration: 'Ashr' },
+    final: { word: 'بَطْش', meaning: 'forceful seizure', reference: 'Surah Ad-Dukhan 44:16', transliteration: 'Batsh' },
+  },
+  'ص': {
+    initial: { word: 'صِرَاط', meaning: 'the path', reference: 'Surah Al-Fatihah 1:6', transliteration: 'Sirat' },
+    medial: { word: 'أَصْفَر', meaning: 'yellow', reference: 'Surah Al-Baqarah 2:69, describing a bright yellow cow', transliteration: 'Asfar' },
+    final: { word: 'قَصَص', meaning: 'stories / narratives', reference: 'Surah Yusuf 12:3', transliteration: 'Qasas' },
+  },
+  'ض': {
+    initial: { word: 'ضُحَى', meaning: 'morning brightness', reference: 'Surah Ad-Duha 93:1', transliteration: 'Duha' },
+    medial: { word: 'أَخْضَر', meaning: 'green', reference: 'Surah Al-Insan 76:21, the green garments of Paradise', transliteration: 'Akhdar' },
+    final: { word: 'أَبْيَض', meaning: 'white', reference: 'Surah Fatir 35:27, describing white mountain streaks', transliteration: 'Abyad' },
+  },
+  'ط': {
+    initial: { word: 'طه', meaning: 'Taha', reference: 'opening letters of Surah Taha 20:1', transliteration: 'Taha' },
+    medial: { word: 'لُطْف', meaning: 'gentleness', reference: 'a quality of Allah', transliteration: 'Lutf' },
+    final: { word: 'قِسْط', meaning: 'justice / fairness', reference: "Surah Ali 'Imran 3:18", transliteration: 'Qist' },
+  },
+  'ظ': {
+    initial: { word: 'ظُلْم', meaning: 'wrongdoing', reference: 'what Allah warns against', transliteration: 'Dhulm' },
+    medial: { word: 'عَظِيم', meaning: 'great / mighty', reference: 'Surah Al-Baqarah 2:255 (Ayat al-Kursi)', transliteration: 'Azeem' },
+    final: { word: 'حِفْظ', meaning: 'protection / preservation', reference: 'Surah Al-Baqarah 2:255 (Ayat al-Kursi)', transliteration: 'Hifz' },
+  },
+  'ع': {
+    initial: { word: 'عَالَمِين', meaning: 'all the worlds', reference: 'Surah Al-Fatihah 1:2', transliteration: 'Aalameen' },
+    medial: { word: 'يَعْلَمُ', meaning: 'he knows', reference: 'Surah Al-Hadid 57:4', transliteration: "Ya'lamu" },
+    final: { word: 'سَبْع', meaning: 'seven', reference: 'Surah Al-Hijr 15:87, "the seven oft-repeated verses"', transliteration: "Sab'" },
+  },
+  'غ': {
+    initial: { word: 'غَفُور', meaning: 'Most Forgiving', reference: 'a name of Allah', transliteration: 'Ghafoor' },
+    medial: { word: 'أَسْتَغْفِرُ اللَّه', meaning: 'I seek Allah’s forgiveness', reference: 'a phrase rooted in the Quran’s calls to seek forgiveness', transliteration: 'Astaghfirullah' },
+    final: { word: 'بَلَغ', meaning: 'he reached / attained', reference: 'Surah Al-Kahf 18:76', transliteration: 'Balagha' },
+  },
+  'ف': {
+    initial: { word: 'فَاتِحَة', meaning: 'the opening', reference: 'the first surah of the Quran', transliteration: 'Fatihah' },
+    medial: { word: 'غَفُور', meaning: 'Most Forgiving', reference: 'a name of Allah', transliteration: 'Ghafoor' },
+    final: { word: 'لُطْف', meaning: 'gentleness', reference: 'a quality of Allah', transliteration: 'Lutf' },
+  },
+  'ق': {
+    initial: { word: 'قُرْآن', meaning: 'the recitation', reference: 'the final revelation', transliteration: 'Quran' },
+    medial: { word: 'الْقَمَر', meaning: 'the moon', reference: 'Surah Al-Qamar 54:1', transliteration: 'Al-Qamar' },
+    final: { word: 'خَالِق', meaning: 'the Creator', reference: 'a name of Allah', transliteration: 'Khaliq' },
+  },
+  'ك': {
+    initial: { word: 'ذِكْر', meaning: 'remembrance', reference: 'remembrance of Allah', transliteration: 'Dhikr' },
+    medial: { word: 'شُكْر', meaning: 'gratitude', reference: 'being thankful to Allah', transliteration: 'Shukr' },
+    final: { word: 'مَلِك', meaning: 'King / Sovereign', reference: 'Surah Al-Fatihah 1:4', transliteration: 'Malik' },
+  },
+  'ل': {
+    initial: { word: 'اللّٰه', meaning: 'Allah', reference: 'used throughout the Quran', transliteration: 'Allah' },
+    medial: { word: 'اللّٰه', meaning: 'Allah', reference: 'used throughout the Quran', transliteration: 'Allah' },
+    final: { word: 'لَيْل', meaning: 'night', reference: 'Surah Al-Layl 91:1', transliteration: 'Layl' },
+  },
+  'م': {
+    initial: { word: 'مَلِك', meaning: 'King / Sovereign', reference: 'Surah Al-Fatihah 1:4', transliteration: 'Malik' },
+    medial: { word: 'حَمْد', meaning: 'praise', reference: 'Surah Al-Fatihah 1:2', transliteration: 'Hamd' },
+    final: { word: 'بِسْمِ', meaning: 'in the name of', reference: 'Surah Al-Fatihah 1:1', transliteration: 'Bismi' },
+  },
+  'ن': {
+    initial: { word: 'نُور', meaning: 'light', reference: 'Surah An-Nur 24:35', transliteration: 'Nur' },
+    medial: { word: 'جَنَّة', meaning: 'Paradise', reference: 'mentioned throughout the Quran', transliteration: 'Jannah' },
+    final: { word: 'دِين', meaning: 'religion / way of life', reference: 'Surah Al-Fatihah 1:4', transliteration: 'Deen' },
+  },
+  'ه': {
+    initial: { word: 'هُدَى', meaning: 'guidance', reference: 'Surah Al-Fatihah 1:6', transliteration: 'Huda' },
+    medial: { word: 'عَلَيْهِم', meaning: 'upon them', reference: 'used throughout the Quran', transliteration: 'Alayhim' },
+    final: { word: 'اللّٰه', meaning: 'Allah', reference: 'used throughout the Quran', transliteration: 'Allah' },
+  },
+  'و': {
+    final: { word: 'غَفُور', meaning: 'Most Forgiving', reference: 'a name of Allah', transliteration: 'Ghafoor' },
+  },
+  'ي': {
+    initial: { word: 'دِين', meaning: 'religion / way of life', reference: 'Surah Al-Fatihah 1:4', transliteration: 'Deen' },
+    medial: { word: 'عَالَمِين', meaning: 'all the worlds', reference: 'Surah Al-Fatihah 1:2', transliteration: 'Aalameen' },
+    final: { word: 'نَبِيّ', meaning: 'Prophet', reference: 'used throughout the Quran for Allah’s messengers', transliteration: 'Nabi' },
+  },
+};
+
+// Non-connecting letters can only ever render isolated or final - they
+// receive a connection from a preceding letter but never pass one forward.
+export const NON_CONNECTING_LETTERS = new Set(['ا', 'د', 'ذ', 'ر', 'ز', 'و']);
+
 // ---------------------------------------------------------------------------
 // Generic helpers: turn a flat list of content items into lessons + stage
 // checkpoints (periodic every 3 lessons, final one always is_mastery).
@@ -229,8 +374,8 @@ function letterPairItem([l1, n1, w1, m1, r1, t1], [l2, n2, w2, m2, r2, t2]) {
     concept: `Learn to recognise, sound out and write the letters ${l1} (${n1}) and ${l2} (${n2}).`,
     extra: {
       letters: [
-        { letter: l1, name: n1 },
-        { letter: l2, name: n2 },
+        { letter: l1, name: n1, positions: LETTER_POSITIONS[l1] || null },
+        { letter: l2, name: n2, positions: LETTER_POSITIONS[l2] || null },
       ],
       secondWord: { arabic: w2, translation: m2, reference: r2, transliteration: t2 },
     },

@@ -63,7 +63,12 @@ function collectTexts() {
       if (c.secondWord?.arabic) texts.add(c.secondWord.arabic);
       if (c.maddPair?.short?.arabic) texts.add(c.maddPair.short.arabic);
       if (c.maddPair?.long?.arabic) texts.add(c.maddPair.long.arabic);
-      if (c.letters) for (const l of c.letters) if (l.letter) texts.add(l.letter);
+      if (c.letters) {
+        for (const l of c.letters) {
+          if (l.letter) texts.add(l.letter);
+          if (l.positions) for (const pos of Object.values(l.positions)) if (pos.word) texts.add(pos.word);
+        }
+      }
     }
   }
   return [...texts];

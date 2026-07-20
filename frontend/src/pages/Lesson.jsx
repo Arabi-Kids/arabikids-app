@@ -6,6 +6,7 @@ import { badgeInfo } from '../lib/badges.js';
 import HudMascot from '../components/HudMascot.jsx';
 import SpeakButton from '../components/SpeakButton.jsx';
 import LetterTraceCanvas from '../components/LetterTraceCanvas.jsx';
+import LetterPositions from '../components/LetterPositions.jsx';
 import PronunciationCheck from '../components/PronunciationCheck.jsx';
 import { speakSmart } from '../lib/speech.js';
 
@@ -122,23 +123,27 @@ export default function Lesson() {
           <p style={{ margin: '10px 0 16px', color: '#4b5a6a' }}>Tap each letter to hear how it sounds.</p>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
             {content.letters.map((item, i) => (
-              <button
+              <div
                 key={i}
-                type="button"
-                onClick={() => speakSmart(item.letter, { rate: 0.6 })}
                 style={{
                   background: 'rgba(27,79,138,0.05)',
                   border: '2px solid var(--color-blue)',
                   borderRadius: 'var(--radius-md)',
                   padding: '20px 12px',
-                  cursor: 'pointer',
                   textAlign: 'center',
                 }}
               >
-                <p className="arabic-text" dir="rtl" style={{ fontSize: '2.5rem', margin: '0 0 6px' }}>{item.letter}</p>
-                <p style={{ margin: 0, fontWeight: 700, color: 'var(--color-blue)' }}>{item.name}</p>
-                <p style={{ margin: '8px 0 0', fontSize: '0.75rem', color: '#8ea0b6' }}>🔊 Tap to hear</p>
-              </button>
+                <button
+                  type="button"
+                  onClick={() => speakSmart(item.letter, { rate: 0.6 })}
+                  style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, width: '100%' }}
+                >
+                  <p className="arabic-text" dir="rtl" style={{ fontSize: '2.5rem', margin: '0 0 6px' }}>{item.letter}</p>
+                  <p style={{ margin: 0, fontWeight: 700, color: 'var(--color-blue)' }}>{item.name}</p>
+                  <p style={{ margin: '8px 0 0', fontSize: '0.75rem', color: '#8ea0b6' }}>🔊 Tap to hear</p>
+                </button>
+                <LetterPositions letter={item.letter} positions={item.positions} />
+              </div>
             ))}
           </div>
         </div>
