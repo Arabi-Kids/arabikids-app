@@ -5,6 +5,7 @@ import { getLessonDetail, completeLessonForChild } from '../lib/db.js';
 import { badgeInfo } from '../lib/badges.js';
 import HudMascot from '../components/HudMascot.jsx';
 import SpeakButton from '../components/SpeakButton.jsx';
+import { speakArabic } from '../lib/speech.js';
 
 export default function Lesson() {
   const { stageId, orderIndex } = useParams();
@@ -112,6 +113,39 @@ export default function Lesson() {
           </div>
         )}
       </div>
+
+      {content.maddPair && (
+        <div className="card" style={{ marginBottom: 20 }}>
+          <span className="badge badge-gold">Short vs Long</span>
+          <p style={{ margin: '10px 0 16px', color: '#4b5a6a' }}>Tap each box to hear the difference in length.</p>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+            {['short', 'long'].map((key) => {
+              const item = content.maddPair[key];
+              const isLong = key === 'long';
+              return (
+                <button
+                  key={key}
+                  type="button"
+                  onClick={() => speakArabic(item.arabic, { rate: 0.6 })}
+                  style={{
+                    background: isLong ? 'rgba(200,150,12,0.08)' : 'rgba(27,79,138,0.05)',
+                    border: `2px solid ${isLong ? 'var(--color-gold)' : 'var(--color-blue)'}`,
+                    borderRadius: 'var(--radius-md)',
+                    padding: '20px 12px',
+                    cursor: 'pointer',
+                    textAlign: 'center',
+                  }}
+                >
+                  <p className="arabic-text" dir="rtl" style={{ fontSize: '2rem', margin: '0 0 6px' }}>{item.arabic}</p>
+                  <p style={{ margin: '0 0 4px', fontWeight: 700, color: 'var(--color-blue)' }}>"{item.transliteration}"</p>
+                  <p style={{ margin: 0, fontSize: '0.8rem', color: '#8ea0b6' }}>{item.label}</p>
+                  <p style={{ margin: '8px 0 0', fontSize: '0.75rem', color: '#8ea0b6' }}>🔊 Tap to hear</p>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       <div className="card" style={{ marginBottom: 20, textAlign: 'center' }}>
         <span className="badge badge-free">Arabic Word</span>

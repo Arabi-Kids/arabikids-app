@@ -1,13 +1,13 @@
-// Standalone, additive-only update for the LIVE project - patches each
-// existing lesson's `content` JSONB to add the new `transliteration` field
-// (and `secondWord.transliteration` for letter-pair lessons), without
-// touching any other table or column. Reuses seed.mjs's STAGES/STAGE_ITEMS/
-// buildLessons so the regenerated content is byte-for-byte what a fresh
-// seed would produce, just with transliteration now included - matched to
-// existing lessons by (stage order_index, lesson order_index), not by
-// re-inserting anything.
+// Standalone, additive-only update for the LIVE project - regenerates every
+// existing lesson's `content` JSONB from seed.mjs's current source data,
+// without touching any other table or column. Reuses seed.mjs's
+// STAGES/STAGE_ITEMS/buildLessons so the regenerated content is
+// byte-for-byte what a fresh seed would produce, matched to existing
+// lessons by (stage order_index, lesson order_index), not by re-inserting
+// anything. Run this any time seed.mjs's item content changes (new field,
+// fixed typo, etc.) and you need it reflected on the live project.
 //
-// Usage: node supabase/update_transliterations.mjs
+// Usage: node supabase/sync_lesson_content.mjs
 
 import 'dotenv/config';
 import { createClient } from '@supabase/supabase-js';
@@ -59,7 +59,7 @@ async function run() {
     }
   }
 
-  console.log(`Updated ${updated} lessons with transliteration. Skipped ${skipped} (no matching DB row).`);
+  console.log(`Synced ${updated} lessons. Skipped ${skipped} (no matching DB row).`);
 }
 
 run().catch((err) => {

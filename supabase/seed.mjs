@@ -295,18 +295,55 @@ const stage4Items = [
 ];
 
 // --- Stage 5: Connecting Letters & Madd (8 lessons) ---
-function simpleItem(title, goal, arabicWord, meaning, reference, transliteration, { type = 'vocabulary', concept } = {}) {
-  return { title, goal, arabicWord, meaning, reference, transliteration, type, concept: concept || `${title}: focus word ${arabicWord} ("${meaning}").` };
+// `maddPair` (Stage 5 only): { short: {arabic, transliteration, label}, long: {arabic, transliteration, label} }
+// for the harakat-vs-madd-letter tap-to-compare UI - reuses the same `extra`
+// passthrough buildLessons() already spreads into content for letterPairItem.
+function simpleItem(title, goal, arabicWord, meaning, reference, transliteration, { type = 'vocabulary', concept, maddPair } = {}) {
+  return {
+    title,
+    goal,
+    arabicWord,
+    meaning,
+    reference,
+    transliteration,
+    type,
+    concept: concept || `${title}: focus word ${arabicWord} ("${meaning}").`,
+    ...(maddPair ? { extra: { maddPair } } : {}),
+  };
 }
 const stage5Items = [
   simpleItem('Father', 'Read the connected word for "father".', 'أَب', 'father', 'Surah Yusuf 12:4, Yusuf speaking to his father', 'Ab'),
   simpleItem('Mother', 'Read the connected word for "mother".', 'أُمّ', 'mother', 'Surah Al-Qasas 28:7, the mother of Musa', 'Umm'),
   simpleItem('Son / Child', 'Read the connected word for "son".', 'اِبْن', 'son', 'Surah Maryam 19:34, "Isa, the son of Maryam"', 'Ibn'),
   simpleItem('Brother', 'Read the connected word for "brother".', 'أَخ', 'brother', 'Surah Yusuf 12:8, the brothers of Yusuf', 'Akh'),
-  simpleItem('Madd: He Said', 'Hear the long "aa" (madd) sound in a common Quranic verb.', 'قَالَ', 'he said', 'used throughout the Quran to introduce speech', 'Qala', { type: 'madd' }),
-  simpleItem('Madd: He Came', 'Hear the long "aa" (madd) sound in another common verb.', 'جَاءَ', 'he came', 'used throughout the Quran', "Ja'a", { type: 'madd' }),
-  simpleItem('Madd: Book', 'Hear the long "ee" (madd) sound in a word you already know.', 'كِتَاب', 'book', 'often refers to the Quran', 'Kitab', { type: 'madd' }),
-  simpleItem('Madd: Light', 'Hear the long "oo" (madd) sound in a word you already know.', 'نُور', 'light', 'Surah An-Nur 24:35', 'Nur', { type: 'madd' }),
+  simpleItem('Madd: He Said', 'Hear the long "aa" (madd) sound in a common Quranic verb.', 'قَالَ', 'he said', 'used throughout the Quran to introduce speech', 'Qala', {
+    type: 'madd',
+    maddPair: {
+      short: { arabic: 'قَ', transliteration: 'Qa', label: 'Short (1 count)' },
+      long: { arabic: 'قَا', transliteration: 'Qaa', label: 'Long (2 counts) - alif madd' },
+    },
+  }),
+  simpleItem('Madd: He Came', 'Hear the long "aa" (madd) sound in another common verb.', 'جَاءَ', 'he came', 'used throughout the Quran', "Ja'a", {
+    type: 'madd',
+    maddPair: {
+      short: { arabic: 'جَ', transliteration: 'Ja', label: 'Short (1 count)' },
+      long: { arabic: 'جَا', transliteration: 'Jaa', label: 'Long (2 counts) - alif madd' },
+    },
+  }),
+  simpleItem('Madd: Book', 'Hear the long "aa" (madd) sound in a word you already know.', 'كِتَاب', 'book', 'often refers to the Quran', 'Kitab', {
+    type: 'madd',
+    maddPair: {
+      short: { arabic: 'تَ', transliteration: 'Ta', label: 'Short (1 count)' },
+      long: { arabic: 'تَا', transliteration: 'Taa', label: 'Long (2 counts) - alif madd' },
+    },
+  }),
+  simpleItem('Madd: Light', 'Hear the long "oo" (madd) sound in a word you already know.', 'نُور', 'light', 'Surah An-Nur 24:35', 'Nur', {
+    type: 'madd',
+    maddPair: {
+      short: { arabic: 'نُ', transliteration: 'Nu', label: 'Short (1 count)' },
+      long: { arabic: 'نُو', transliteration: 'Nuu', label: 'Long (2 counts) - waw madd' },
+    },
+  }),
 ];
 
 // --- Stage 6: First 3-Letter Words (10 lessons: colours + numbers + shapes) ---
