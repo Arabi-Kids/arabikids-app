@@ -1,6 +1,6 @@
-// Generates real Arabic audio recordings via Google Cloud Text-to-Speech
-// for every distinct word/phrase used across the 150 lessons, saving each
-// as frontend/public/audio/<hash>.mp3. The frontend (frontend/src/lib/
+// Generates real Arabic audio recordings via ElevenLabs Text-to-Speech for
+// every distinct word/phrase used across the 150 lessons, saving each as
+// frontend/public/audio/<hash>.mp3. The frontend (frontend/src/lib/
 // speech.js) computes the same hash from the same text at playback time, so
 // there's no manifest to keep in sync - it just requests the URL and falls
 // back to the browser's Web Speech API on a 404.
@@ -8,9 +8,17 @@
 // Idempotent/resumable: already-generated files are skipped, so re-running
 // after adding new lesson content only fills in the gaps.
 //
-// Requires GOOGLE_CLOUD_TTS_API_KEY in the root .env (Google Cloud Console
-// -> APIs & Services -> Credentials -> Create API key, with the
-// "Cloud Text-to-Speech API" enabled on that project).
+// Requires ELEVENLABS_API_KEY in the root .env (elevenlabs.io -> sign up ->
+// Profile -> API keys). Uses the eleven_multilingual_v2 model, the only
+// ElevenLabs model that handles Arabic - the default English-only model
+// will mangle it.
+//
+// Picking a voice: any ElevenLabs voice works across languages via the
+// multilingual model (the voice's timbre carries over; the model supplies
+// the language). Quality still varies per voice for Arabic specifically -
+// preview candidates directly in ElevenLabs' own web UI (type Arabic text,
+// listen) before committing to one, then set ELEVENLABS_VOICE_ID to its ID
+// (found on the voice's page, or via GET https://api.elevenlabs.io/v1/voices).
 //
 // Usage: node scripts/generate-audio.mjs
 
@@ -24,13 +32,15 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const outDir = path.join(__dirname, '..', 'frontend', 'public', 'audio');
 mkdirSync(outDir, { recursive: true });
 
-const API_KEY = process.env.GOOGLE_CLOUD_TTS_API_KEY;
+const API_KEY = process.env.ELEVENLABS_API_KEY;
 if (!API_KEY) {
-  console.error('Missing GOOGLE_CLOUD_TTS_API_KEY in the environment (.env).');
-  console.error('Get one at https://console.cloud.google.com/apis/credentials (enable "Cloud Text-to-Speech API" first).');
+  console.error('Missing ELEVENLABS_API_KEY in the environment (.env).');
+  console.error('Get one at https://elevenlabs.io -> sign up -> Profile -> API keys.');
   process.exit(1);
 }
-const VOICE_NAME = process.env.GOOGLE_TTS_VOICE || 'ar-XA-Wavenet-B';
+// Default: "Adam", a stock ElevenLabs voice. Override with a voice you've
+// previewed and liked for Arabic (see header comment above).
+const VOICE_ID = process.env.ELEVENLABS_VOICE_ID || 'pNInz6obpgDQGcFmaJgB';
 
 // Must match frontend/src/lib/speech.js's textHash() exactly.
 function textHash(text) {
@@ -59,21 +69,24 @@ function collectTexts() {
 }
 
 async function synthesize(text) {
-  const res = await fetch(`https://texttospeech.googleapis.com/v1/text:synthesize?key=${API_KEY}`, {
+  const res = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${VOICE_ID}`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: {
+      'Content-Type': 'application/json',
+      'xi-api-key': API_KEY,
+      Accept: 'audio/mpeg',
+    },
     body: JSON.stringify({
-      input: { text },
-      voice: { languageCode: 'ar-XA', name: VOICE_NAME },
-      audioConfig: { audioEncoding: 'MP3' },
+      text,
+      model_id: 'eleven_multilingual_v2',
+      voice_settings: { stability: 0.5, similarity_boost: 0.75 },
     }),
   });
   if (!res.ok) {
     const body = await res.text().catch(() => '');
     throw new Error(`HTTP ${res.status}: ${body.slice(0, 300)}`);
   }
-  const { audioContent } = await res.json();
-  return Buffer.from(audioContent, 'base64');
+  return Buffer.from(await res.arrayBuffer());
 }
 
 function sleep(ms) {
@@ -104,7 +117,7 @@ async function run() {
       failed++;
       console.error(`Failed for "${text}": ${err.message}`);
     }
-    await sleep(150);
+    await sleep(250);
   }
 
   console.log(`Done. Generated ${generated}, skipped ${skipped} (already existed), failed ${failed}.`);
