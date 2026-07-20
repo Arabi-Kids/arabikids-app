@@ -336,9 +336,12 @@ export async function getStageCheckpoint(stageId, checkpointOrder) {
 }
 
 /** Grades client-side (the child is only ever shown a checkpoint they're
- * entitled to). On a passed mastery checkpoint, advances the child to the
- * next stage and records the stage as complete. */
-export async function completeCheckpointForChild({ childId, checkpoint, answers, nextStageId }) {
+ * entitled to). On a passed mastery checkpoint, records the stage as
+ * mastered and awards badges - but does NOT advance current_stage_id yet.
+ * Advancement happens after the stage-summary video (see
+ * completeStageVideoForChild), so a child always sees the recap before
+ * moving on. */
+export async function completeCheckpointForChild({ childId, checkpoint, answers }) {
   let correct = 0;
   const results = checkpoint.questions.map((q) => {
     const isCorrect = answers[q.id] === q.correctAnswer;
@@ -357,18 +360,51 @@ export async function completeCheckpointForChild({ childId, checkpoint, answers,
     );
     if (progressError) throw new Error(progressError.message);
 
-    if (nextStageId) {
-      const { error: advanceError } = await supabase
-        .from('child_profiles')
-        .update({ current_stage_id: nextStageId })
-        .eq('id', childId);
-      if (advanceError) throw new Error(advanceError.message);
-    }
-
     newBadges = await checkLevelBadge(childId, checkpoint.stageId);
   }
 
   return { score, passed, results, newBadges };
+}
+
+// ---------------------------------------------------------------------------
+// Stage-summary video (reward/recap shown after a mastery checkpoint pass,
+// before the child advances to the next stage)
+// ---------------------------------------------------------------------------
+
+/** Whether this child has mastered the stage (eligible to watch its recap
+ * video) and whether they've already watched it. `videoUrl` is null until
+ * the actual video is produced - the player shows a "coming soon" state in
+ * that case, but the child can still continue past it. */
+export async function getStageVideoStatus(childId, stageId) {
+  const [{ data: stageRow, error: stageError }, { data: progressRow, error: progressError }] = await Promise.all([
+    supabase.from('stages').select('video_url').eq('id', stageId).single(),
+    supabase.from('child_stage_progress').select('mastery_passed_at, video_watched_at').eq('child_id', childId).eq('stage_id', stageId).maybeSingle(),
+  ]);
+  if (stageError) throw new Error(stageError.message);
+  if (progressError) throw new Error(progressError.message);
+
+  return {
+    videoUrl: stageRow.video_url,
+    mastered: !!progressRow?.mastery_passed_at,
+    alreadyWatched: !!progressRow?.video_watched_at,
+  };
+}
+
+/** Marks the stage's recap video as watched and advances the child to the
+ * next stage (or leaves current_stage_id alone if this was the final
+ * stage - nextStageId is null for the Stage 16 capstone). */
+export async function completeStageVideoForChild({ childId, stageId, nextStageId }) {
+  const { error: watchedError } = await supabase
+    .from('child_stage_progress')
+    .update({ video_watched_at: new Date().toISOString() })
+    .eq('child_id', childId)
+    .eq('stage_id', stageId);
+  if (watchedError) throw new Error(watchedError.message);
+
+  if (nextStageId) {
+    const { error: advanceError } = await supabase.from('child_profiles').update({ current_stage_id: nextStageId }).eq('id', childId);
+    if (advanceError) throw new Error(advanceError.message);
+  }
 }
 
 // ---------------------------------------------------------------------------

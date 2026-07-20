@@ -22,6 +22,7 @@ import LessonHub from './pages/LessonHub.jsx';
 import StageLessons from './pages/StageLessons.jsx';
 import Lesson from './pages/Lesson.jsx';
 import StageCheckpoint from './pages/StageCheckpoint.jsx';
+import StageVideo from './pages/StageVideo.jsx';
 import Progress from './pages/Progress.jsx';
 import Account from './pages/Account.jsx';
 import Privacy from './pages/Privacy.jsx';
@@ -90,6 +91,14 @@ export default function PublicSite() {
                 element={
                   <ProtectedRoute>
                     <StageCheckpoint />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/lessons/stage/:stageId/video"
+                element={
+                  <ProtectedRoute>
+                    <StageVideo />
                   </ProtectedRoute>
                 }
               />

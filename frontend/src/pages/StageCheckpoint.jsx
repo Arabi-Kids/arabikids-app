@@ -9,9 +9,8 @@ import { badgeInfo } from '../lib/badges.js';
 export default function StageCheckpoint() {
   const { stageId, checkpointOrder } = useParams();
   const navigate = useNavigate();
-  const { activeChild, refreshChildren } = useActiveChild();
+  const { activeChild } = useActiveChild();
   const [stage, setStage] = useState(null);
-  const [nextStage, setNextStage] = useState(null);
   const [checkpoint, setCheckpoint] = useState(null);
   const [answers, setAnswers] = useState({});
   const [results, setResults] = useState(null);
@@ -28,7 +27,6 @@ export default function StageCheckpoint() {
       .then(([{ stages }, cp]) => {
         const stageRow = stages.find((s) => s.id === Number(stageId));
         setStage(stageRow);
-        setNextStage(stageRow ? stages.find((s) => s.orderIndex === stageRow.orderIndex + 1) ?? null : null);
         setCheckpoint(cp);
       })
       .catch((err) => setError(err.message))
@@ -44,15 +42,9 @@ export default function StageCheckpoint() {
     setSubmitting(true);
     setError('');
     try {
-      const data = await completeCheckpointForChild({
-        childId: activeChild.id,
-        checkpoint,
-        answers,
-        nextStageId: nextStage?.id ?? null,
-      });
+      const data = await completeCheckpointForChild({ childId: activeChild.id, checkpoint, answers });
       const resultMap = Object.fromEntries(data.results.map((r) => [r.questionId, r]));
       setResults({ ...data, byQuestion: resultMap });
-      if (checkpoint.isMastery && data.passed) await refreshChildren();
     } catch (err) {
       setError(err.message);
     } finally {
@@ -110,7 +102,7 @@ export default function StageCheckpoint() {
             results.passed ? (
               <>
                 <HudMascot pose="celebrate" size={72} style={{ margin: '0 auto 8px' }} />
-                <p style={{ margin: 0 }}>Stage complete! (Stage video coming soon — reward content is produced separately.)</p>
+                <p style={{ margin: 0 }}>Stage complete! Watch the recap before moving on.</p>
                 {results.newBadges?.length > 0 && (
                   <div style={{ margin: '12px 0 0' }}>
                     {results.newBadges.map((code) => (
@@ -121,12 +113,9 @@ export default function StageCheckpoint() {
                   </div>
                 )}
                 <div style={{ display: 'flex', gap: 12, justifyContent: 'center', marginTop: 16, flexWrap: 'wrap' }}>
-                  <Link to="/lessons" className="btn btn-outline">Back to Lesson Hub</Link>
-                  {nextStage && (
-                    <button className="btn btn-primary" onClick={() => navigate(`/lessons/stage/${nextStage.id}`)}>
-                      Start Stage {nextStage.orderIndex} →
-                    </button>
-                  )}
+                  <button className="btn btn-primary" onClick={() => navigate(`/lessons/stage/${stageId}/video`)}>
+                    Watch Stage Recap →
+                  </button>
                 </div>
               </>
             ) : (
