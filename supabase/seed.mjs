@@ -16,6 +16,7 @@
 
 import 'dotenv/config';
 import { createClient } from '@supabase/supabase-js';
+import { pathToFileURL } from 'node:url';
 
 const SUPABASE_URL = process.env.SUPABASE_URL;
 const SERVICE_KEY = process.env.SUPABASE_SERVICE_KEY;
@@ -52,7 +53,7 @@ const LEVELS = [
   { key: 'advanced', name: 'Advanced', order_index: 4, description: 'Verbs, Sentences & Application' },
 ];
 
-const STAGES = [
+export const STAGES = [
   { key: 'stage1', levelKey: 'beginner', name: 'Letter Shapes I', order_index: 1, min_placement_age: 3, is_free: true },
   { key: 'stage2', levelKey: 'beginner', name: 'Letter Shapes II & Harakat Intro', order_index: 2, min_placement_age: 3, is_free: false },
   { key: 'stage3', levelKey: 'beginner', name: 'Harakat Mastery', order_index: 3, min_placement_age: 4, is_free: false },
@@ -76,43 +77,47 @@ const STAGES = [
 // (ported from the v1 seed's JUNIOR_LETTERS, used for Stages 1-2)
 // ---------------------------------------------------------------------------
 
+// Each row: [letter, name, quranicWord, meaning, reference, transliteration].
+// Transliteration is a simplified, kid-friendly phonetic spelling (not
+// strict ALA-LC/IJMES romanization) - close enough to sound out, not a
+// scholarly pronunciation guide.
 const LETTERS = [
-  ['ا', 'alif', 'اللّٰه', 'Allah', 'used throughout the Quran'],
-  ['ب', 'baa', 'بِسْمِ', 'in the name of', 'Surah Al-Fatihah 1:1'],
-  ['ت', 'taa', 'تَبَارَكَ', 'blessed is He', 'Surah Al-Mulk 67:1'],
-  ['ث', 'thaa', 'ثَبَات', 'steadfastness', 'a quality asked for in dua'],
-  ['ج', 'jeem', 'جَنَّة', 'Paradise', 'mentioned throughout the Quran'],
-  ['ح', 'haa', 'حَمْد', 'praise', 'Surah Al-Fatihah 1:2'],
-  ['خ', 'khaa', 'خَالِق', 'the Creator', 'a name of Allah'],
-  ['د', 'daal', 'دِين', 'religion / way of life', 'Surah Al-Fatihah 1:4'],
-  ['ذ', 'dhaal', 'ذِكْر', 'remembrance', 'remembrance of Allah'],
-  ['ر', 'raa', 'رَحْمَٰن', 'Most Merciful', 'Surah Al-Fatihah 1:3'],
-  ['ز', 'zaay', 'زَكَاة', 'purifying charity', 'a pillar of Islam'],
-  ['س', 'seen', 'سَلَام', 'peace', 'a name of Allah and Islamic greeting'],
-  ['ش', 'sheen', 'شُكْر', 'gratitude', 'being thankful to Allah'],
-  ['ص', 'saad', 'صِرَاط', 'the path', 'Surah Al-Fatihah 1:6'],
-  ['ض', 'daad', 'ضُحَى', 'morning brightness', 'Surah Ad-Duha 93:1'],
-  ['ط', 'taa (heavy)', 'طه', 'Taha', 'opening letters of Surah Taha 20:1'],
-  ['ظ', 'dhaa (heavy)', 'ظُلْم', 'wrongdoing', 'what Allah warns against'],
-  ['ع', 'ayn', 'عَالَمِين', 'all the worlds', 'Surah Al-Fatihah 1:2'],
-  ['غ', 'ghayn', 'غَفُور', 'Most Forgiving', 'a name of Allah'],
-  ['ف', 'faa', 'فَاتِحَة', 'the opening', 'the first surah of the Quran'],
-  ['ق', 'qaaf', 'قُرْآن', 'the recitation', 'the final revelation'],
-  ['ك', 'kaaf', 'كِتَاب', 'book', 'often refers to the Quran'],
-  ['ل', 'laam', 'لُطْف', 'gentleness', 'a quality of Allah'],
-  ['م', 'meem', 'مَلِك', 'King / Sovereign', 'Surah Al-Fatihah 1:4'],
-  ['ن', 'noon', 'نُور', 'light', 'Surah An-Nur 24:35'],
-  ['ه', 'haa (light)', 'هُدَى', 'guidance', 'Surah Al-Fatihah 1:6'],
-  ['و', 'waaw', 'وَحْدَه', 'Him alone', 'La ilaha illa Allah wahdahu'],
-  ['ي', 'yaa', 'يَوْم', 'day', 'Surah Al-Fatihah 1:4'],
+  ['ا', 'alif', 'اللّٰه', 'Allah', 'used throughout the Quran', 'Allah'],
+  ['ب', 'baa', 'بِسْمِ', 'in the name of', 'Surah Al-Fatihah 1:1', 'Bismi'],
+  ['ت', 'taa', 'تَبَارَكَ', 'blessed is He', 'Surah Al-Mulk 67:1', 'Tabaraka'],
+  ['ث', 'thaa', 'ثَبَات', 'steadfastness', 'a quality asked for in dua', 'Thabat'],
+  ['ج', 'jeem', 'جَنَّة', 'Paradise', 'mentioned throughout the Quran', 'Jannah'],
+  ['ح', 'haa', 'حَمْد', 'praise', 'Surah Al-Fatihah 1:2', 'Hamd'],
+  ['خ', 'khaa', 'خَالِق', 'the Creator', 'a name of Allah', 'Khaliq'],
+  ['د', 'daal', 'دِين', 'religion / way of life', 'Surah Al-Fatihah 1:4', 'Deen'],
+  ['ذ', 'dhaal', 'ذِكْر', 'remembrance', 'remembrance of Allah', 'Dhikr'],
+  ['ر', 'raa', 'رَحْمَٰن', 'Most Merciful', 'Surah Al-Fatihah 1:3', 'Rahman'],
+  ['ز', 'zaay', 'زَكَاة', 'purifying charity', 'a pillar of Islam', 'Zakah'],
+  ['س', 'seen', 'سَلَام', 'peace', 'a name of Allah and Islamic greeting', 'Salam'],
+  ['ش', 'sheen', 'شُكْر', 'gratitude', 'being thankful to Allah', 'Shukr'],
+  ['ص', 'saad', 'صِرَاط', 'the path', 'Surah Al-Fatihah 1:6', 'Sirat'],
+  ['ض', 'daad', 'ضُحَى', 'morning brightness', 'Surah Ad-Duha 93:1', 'Duha'],
+  ['ط', 'taa (heavy)', 'طه', 'Taha', 'opening letters of Surah Taha 20:1', 'Taha'],
+  ['ظ', 'dhaa (heavy)', 'ظُلْم', 'wrongdoing', 'what Allah warns against', 'Dhulm'],
+  ['ع', 'ayn', 'عَالَمِين', 'all the worlds', 'Surah Al-Fatihah 1:2', "Aalameen"],
+  ['غ', 'ghayn', 'غَفُور', 'Most Forgiving', 'a name of Allah', 'Ghafoor'],
+  ['ف', 'faa', 'فَاتِحَة', 'the opening', 'the first surah of the Quran', 'Fatihah'],
+  ['ق', 'qaaf', 'قُرْآن', 'the recitation', 'the final revelation', 'Quran'],
+  ['ك', 'kaaf', 'كِتَاب', 'book', 'often refers to the Quran', 'Kitab'],
+  ['ل', 'laam', 'لُطْف', 'gentleness', 'a quality of Allah', 'Lutf'],
+  ['م', 'meem', 'مَلِك', 'King / Sovereign', 'Surah Al-Fatihah 1:4', 'Malik'],
+  ['ن', 'noon', 'نُور', 'light', 'Surah An-Nur 24:35', 'Nur'],
+  ['ه', 'haa (light)', 'هُدَى', 'guidance', 'Surah Al-Fatihah 1:6', 'Huda'],
+  ['و', 'waaw', 'وَحْدَه', 'Him alone', 'La ilaha illa Allah wahdahu', 'Wahdah'],
+  ['ي', 'yaa', 'يَوْم', 'day', 'Surah Al-Fatihah 1:4', 'Yawm'],
 ];
 
 const HARAKAT = [
-  ['فَتْحَة (Fatha)', 'a short "a" sound, as in the بَ of تَبَارَكَ', 'بَ', 'the "ba" sound', 'Surah Al-Mulk 67:1'],
-  ['كَسْرَة (Kasra)', 'a short "i" sound, as in the بِ of بِسْمِ', 'بِ', 'the "bi" sound', 'Surah Al-Fatihah 1:1'],
-  ['ضَمَّة (Damma)', 'a short "u" sound, as in the هُ of هُدَى', 'هُ', 'the "hu" sound', 'Surah Al-Fatihah 1:6'],
-  ['تَنْوِين (Tanween)', 'a doubled ending sound, as in سَلَامٌ', 'سَلَامٌ', 'peace (indefinite)', 'Surah Al-Qadr 97:5'],
-  ['شَدَّة وسُكُون (Shaddah & Sukoon)', 'a doubled letter and a silent letter, as in اللّٰه', 'اللّٰه', 'Allah', 'used throughout the Quran'],
+  ['فَتْحَة (Fatha)', 'a short "a" sound, as in the بَ of تَبَارَكَ', 'بَ', 'the "ba" sound', 'Surah Al-Mulk 67:1', 'Ba'],
+  ['كَسْرَة (Kasra)', 'a short "i" sound, as in the بِ of بِسْمِ', 'بِ', 'the "bi" sound', 'Surah Al-Fatihah 1:1', 'Bi'],
+  ['ضَمَّة (Damma)', 'a short "u" sound, as in the هُ of هُدَى', 'هُ', 'the "hu" sound', 'Surah Al-Fatihah 1:6', 'Hu'],
+  ['تَنْوِين (Tanween)', 'a doubled ending sound, as in سَلَامٌ', 'سَلَامٌ', 'peace (indefinite)', 'Surah Al-Qadr 97:5', 'Salamun'],
+  ['شَدَّة وسُكُون (Shaddah & Sukoon)', 'a doubled letter and a silent letter, as in اللّٰه', 'اللّٰه', 'Allah', 'used throughout the Quran', 'Allah'],
 ];
 
 // ---------------------------------------------------------------------------
@@ -127,7 +132,7 @@ function itemsAllReferences(items) {
   return items.map((it) => it.reference);
 }
 
-function buildLessons(stageKey, items, { minutes = 8 } = {}) {
+export function buildLessons(stageKey, items, { minutes = 8 } = {}) {
   return items.map((item, i) => ({
     stageKey,
     order_index: i + 1,
@@ -139,6 +144,7 @@ function buildLessons(stageKey, items, { minutes = 8 } = {}) {
     content: {
       type: item.type || 'vocabulary',
       concept: item.concept,
+      transliteration: item.transliteration,
       ...(item.extra || {}),
       quranicConnection: {
         arabic: item.arabicWord,
@@ -211,41 +217,44 @@ function buildStageCheckpoints(items) {
 // STAGE CONTENT
 // ---------------------------------------------------------------------------
 
-function letterPairItem([l1, n1, w1, m1, r1], [l2, n2, w2, m2, r2]) {
+function letterPairItem([l1, n1, w1, m1, r1, t1], [l2, n2, w2, m2, r2, t2]) {
   return {
     title: `Letters ${l1} & ${l2} (${n1}, ${n2})`,
     goal: `Recognise ${l1} and ${l2}, and meet them inside real Quranic words.`,
     arabicWord: w1,
     meaning: m1,
     reference: r1,
+    transliteration: t1,
     type: 'letter-pair',
     concept: `Learn to recognise, sound out and write the letters ${l1} (${n1}) and ${l2} (${n2}).`,
     extra: {
       letters: [l1, l2],
-      secondWord: { arabic: w2, translation: m2, reference: r2 },
+      secondWord: { arabic: w2, translation: m2, reference: r2, transliteration: t2 },
     },
   };
 }
 
-function harakatItem([title, desc, word, meaning, reference]) {
+function harakatItem([title, desc, word, meaning, reference, transliteration]) {
   return {
     title,
     goal: `Learn the ${title.split(' ')[0]} vowel mark and hear it in a Quranic word.`,
     arabicWord: word,
     meaning,
     reference,
+    transliteration,
     type: 'harakat',
     concept: desc,
   };
 }
 
-function practiceItem([, , word, meaning, reference], harakatLabel) {
+function practiceItem([, , word, meaning, reference, transliteration], harakatLabel) {
   return {
     title: `Practice: ${harakatLabel} in "${word}"`,
     goal: `Spot the ${harakatLabel} mark inside a word you've already learned.`,
     arabicWord: word,
     meaning,
     reference,
+    transliteration,
     type: 'harakat-practice',
     concept: `Look for the ${harakatLabel} mark in "${word}" ("${meaning}") and sound it out.`,
   };
@@ -286,180 +295,184 @@ const stage4Items = [
 ];
 
 // --- Stage 5: Connecting Letters & Madd (8 lessons) ---
-function simpleItem(title, goal, arabicWord, meaning, reference, type = 'vocabulary', concept) {
-  return { title, goal, arabicWord, meaning, reference, type, concept: concept || `${title}: focus word ${arabicWord} ("${meaning}").` };
+function simpleItem(title, goal, arabicWord, meaning, reference, transliteration, { type = 'vocabulary', concept } = {}) {
+  return { title, goal, arabicWord, meaning, reference, transliteration, type, concept: concept || `${title}: focus word ${arabicWord} ("${meaning}").` };
 }
 const stage5Items = [
-  simpleItem('Father', 'Read the connected word for "father".', 'أَب', 'father', 'Surah Yusuf 12:4, Yusuf speaking to his father'),
-  simpleItem('Mother', 'Read the connected word for "mother".', 'أُمّ', 'mother', 'Surah Al-Qasas 28:7, the mother of Musa'),
-  simpleItem('Son / Child', 'Read the connected word for "son".', 'اِبْن', 'son', 'Surah Maryam 19:34, "Isa, the son of Maryam"'),
-  simpleItem('Brother', 'Read the connected word for "brother".', 'أَخ', 'brother', 'Surah Yusuf 12:8, the brothers of Yusuf'),
-  simpleItem('Madd: He Said', 'Hear the long "aa" (madd) sound in a common Quranic verb.', 'قَالَ', 'he said', 'used throughout the Quran to introduce speech', 'madd'),
-  simpleItem('Madd: He Came', 'Hear the long "aa" (madd) sound in another common verb.', 'جَاءَ', 'he came', 'used throughout the Quran', 'madd'),
-  simpleItem('Madd: Book', 'Hear the long "ee" (madd) sound in a word you already know.', 'كِتَاب', 'book', 'often refers to the Quran', 'madd'),
-  simpleItem('Madd: Light', 'Hear the long "oo" (madd) sound in a word you already know.', 'نُور', 'light', 'Surah An-Nur 24:35', 'madd'),
+  simpleItem('Father', 'Read the connected word for "father".', 'أَب', 'father', 'Surah Yusuf 12:4, Yusuf speaking to his father', 'Ab'),
+  simpleItem('Mother', 'Read the connected word for "mother".', 'أُمّ', 'mother', 'Surah Al-Qasas 28:7, the mother of Musa', 'Umm'),
+  simpleItem('Son / Child', 'Read the connected word for "son".', 'اِبْن', 'son', 'Surah Maryam 19:34, "Isa, the son of Maryam"', 'Ibn'),
+  simpleItem('Brother', 'Read the connected word for "brother".', 'أَخ', 'brother', 'Surah Yusuf 12:8, the brothers of Yusuf', 'Akh'),
+  simpleItem('Madd: He Said', 'Hear the long "aa" (madd) sound in a common Quranic verb.', 'قَالَ', 'he said', 'used throughout the Quran to introduce speech', 'Qala', { type: 'madd' }),
+  simpleItem('Madd: He Came', 'Hear the long "aa" (madd) sound in another common verb.', 'جَاءَ', 'he came', 'used throughout the Quran', "Ja'a", { type: 'madd' }),
+  simpleItem('Madd: Book', 'Hear the long "ee" (madd) sound in a word you already know.', 'كِتَاب', 'book', 'often refers to the Quran', 'Kitab', { type: 'madd' }),
+  simpleItem('Madd: Light', 'Hear the long "oo" (madd) sound in a word you already know.', 'نُور', 'light', 'Surah An-Nur 24:35', 'Nur', { type: 'madd' }),
 ];
 
 // --- Stage 6: First 3-Letter Words (10 lessons: colours + numbers + shapes) ---
 const stage6Items = [
-  simpleItem('Colour: Yellow', 'Learn the colour yellow.', 'أَصْفَر', 'yellow', 'Surah Al-Baqarah 2:69, describing a bright yellow cow', 'color'),
-  simpleItem('Colour: White', 'Learn the colour white.', 'أَبْيَض', 'white', 'Surah Fatir 35:27, describing white mountain streaks', 'color'),
-  simpleItem('Colour: Green', 'Learn the colour green.', 'أَخْضَر', 'green', 'Surah Al-Insan 76:21, the green garments of Paradise', 'color'),
-  simpleItem('Colour: Black', 'Learn the colour black.', 'أَسْوَد', 'black', 'Surah Fatir 35:27, describing black mountain streaks', 'color'),
-  simpleItem('Numbers 1-3', 'Learn one, two, three and their Quranic connection.', 'وَاحِد', 'one', 'Surah Al-Ikhlas 112:1, "Qul huwa Allahu ahad"', 'number'),
-  simpleItem('Numbers 4-6', 'Learn four, five, six and their Quranic connection.', 'سِتَّة', 'six', "Surah Al-A'raf 7:54, heavens and earth in six days", 'number'),
-  simpleItem('Numbers 7-9', 'Learn seven, eight, nine and their Quranic connection.', 'سَبْع', 'seven', 'Surah Al-Hijr 15:87, "the seven oft-repeated verses"', 'number'),
-  simpleItem('Number 10', 'Learn ten and its Quranic connection.', 'عَشْر', 'ten', 'Surah Al-Fajr 89:2, "by the ten nights"', 'number'),
-  simpleItem('Shape: Circle', 'Learn the word for circle.', 'دَائِرَة', 'circle', 'a shape seen throughout Allah’s creation', 'shape'),
-  simpleItem('Shape: Crescent', 'Learn the word for crescent moon.', 'هِلَال', 'crescent moon', 'a symbol used to mark Islamic months', 'shape'),
+  simpleItem('Colour: Yellow', 'Learn the colour yellow.', 'أَصْفَر', 'yellow', 'Surah Al-Baqarah 2:69, describing a bright yellow cow', 'Asfar', { type: 'color' }),
+  simpleItem('Colour: White', 'Learn the colour white.', 'أَبْيَض', 'white', 'Surah Fatir 35:27, describing white mountain streaks', 'Abyad', { type: 'color' }),
+  simpleItem('Colour: Green', 'Learn the colour green.', 'أَخْضَر', 'green', 'Surah Al-Insan 76:21, the green garments of Paradise', 'Akhdar', { type: 'color' }),
+  simpleItem('Colour: Black', 'Learn the colour black.', 'أَسْوَد', 'black', 'Surah Fatir 35:27, describing black mountain streaks', 'Aswad', { type: 'color' }),
+  simpleItem('Numbers 1-3', 'Learn one, two, three and their Quranic connection.', 'وَاحِد', 'one', 'Surah Al-Ikhlas 112:1, "Qul huwa Allahu ahad"', 'Wahid', { type: 'number' }),
+  simpleItem('Numbers 4-6', 'Learn four, five, six and their Quranic connection.', 'سِتَّة', 'six', "Surah Al-A'raf 7:54, heavens and earth in six days", 'Sittah', { type: 'number' }),
+  simpleItem('Numbers 7-9', 'Learn seven, eight, nine and their Quranic connection.', 'سَبْع', 'seven', 'Surah Al-Hijr 15:87, "the seven oft-repeated verses"', "Sab'", { type: 'number' }),
+  simpleItem('Number 10', 'Learn ten and its Quranic connection.', 'عَشْر', 'ten', 'Surah Al-Fajr 89:2, "by the ten nights"', 'Ashr', { type: 'number' }),
+  simpleItem('Shape: Circle', 'Learn the word for circle.', 'دَائِرَة', 'circle', 'a shape seen throughout Allah’s creation', "Da'irah", { type: 'shape' }),
+  simpleItem('Shape: Crescent', 'Learn the word for crescent moon.', 'هِلَال', 'crescent moon', 'a symbol used to mark Islamic months', 'Hilal', { type: 'shape' }),
 ];
 
 // --- Stage 7: Islamic Vocabulary I (10 lessons) ---
 const stage7Items = [
-  simpleItem('Allah', 'The name of God in Islam.', 'اللّٰه', 'Allah', 'used throughout the Quran'),
-  simpleItem('Rabb', 'A name meaning "Lord" or "Sustainer".', 'رَبّ', 'Lord', 'Surah Al-Fatihah 1:2, "Rabbil-’alameen"'),
-  simpleItem('Salah', 'The Arabic word for the ritual prayer.', 'صَلَاة', 'prayer', 'Surah Al-Baqarah 2:3, "those who establish prayer"'),
-  simpleItem('Quran', 'The final revelation, recited by Muslims worldwide.', 'قُرْآن', 'the recitation', 'the final revelation'),
-  simpleItem('Nabi', 'The Arabic word for a Prophet.', 'نَبِيّ', 'Prophet', 'used throughout the Quran for Allah’s messengers'),
-  simpleItem('Malak', 'The Arabic word for Angel.', 'مَلَك', 'angel', 'Surah Al-Baqarah 2:30, angels mentioned to Adam’s creation'),
-  simpleItem('Rasul', 'The Arabic word for Messenger.', 'رَسُول', 'messenger', 'used throughout the Quran for Prophets sent with a message'),
-  simpleItem('Ummah', 'The Arabic word for community or nation.', 'أُمَّة', 'community', 'Surah Al-Baqarah 2:143, "a middle nation"'),
-  simpleItem('Iman', 'The Arabic word for faith or belief.', 'إِيمَان', 'faith', 'Surah Al-Hujurat 49:14, discussing faith entering the heart'),
-  simpleItem('Islam', 'The Arabic word meaning submission to Allah.', 'إِسْلَام', 'submission (to Allah)', 'Surah Aal-E-Imran 3:19, "the religion in the sight of Allah is Islam"'),
+  simpleItem('Allah', 'The name of God in Islam.', 'اللّٰه', 'Allah', 'used throughout the Quran', 'Allah'),
+  simpleItem('Rabb', 'A name meaning "Lord" or "Sustainer".', 'رَبّ', 'Lord', 'Surah Al-Fatihah 1:2, "Rabbil-’alameen"', 'Rabb'),
+  simpleItem('Salah', 'The Arabic word for the ritual prayer.', 'صَلَاة', 'prayer', 'Surah Al-Baqarah 2:3, "those who establish prayer"', 'Salah'),
+  simpleItem('Quran', 'The final revelation, recited by Muslims worldwide.', 'قُرْآن', 'the recitation', 'the final revelation', 'Quran'),
+  simpleItem('Nabi', 'The Arabic word for a Prophet.', 'نَبِيّ', 'Prophet', 'used throughout the Quran for Allah’s messengers', 'Nabi'),
+  simpleItem('Malak', 'The Arabic word for Angel.', 'مَلَك', 'angel', 'Surah Al-Baqarah 2:30, angels mentioned to Adam’s creation', 'Malak'),
+  simpleItem('Rasul', 'The Arabic word for Messenger.', 'رَسُول', 'messenger', 'used throughout the Quran for Prophets sent with a message', 'Rasul'),
+  simpleItem('Ummah', 'The Arabic word for community or nation.', 'أُمَّة', 'community', 'Surah Al-Baqarah 2:143, "a middle nation"', 'Ummah'),
+  simpleItem('Iman', 'The Arabic word for faith or belief.', 'إِيمَان', 'faith', 'Surah Al-Hujurat 49:14, discussing faith entering the heart', 'Iman'),
+  simpleItem('Islam', 'The Arabic word meaning submission to Allah.', 'إِسْلَام', 'submission (to Allah)', 'Surah Aal-E-Imran 3:19, "the religion in the sight of Allah is Islam"', 'Islam'),
 ];
 
 // --- Stage 8: Islamic Vocabulary II & Phrases (10 lessons) ---
 const stage8Items = [
-  simpleItem('Bismillah', 'The phrase said before starting any good action.', 'بِسْمِ اللَّهِ', 'in the name of Allah', 'Surah Al-Fatihah 1:1', 'phrase'),
-  simpleItem('Alhamdulillah', 'The phrase of praise and thanks to Allah.', 'الْحَمْدُ لِلَّه', 'all praise is due to Allah', 'Surah Al-Fatihah 1:2', 'phrase'),
-  simpleItem('Subhanallah', 'The phrase said to glorify Allah.', 'سُبْحَانَ اللَّه', 'glory be to Allah', 'used throughout the Quran to declare Allah’s perfection', 'phrase'),
-  simpleItem('Astaghfirullah', 'The phrase said to ask Allah’s forgiveness.', 'أَسْتَغْفِرُ اللَّه', 'I seek Allah’s forgiveness', 'a phrase rooted in the Quran’s calls to seek forgiveness', 'phrase'),
-  simpleItem('InshaAllah', 'The phrase said when speaking of the future.', 'إِنْ شَاءَ اللَّه', 'if Allah wills', 'Surah Al-Kahf 18:23-24, commanding this phrase for future plans', 'phrase'),
-  simpleItem('MashaAllah', 'The phrase said when admiring something good.', 'مَا شَاءَ اللَّه', 'what Allah has willed', 'Surah Al-Kahf 18:39', 'phrase'),
-  simpleItem('Assalamu Alaykum', 'The Islamic greeting of peace.', 'اَلسَّلَامُ عَلَيْكُم', 'peace be upon you', 'Surah An-Nisa 4:86, the command to return greetings well', 'phrase'),
-  simpleItem('La ilaha illallah', 'The first half of the declaration of faith.', 'لَا إِلَٰهَ إِلَّا اللَّه', 'there is no god but Allah', 'Surah As-Saffat 37:35', 'phrase'),
-  simpleItem('Allahu Akbar', 'The phrase declaring Allah is greatest, said in prayer.', 'اللَّهُ أَكْبَر', 'Allah is greatest', 'said throughout the five daily prayers', 'phrase'),
-  simpleItem('Surah Al-Ikhlas, Ayah 1', 'Read the opening of a short, well-known surah.', 'قُلْ هُوَ اللَّهُ أَحَدٌ', 'Say: He is Allah, One', 'Surah Al-Ikhlas 112:1', 'reading'),
+  simpleItem('Bismillah', 'The phrase said before starting any good action.', 'بِسْمِ اللَّهِ', 'in the name of Allah', 'Surah Al-Fatihah 1:1', 'Bismillah', { type: 'phrase' }),
+  simpleItem('Alhamdulillah', 'The phrase of praise and thanks to Allah.', 'الْحَمْدُ لِلَّه', 'all praise is due to Allah', 'Surah Al-Fatihah 1:2', 'Alhamdulillah', { type: 'phrase' }),
+  simpleItem('Subhanallah', 'The phrase said to glorify Allah.', 'سُبْحَانَ اللَّه', 'glory be to Allah', 'used throughout the Quran to declare Allah’s perfection', 'Subhanallah', { type: 'phrase' }),
+  simpleItem('Astaghfirullah', 'The phrase said to ask Allah’s forgiveness.', 'أَسْتَغْفِرُ اللَّه', 'I seek Allah’s forgiveness', 'a phrase rooted in the Quran’s calls to seek forgiveness', 'Astaghfirullah', { type: 'phrase' }),
+  simpleItem('InshaAllah', 'The phrase said when speaking of the future.', 'إِنْ شَاءَ اللَّه', 'if Allah wills', 'Surah Al-Kahf 18:23-24, commanding this phrase for future plans', 'InshaAllah', { type: 'phrase' }),
+  simpleItem('MashaAllah', 'The phrase said when admiring something good.', 'مَا شَاءَ اللَّه', 'what Allah has willed', 'Surah Al-Kahf 18:39', 'MashaAllah', { type: 'phrase' }),
+  simpleItem('Assalamu Alaykum', 'The Islamic greeting of peace.', 'اَلسَّلَامُ عَلَيْكُم', 'peace be upon you', 'Surah An-Nisa 4:86, the command to return greetings well', 'Assalamu Alaykum', { type: 'phrase' }),
+  simpleItem('La ilaha illallah', 'The first half of the declaration of faith.', 'لَا إِلَٰهَ إِلَّا اللَّه', 'there is no god but Allah', 'Surah As-Saffat 37:35', 'La ilaha illallah', { type: 'phrase' }),
+  simpleItem('Allahu Akbar', 'The phrase declaring Allah is greatest, said in prayer.', 'اللَّهُ أَكْبَر', 'Allah is greatest', 'said throughout the five daily prayers', 'Allahu Akbar', { type: 'phrase' }),
+  simpleItem('Surah Al-Ikhlas, Ayah 1', 'Read the opening of a short, well-known surah.', 'قُلْ هُوَ اللَّهُ أَحَدٌ', 'Say: He is Allah, One', 'Surah Al-Ikhlas 112:1', 'Qul huwa Allahu ahad', { type: 'reading' }),
 ];
 
 // --- Stage 9: Nouns & Gender (10 lessons) ---
 const stage9Items = [
-  simpleItem('The definite article (ال)', 'Learn how "the" attaches to the front of a noun.', 'الْحَمْدُ', 'the praise', 'Surah Al-Fatihah 1:2'),
-  simpleItem('Gender: masculine & feminine', 'Learn how Ta Marbuta (ة) marks a feminine noun.', 'مُسْلِمَة', 'a Muslim woman', 'Surah Al-Ahzab 33:35'),
-  simpleItem('Singular, dual & plural', 'Learn how nouns change for one, two, or many.', 'السَّمَاوَات', 'the heavens (plural)', 'Surah Al-Baqarah 2:29'),
-  simpleItem('Sound masculine plural', 'Learn the -un/-in ending for regular masculine plurals.', 'مُسْلِمُونَ', 'Muslims (masc. plural)', 'Surah Al-Hijr 15:2'),
-  simpleItem('Sound feminine plural', 'Learn the -at ending for regular feminine plurals.', 'مُسْلِمَات', 'Muslim women', 'Surah Al-Ahzab 33:35'),
-  simpleItem('Broken plurals', 'Learn how some plurals change form entirely.', 'كُتُب', 'books (plural of kitab)', 'used throughout the Quran'),
-  simpleItem('Adjective agreement', 'Learn how adjectives must match their noun.', 'الصِّرَاطَ الْمُسْتَقِيمَ', 'the straight path', 'Surah Al-Fatihah 1:6'),
-  simpleItem('Noun cases: intro', 'A first look at how noun endings shift with grammar role.', 'رَبُّ الْعَالَمِينَ', 'Lord of the worlds', 'Surah Al-Fatihah 1:2'),
-  simpleItem('Common nouns review', 'Review key nouns learned so far in context.', 'بَيْتُ اللَّه', 'the House of Allah (the Kaaba)', 'Surah Al-Baqarah 2:125'),
-  simpleItem('Stage 9 review: nouns', 'Bring together everything learned about nouns and gender.', 'الرَّحْمَٰنِ الرَّحِيمِ', 'the Most Merciful, the Especially Merciful', 'Surah Al-Fatihah 1:3'),
+  simpleItem('The definite article (ال)', 'Learn how "the" attaches to the front of a noun.', 'الْحَمْدُ', 'the praise', 'Surah Al-Fatihah 1:2', 'Al-hamdu'),
+  simpleItem('Gender: masculine & feminine', 'Learn how Ta Marbuta (ة) marks a feminine noun.', 'مُسْلِمَة', 'a Muslim woman', 'Surah Al-Ahzab 33:35', 'Muslimah'),
+  simpleItem('Singular, dual & plural', 'Learn how nouns change for one, two, or many.', 'السَّمَاوَات', 'the heavens (plural)', 'Surah Al-Baqarah 2:29', 'As-samawat'),
+  simpleItem('Sound masculine plural', 'Learn the -un/-in ending for regular masculine plurals.', 'مُسْلِمُونَ', 'Muslims (masc. plural)', 'Surah Al-Hijr 15:2', 'Muslimun'),
+  simpleItem('Sound feminine plural', 'Learn the -at ending for regular feminine plurals.', 'مُسْلِمَات', 'Muslim women', 'Surah Al-Ahzab 33:35', 'Muslimat'),
+  simpleItem('Broken plurals', 'Learn how some plurals change form entirely.', 'كُتُب', 'books (plural of kitab)', 'used throughout the Quran', 'Kutub'),
+  simpleItem('Adjective agreement', 'Learn how adjectives must match their noun.', 'الصِّرَاطَ الْمُسْتَقِيمَ', 'the straight path', 'Surah Al-Fatihah 1:6', "As-sirata l-mustaqim"),
+  simpleItem('Noun cases: intro', 'A first look at how noun endings shift with grammar role.', 'رَبُّ الْعَالَمِينَ', 'Lord of the worlds', 'Surah Al-Fatihah 1:2', "Rabbu l-alamin"),
+  simpleItem('Common nouns review', 'Review key nouns learned so far in context.', 'بَيْتُ اللَّه', 'the House of Allah (the Kaaba)', 'Surah Al-Baqarah 2:125', 'Baytullah'),
+  simpleItem('Stage 9 review: nouns', 'Bring together everything learned about nouns and gender.', 'الرَّحْمَٰنِ الرَّحِيمِ', 'the Most Merciful, the Especially Merciful', 'Surah Al-Fatihah 1:3', "Ar-Rahmani r-Rahim"),
 ];
 
 // --- Stage 10: Demonstratives & Definite Article (10 lessons) ---
 const stage10Items = [
-  simpleItem('This (masculine): هذا', 'Learn the masculine word for "this".', 'هَٰذَا الْكِتَابُ', 'this is the Book', 'used to introduce the Quran in commentary'),
-  simpleItem('This (feminine): هذه', 'Learn the feminine word for "this".', 'هَٰذِهِ', 'this (feminine)', 'used throughout the Quran'),
-  simpleItem('That: ذلك', 'Learn the word for "that", used to open Surah Al-Baqarah.', 'ذَٰلِكَ الْكِتَابُ', 'that is the Book', 'Surah Al-Baqarah 2:2'),
-  simpleItem('Sun letters', 'Learn which letters absorb the ل of ال (Ar-Rahman, not Al-Rahman).', 'الرَّحْمَٰن', 'the Most Merciful', 'Surah Al-Fatihah 1:3'),
-  simpleItem('Moon letters', 'Learn which letters keep the ل of ال pronounced clearly.', 'الْقَمَر', 'the moon', 'Surah Al-Qamar 54:1'),
-  simpleItem('The Idafa (possessive) construction', 'Learn how two nouns link to show possession.', 'رَبِّ الْعَالَمِينَ', 'Lord of the worlds', 'Surah Al-Fatihah 1:2'),
-  simpleItem('Idafa in practice: House of Allah', 'See the Idafa construction in a famous phrase.', 'بَيْتُ اللَّه', 'House of Allah (the Kaaba)', 'Surah Al-Baqarah 2:125'),
-  simpleItem('Attached pronouns: my/your', 'Learn how ي and ك attach to nouns to mean "my" and "your".', 'رَبِّي', 'my Lord', 'used throughout the Quran'),
-  simpleItem('Attached pronouns: his/her', 'Learn how ه and ها attach to nouns.', 'رَبُّهُ', 'his Lord', 'used throughout the Quran'),
-  simpleItem('Stage 10 review: demonstratives', 'Review this/that and the sun/moon letter rule.', 'ذَٰلِكَ الصِّرَاطُ الْمُسْتَقِيم', 'that is the straight path', 'Surah Al-An’am 6:153'),
+  simpleItem('This (masculine): هذا', 'Learn the masculine word for "this".', 'هَٰذَا الْكِتَابُ', 'this is the Book', 'used to introduce the Quran in commentary', "Hadha l-kitab"),
+  simpleItem('This (feminine): هذه', 'Learn the feminine word for "this".', 'هَٰذِهِ', 'this (feminine)', 'used throughout the Quran', 'Hadhihi'),
+  simpleItem('That: ذلك', 'Learn the word for "that", used to open Surah Al-Baqarah.', 'ذَٰلِكَ الْكِتَابُ', 'that is the Book', 'Surah Al-Baqarah 2:2', "Dhalika l-kitab"),
+  simpleItem('Sun letters', 'Learn which letters absorb the ل of ال (Ar-Rahman, not Al-Rahman).', 'الرَّحْمَٰن', 'the Most Merciful', 'Surah Al-Fatihah 1:3', 'Ar-Rahman'),
+  simpleItem('Moon letters', 'Learn which letters keep the ل of ال pronounced clearly.', 'الْقَمَر', 'the moon', 'Surah Al-Qamar 54:1', 'Al-Qamar'),
+  simpleItem('The Idafa (possessive) construction', 'Learn how two nouns link to show possession.', 'رَبِّ الْعَالَمِينَ', 'Lord of the worlds', 'Surah Al-Fatihah 1:2', "Rabbi l-alamin"),
+  simpleItem('Idafa in practice: House of Allah', 'See the Idafa construction in a famous phrase.', 'بَيْتُ اللَّه', 'House of Allah (the Kaaba)', 'Surah Al-Baqarah 2:125', 'Baytullah'),
+  simpleItem('Attached pronouns: my/your', 'Learn how ي and ك attach to nouns to mean "my" and "your".', 'رَبِّي', 'my Lord', 'used throughout the Quran', 'Rabbi'),
+  simpleItem('Attached pronouns: his/her', 'Learn how ه and ها attach to nouns.', 'رَبُّهُ', 'his Lord', 'used throughout the Quran', 'Rabbuhu'),
+  simpleItem('Stage 10 review: demonstratives', 'Review this/that and the sun/moon letter rule.', 'ذَٰلِكَ الصِّرَاطُ الْمُسْتَقِيم', 'that is the straight path', 'Surah Al-An’am 6:153', "Dhalika s-siratu l-mustaqim"),
 ];
 
 // --- Stage 11: Prepositions & Location (10 lessons) ---
 const stage11Items = [
-  simpleItem('Fi: in', 'Learn the preposition "in".', 'فِي قُلُوبِهِم', 'in their hearts', 'Surah Al-Baqarah 2:10'),
-  simpleItem('Ala: on', 'Learn the preposition "on/upon".', 'عَلَيْهِم', 'upon them', 'used throughout the Quran'),
-  simpleItem('Min: from', 'Learn the preposition "from".', 'مِنَ اللَّه', 'from Allah', 'used throughout the Quran'),
-  simpleItem('Ila: to', 'Learn the preposition "to/towards".', 'إِلَى اللَّه', 'to Allah', 'Surah Al-Baqarah 2:156, "to Him we return"'),
-  simpleItem('Bi: with/by', 'Learn the preposition "with/by", seen in Bismillah.', 'بِسْمِ اللَّه', 'in/by the name of Allah', 'Surah Al-Fatihah 1:1'),
-  simpleItem('Taht: under', 'Learn the word for "under".', 'تَحْتَهَا الْأَنْهَار', 'beneath which rivers flow', 'a phrase describing Paradise, used repeatedly in the Quran'),
-  simpleItem('Fawq: above', 'Learn the word for "above".', 'فَوْقَ', 'above', 'used throughout the Quran'),
-  simpleItem('Amam: in front of', 'Learn the word for "in front of".', 'أَمَام', 'in front of', 'a common directional word in Arabic'),
-  simpleItem('Khalf: behind', 'Learn the word for "behind".', 'خَلْف', 'behind', 'Surah Qaf 50:6, describing the sky above them'),
-  simpleItem('Stage 11 review: prepositions', 'Review the core location words learned in this stage.', 'مِن تَحْتِهَا الْأَنْهَار', 'from beneath which rivers flow', 'Surah Al-Baqarah 2:25'),
+  simpleItem('Fi: in', 'Learn the preposition "in".', 'فِي قُلُوبِهِم', 'in their hearts', 'Surah Al-Baqarah 2:10', 'Fi qulubihim'),
+  simpleItem('Ala: on', 'Learn the preposition "on/upon".', 'عَلَيْهِم', 'upon them', 'used throughout the Quran', 'Alayhim'),
+  simpleItem('Min: from', 'Learn the preposition "from".', 'مِنَ اللَّه', 'from Allah', 'used throughout the Quran', 'Minallah'),
+  simpleItem('Ila: to', 'Learn the preposition "to/towards".', 'إِلَى اللَّه', 'to Allah', 'Surah Al-Baqarah 2:156, "to Him we return"', 'Ilallah'),
+  simpleItem('Bi: with/by', 'Learn the preposition "with/by", seen in Bismillah.', 'بِسْمِ اللَّه', 'in/by the name of Allah', 'Surah Al-Fatihah 1:1', 'Bismillah'),
+  simpleItem('Taht: under', 'Learn the word for "under".', 'تَحْتَهَا الْأَنْهَار', 'beneath which rivers flow', 'a phrase describing Paradise, used repeatedly in the Quran', "Tahtaha l-anhar"),
+  simpleItem('Fawq: above', 'Learn the word for "above".', 'فَوْقَ', 'above', 'used throughout the Quran', 'Fawqa'),
+  simpleItem('Amam: in front of', 'Learn the word for "in front of".', 'أَمَام', 'in front of', 'a common directional word in Arabic', 'Amam'),
+  simpleItem('Khalf: behind', 'Learn the word for "behind".', 'خَلْف', 'behind', 'Surah Qaf 50:6, describing the sky above them', 'Khalf'),
+  simpleItem('Stage 11 review: prepositions', 'Review the core location words learned in this stage.', 'مِن تَحْتِهَا الْأَنْهَار', 'from beneath which rivers flow', 'Surah Al-Baqarah 2:25', "Min tahtiha l-anhar"),
 ];
 
 // --- Stage 12: Questions & Possession (Idafa) (10 lessons) ---
 const stage12Items = [
-  simpleItem('Man: who', 'Learn the question word "who".', 'مَن ذَا الَّذِي', 'who is the one who', 'Surah Al-Baqarah 2:255 (Ayat al-Kursi)'),
-  simpleItem('Ma: what', 'Learn the question word "what".', 'وَمَا أَدْرَاكَ', 'and what will make you know', 'used to introduce important surahs, e.g. Al-Qadr 97:2'),
-  simpleItem('Ayna: where', 'Learn the question word "where".', 'أَيْنَ مَا', 'wherever', 'Surah An-Nisa 4:78'),
-  simpleItem('Mata: when', 'Learn the question word "when".', 'مَتَى', 'when', 'used throughout the Quran to ask about the Hour'),
-  simpleItem('Kayfa: how', 'Learn the question word "how".', 'كَيْفَ', 'how', 'Surah Al-Ghashiyah 88:17, "do they not look at the camels, how they were created"'),
-  simpleItem('Hal: yes/no questions', 'Learn how "hal" introduces a yes/no question.', 'هَلْ أَتَاكَ', 'has there come to you', 'Surah Al-Ghashiyah 88:1'),
-  simpleItem('Idafa review: Lord of the Worlds', 'Practice the Idafa construction again in a new phrase.', 'مَالِكِ يَوْمِ الدِّين', 'Master of the Day of Judgement', 'Surah Al-Fatihah 1:4'),
-  simpleItem('Idafa review: Day of Judgement', 'See "day" + "judgement" linked as an Idafa.', 'يَوْمِ الدِّين', 'the Day of Judgement', 'Surah Al-Fatihah 1:4'),
-  simpleItem('Combining questions & Idafa', 'Practice asking "whose" using question words and Idafa together.', 'لِمَنِ الْمُلْك', 'to whom belongs the dominion', 'Surah Ghafir 40:16'),
-  simpleItem('Stage 12 review: questions', 'Review all the question words learned in this stage.', 'مَا شَأْنُكُم', 'what is your affair', 'a common Quranic question construction'),
+  simpleItem('Man: who', 'Learn the question word "who".', 'مَن ذَا الَّذِي', 'who is the one who', 'Surah Al-Baqarah 2:255 (Ayat al-Kursi)', "Man dha lladhi"),
+  simpleItem('Ma: what', 'Learn the question word "what".', 'وَمَا أَدْرَاكَ', 'and what will make you know', 'used to introduce important surahs, e.g. Al-Qadr 97:2', 'Wa ma adraka'),
+  simpleItem('Ayna: where', 'Learn the question word "where".', 'أَيْنَ مَا', 'wherever', 'Surah An-Nisa 4:78', 'Ayna ma'),
+  simpleItem('Mata: when', 'Learn the question word "when".', 'مَتَى', 'when', 'used throughout the Quran to ask about the Hour', 'Mata'),
+  simpleItem('Kayfa: how', 'Learn the question word "how".', 'كَيْفَ', 'how', 'Surah Al-Ghashiyah 88:17, "do they not look at the camels, how they were created"', 'Kayfa'),
+  simpleItem('Hal: yes/no questions', 'Learn how "hal" introduces a yes/no question.', 'هَلْ أَتَاكَ', 'has there come to you', 'Surah Al-Ghashiyah 88:1', 'Hal ataka'),
+  simpleItem('Idafa review: Lord of the Worlds', 'Practice the Idafa construction again in a new phrase.', 'مَالِكِ يَوْمِ الدِّين', 'Master of the Day of Judgement', 'Surah Al-Fatihah 1:4', "Maliki yawmi d-din"),
+  simpleItem('Idafa review: Day of Judgement', 'See "day" + "judgement" linked as an Idafa.', 'يَوْمِ الدِّين', 'the Day of Judgement', 'Surah Al-Fatihah 1:4', "Yawmi d-din"),
+  simpleItem('Combining questions & Idafa', 'Practice asking "whose" using question words and Idafa together.', 'لِمَنِ الْمُلْك', 'to whom belongs the dominion', 'Surah Ghafir 40:16', "Limani l-mulk"),
+  simpleItem('Stage 12 review: questions', 'Review all the question words learned in this stage.', 'مَا شَأْنُكُم', 'what is your affair', 'a common Quranic question construction', "Ma sha'nukum"),
 ];
 
 // --- Stage 13: Pronouns & Past Tense Verbs (10 lessons) ---
 const stage13Items = [
-  simpleItem('Huwa: he', 'Learn the pronoun "he".', 'قُلْ هُوَ اللَّهُ أَحَد', 'Say: He is Allah, One', 'Surah Al-Ikhlas 112:1'),
-  simpleItem('Hiya: she', 'Learn the pronoun "she".', 'هِيَ', 'she', 'used throughout the Quran'),
-  simpleItem('Nahnu: we', 'Learn the pronoun "we", often used for Allah’s majesty.', 'إِنَّا نَحْنُ نَزَّلْنَا', 'indeed it is We who sent it down', 'Surah Al-Hijr 15:9'),
-  simpleItem('Ana: I', 'Learn the pronoun "I".', 'إِنَّنِي أَنَا اللَّه', 'indeed, I am Allah', 'Surah Taha 20:14'),
-  simpleItem('Past tense: Kataba (wrote)', 'Learn the past-tense root for "to write".', 'كَتَبَ', 'he wrote', 'used throughout the Quran'),
-  simpleItem('Past tense: Dhahaba (went)', 'Learn the past-tense root for "to go".', 'ذَهَبَ', 'he went', 'Surah Yusuf 12:17'),
-  simpleItem('Past tense: Qara’a (read)', 'Learn the past-tense root for "to read/recite".', 'قَرَأَ', 'he read/recited', 'related to the word Quran itself'),
-  simpleItem('Past tense: Khalaqa (created)', 'Learn the past-tense verb "he created".', 'خَلَقَ السَّمَاوَاتِ', 'He created the heavens', 'Surah Al-Anbya 21:30'),
-  simpleItem('Past tense conjugation: I/we', 'Learn how the verb ending changes for "I" and "we".', 'خَلَقْنَا', 'We created', 'Surah Al-Insan 76:2'),
-  simpleItem('Stage 13 review: pronouns & verbs', 'Review pronouns and past-tense verbs together.', 'إِيَّاكَ نَعْبُدُ', 'You alone we worship', 'Surah Al-Fatihah 1:5'),
+  simpleItem('Huwa: he', 'Learn the pronoun "he".', 'قُلْ هُوَ اللَّهُ أَحَد', 'Say: He is Allah, One', 'Surah Al-Ikhlas 112:1', 'Qul huwa Allahu ahad'),
+  simpleItem('Hiya: she', 'Learn the pronoun "she".', 'هِيَ', 'she', 'used throughout the Quran', 'Hiya'),
+  simpleItem('Nahnu: we', 'Learn the pronoun "we", often used for Allah’s majesty.', 'إِنَّا نَحْنُ نَزَّلْنَا', 'indeed it is We who sent it down', 'Surah Al-Hijr 15:9', 'Inna nahnu nazzalna'),
+  simpleItem('Ana: I', 'Learn the pronoun "I".', 'إِنَّنِي أَنَا اللَّه', 'indeed, I am Allah', 'Surah Taha 20:14', 'Innani ana Allah'),
+  simpleItem('Past tense: Kataba (wrote)', 'Learn the past-tense root for "to write".', 'كَتَبَ', 'he wrote', 'used throughout the Quran', 'Kataba'),
+  simpleItem('Past tense: Dhahaba (went)', 'Learn the past-tense root for "to go".', 'ذَهَبَ', 'he went', 'Surah Yusuf 12:17', 'Dhahaba'),
+  simpleItem('Past tense: Qara’a (read)', 'Learn the past-tense root for "to read/recite".', 'قَرَأَ', 'he read/recited', 'related to the word Quran itself', "Qara'a"),
+  simpleItem('Past tense: Khalaqa (created)', 'Learn the past-tense verb "he created".', 'خَلَقَ السَّمَاوَاتِ', 'He created the heavens', 'Surah Al-Anbya 21:30', 'Khalaqa s-samawat'),
+  simpleItem('Past tense conjugation: I/we', 'Learn how the verb ending changes for "I" and "we".', 'خَلَقْنَا', 'We created', 'Surah Al-Insan 76:2', 'Khalaqna'),
+  simpleItem('Stage 13 review: pronouns & verbs', 'Review pronouns and past-tense verbs together.', 'إِيَّاكَ نَعْبُدُ', 'You alone we worship', 'Surah Al-Fatihah 1:5', "Iyyaka na'budu"),
 ];
 
 // --- Stage 14: Present Tense & Plurals (10 lessons) ---
 const stage14Items = [
-  simpleItem('Present tense: Ya‘lamu (he knows)', 'Learn the present-tense prefix ya-.', 'يَعْلَمُ', 'he knows', 'Surah Al-Hadid 57:4'),
-  simpleItem('Present tense: Yarzuqu (He provides)', 'See another present-tense verb describing Allah.', 'يَرْزُقُ', 'He provides', 'used throughout the Quran'),
-  simpleItem('Present tense: Na‘budu (we worship)', 'Learn the present-tense prefix na-.', 'نَعْبُدُ', 'we worship', 'Surah Al-Fatihah 1:5'),
-  simpleItem('Present tense: Nasta‘een (we ask for help)', 'See the present tense used again in Al-Fatihah.', 'نَسْتَعِينُ', 'we ask for help', 'Surah Al-Fatihah 1:5'),
-  simpleItem('The imperative: Read!', 'Learn the command form, the very first Quranic revelation.', 'اقْرَأْ', 'Read!', 'Surah Al-Alaq 96:1'),
-  simpleItem('Broken plural: Prophets', 'See a broken (irregular) plural in practice.', 'أَنْبِيَاء', 'prophets (plural)', 'Surah An-Nisa 4:69'),
-  simpleItem('Broken plural: Worlds', 'See another broken plural pattern.', 'عَالَمِين', 'worlds (plural)', 'Surah Al-Fatihah 1:2'),
-  simpleItem('Negation: La (no)', 'Learn how "la" negates a present-tense verb.', 'لَا تَأْخُذُهُ سِنَةٌ وَلَا نَوْم', 'neither drowsiness nor sleep overtakes Him', 'Surah Al-Baqarah 2:255 (Ayat al-Kursi)'),
-  simpleItem('Negation: Lam (did not)', 'Learn how "lam" negates a verb in the past.', 'لَمْ يَلِدْ وَلَمْ يُولَد', 'He neither begets nor is born', 'Surah Al-Ikhlas 112:3'),
-  simpleItem('Stage 14 review: present tense', 'Review present-tense verbs, plurals, and negation.', 'وَلَمْ يَكُن لَّهُ كُفُوًا أَحَد', 'nor is there to Him any equivalent', 'Surah Al-Ikhlas 112:4'),
+  simpleItem('Present tense: Ya‘lamu (he knows)', 'Learn the present-tense prefix ya-.', 'يَعْلَمُ', 'he knows', 'Surah Al-Hadid 57:4', "Ya'lamu"),
+  simpleItem('Present tense: Yarzuqu (He provides)', 'See another present-tense verb describing Allah.', 'يَرْزُقُ', 'He provides', 'used throughout the Quran', 'Yarzuqu'),
+  simpleItem('Present tense: Na‘budu (we worship)', 'Learn the present-tense prefix na-.', 'نَعْبُدُ', 'we worship', 'Surah Al-Fatihah 1:5', "Na'budu"),
+  simpleItem('Present tense: Nasta‘een (we ask for help)', 'See the present tense used again in Al-Fatihah.', 'نَسْتَعِينُ', 'we ask for help', 'Surah Al-Fatihah 1:5', "Nasta'in"),
+  simpleItem('The imperative: Read!', 'Learn the command form, the very first Quranic revelation.', 'اقْرَأْ', 'Read!', 'Surah Al-Alaq 96:1', "Iqra'"),
+  simpleItem('Broken plural: Prophets', 'See a broken (irregular) plural in practice.', 'أَنْبِيَاء', 'prophets (plural)', 'Surah An-Nisa 4:69', "Anbiya'"),
+  simpleItem('Broken plural: Worlds', 'See another broken plural pattern.', 'عَالَمِين', 'worlds (plural)', 'Surah Al-Fatihah 1:2', 'Alamin'),
+  simpleItem('Negation: La (no)', 'Learn how "la" negates a present-tense verb.', 'لَا تَأْخُذُهُ سِنَةٌ وَلَا نَوْم', 'neither drowsiness nor sleep overtakes Him', 'Surah Al-Baqarah 2:255 (Ayat al-Kursi)', 'La ta’khudhuhu sinatun wa la nawm'),
+  simpleItem('Negation: Lam (did not)', 'Learn how "lam" negates a verb in the past.', 'لَمْ يَلِدْ وَلَمْ يُولَد', 'He neither begets nor is born', 'Surah Al-Ikhlas 112:3', 'Lam yalid wa lam yulad'),
+  simpleItem('Stage 14 review: present tense', 'Review present-tense verbs, plurals, and negation.', 'وَلَمْ يَكُن لَّهُ كُفُوًا أَحَد', 'nor is there to Him any equivalent', 'Surah Al-Ikhlas 112:4', 'Wa lam yakun lahu kufuwan ahad'),
 ];
 
 // --- Stage 15: Complex Sentences & Quranic Patterns (10 lessons, reading Al-Fatihah in full) ---
-const readingItem = (title, arabicWord, meaning, reference) => simpleItem(title, `Read ${title} word by word and understand its meaning.`, arabicWord, meaning, reference, 'reading', 'Read the verse below word by word, then check your understanding.');
+const readingItem = (title, arabicWord, meaning, reference, transliteration) =>
+  simpleItem(title, `Read ${title} word by word and understand its meaning.`, arabicWord, meaning, reference, transliteration, {
+    type: 'reading',
+    concept: 'Read the verse below word by word, then check your understanding.',
+  });
 const stage15Items = [
-  readingItem('Al-Fatihah, Ayah 1', 'بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ', 'In the name of Allah, the Most Gracious, the Most Merciful.', 'Surah Al-Fatihah 1:1'),
-  readingItem('Al-Fatihah, Ayah 2', 'الْحَمْدُ لِلَّهِ رَبِّ الْعَالَمِينَ', 'All praise is due to Allah, Lord of the worlds.', 'Surah Al-Fatihah 1:2'),
-  readingItem('Al-Fatihah, Ayah 3', 'الرَّحْمَٰنِ الرَّحِيمِ', 'The Most Gracious, the Most Merciful.', 'Surah Al-Fatihah 1:3'),
-  readingItem('Al-Fatihah, Ayah 4', 'مَالِكِ يَوْمِ الدِّينِ', 'Master of the Day of Judgement.', 'Surah Al-Fatihah 1:4'),
-  readingItem('Al-Fatihah, Ayah 5', 'إِيَّاكَ نَعْبُدُ وَإِيَّاكَ نَسْتَعِينُ', 'You alone we worship, and You alone we ask for help.', 'Surah Al-Fatihah 1:5'),
-  readingItem('Al-Fatihah, Ayah 6', 'اهْدِنَا الصِّرَاطَ الْمُسْتَقِيمَ', 'Guide us to the straight path.', 'Surah Al-Fatihah 1:6'),
-  readingItem('Al-Fatihah, Ayah 7', 'صِرَاطَ الَّذِينَ أَنْعَمْتَ عَلَيْهِمْ', 'The path of those You have blessed.', 'Surah Al-Fatihah 1:7'),
-  simpleItem('Conditional: In (if)', 'Learn how "in" introduces a possible condition.', 'إِن تَعُدُّوا', 'if you count', 'Surah Ibrahim 14:34'),
-  simpleItem('Conditional: Law (if, hypothetical)', 'Learn how "law" introduces a hypothetical condition.', 'لَوْ كَانَ فِيهِمَا آلِهَةٌ إِلَّا اللَّه', 'if there were gods besides Allah', 'Surah Al-Anbya 21:22'),
-  simpleItem('Stage 15 review: Al-Fatihah', 'Review all seven ayahs of Al-Fatihah together.', 'وَلَا الضَّالِّين', 'nor of those who are astray', 'Surah Al-Fatihah 1:7'),
+  readingItem('Al-Fatihah, Ayah 1', 'بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ', 'In the name of Allah, the Most Gracious, the Most Merciful.', 'Surah Al-Fatihah 1:1', 'Bismillahi r-Rahmani r-Rahim'),
+  readingItem('Al-Fatihah, Ayah 2', 'الْحَمْدُ لِلَّهِ رَبِّ الْعَالَمِينَ', 'All praise is due to Allah, Lord of the worlds.', 'Surah Al-Fatihah 1:2', 'Alhamdulillahi Rabbi l-alamin'),
+  readingItem('Al-Fatihah, Ayah 3', 'الرَّحْمَٰنِ الرَّحِيمِ', 'The Most Gracious, the Most Merciful.', 'Surah Al-Fatihah 1:3', 'Ar-Rahmani r-Rahim'),
+  readingItem('Al-Fatihah, Ayah 4', 'مَالِكِ يَوْمِ الدِّينِ', 'Master of the Day of Judgement.', 'Surah Al-Fatihah 1:4', 'Maliki yawmi d-din'),
+  readingItem('Al-Fatihah, Ayah 5', 'إِيَّاكَ نَعْبُدُ وَإِيَّاكَ نَسْتَعِينُ', 'You alone we worship, and You alone we ask for help.', 'Surah Al-Fatihah 1:5', "Iyyaka na'budu wa iyyaka nasta'in"),
+  readingItem('Al-Fatihah, Ayah 6', 'اهْدِنَا الصِّرَاطَ الْمُسْتَقِيمَ', 'Guide us to the straight path.', 'Surah Al-Fatihah 1:6', 'Ihdina s-sirata l-mustaqim'),
+  readingItem('Al-Fatihah, Ayah 7', 'صِرَاطَ الَّذِينَ أَنْعَمْتَ عَلَيْهِمْ', 'The path of those You have blessed.', 'Surah Al-Fatihah 1:7', 'Sirata lladhina an’amta alayhim'),
+  simpleItem('Conditional: In (if)', 'Learn how "in" introduces a possible condition.', 'إِن تَعُدُّوا', 'if you count', 'Surah Ibrahim 14:34', "In ta'uddu"),
+  simpleItem('Conditional: Law (if, hypothetical)', 'Learn how "law" introduces a hypothetical condition.', 'لَوْ كَانَ فِيهِمَا آلِهَةٌ إِلَّا اللَّه', 'if there were gods besides Allah', 'Surah Al-Anbya 21:22', 'Law kana fihima alihatun illallah'),
+  simpleItem('Stage 15 review: Al-Fatihah', 'Review all seven ayahs of Al-Fatihah together.', 'وَلَا الضَّالِّين', 'nor of those who are astray', 'Surah Al-Fatihah 1:7', 'Wa la d-dallin'),
 ];
 
 // --- Stage 16: Fluency & Quranic Application (Capstone) (10 lessons) ---
 const stage16Items = [
-  readingItem('Al-Ikhlas, Ayah 1-2', 'قُلْ هُوَ اللَّهُ أَحَدٌ ۝ اللَّهُ الصَّمَدُ', 'Say: He is Allah, One. Allah, the Eternal Refuge.', 'Surah Al-Ikhlas 112:1-2'),
-  readingItem('Al-Ikhlas, Ayah 3-4', 'لَمْ يَلِدْ وَلَمْ يُولَدْ ۝ وَلَمْ يَكُنْ لَهُ كُفُوًا أَحَدٌ', 'He neither begets nor is born, nor is there any equivalent to Him.', 'Surah Al-Ikhlas 112:3-4'),
-  readingItem('An-Nas, Ayah 1', 'قُلْ أَعُوذُ بِرَبِّ النَّاسِ', 'Say: I seek refuge in the Lord of mankind.', 'Surah An-Nas 114:1'),
-  readingItem('Al-Falaq, Ayah 1', 'قُلْ أَعُوذُ بِرَبِّ الْفَلَقِ', 'Say: I seek refuge in the Lord of the daybreak.', 'Surah Al-Falaq 113:1'),
-  simpleItem('The root system: K-T-B', 'See how kataba (wrote), kitab (book), and maktabah (library) share one root.', 'مَكْتَبَة', 'library', 'built on the same root as kitab (book) and kataba (wrote)'),
-  simpleItem('The root system: A-L-M', 'See how ‘ilm (knowledge) and ‘alim (scholar) share one root.', 'عَالِم', 'scholar', 'Surah Fatir 35:28, "only those of knowledge fear Allah among His servants"'),
-  simpleItem('Classical vs Modern Arabic', 'Understand that the Quran preserved Classical Arabic for 1400+ years.', 'فُصْحَى', 'classical/formal Arabic', 'the register in which the Quran was revealed'),
-  simpleItem('Tajweed terms: Makki & Madani', 'Learn how surahs are classified by where they were revealed.', 'مَكِّيَّة', 'Meccan (revealed in Makkah)', 'a classification used for every surah of the Quran'),
-  simpleItem('Reading comprehension', 'Apply everything learned to a short new passage.', 'وَالْعَصْرِ', 'By time', 'Surah Al-Asr 103:1'),
-  simpleItem('Capstone: Your Arabic & Quran Journey', 'Celebrate finishing the full 16-stage ArabiKids journey.', 'رَبِّ زِدْنِي عِلْمًا', 'My Lord, increase me in knowledge', 'Surah Taha 20:114', 'capstone', 'You’ve learned letters, harakat, vocabulary, grammar, and now you can read real Quranic verses. This dua asks Allah for even more knowledge as your journey continues.'),
+  readingItem('Al-Ikhlas, Ayah 1-2', 'قُلْ هُوَ اللَّهُ أَحَدٌ ۝ اللَّهُ الصَّمَدُ', 'Say: He is Allah, One. Allah, the Eternal Refuge.', 'Surah Al-Ikhlas 112:1-2', 'Qul huwa Allahu ahad, Allahu s-samad'),
+  readingItem('Al-Ikhlas, Ayah 3-4', 'لَمْ يَلِدْ وَلَمْ يُولَدْ ۝ وَلَمْ يَكُنْ لَهُ كُفُوًا أَحَدٌ', 'He neither begets nor is born, nor is there any equivalent to Him.', 'Surah Al-Ikhlas 112:3-4', 'Lam yalid wa lam yulad, wa lam yakun lahu kufuwan ahad'),
+  readingItem('An-Nas, Ayah 1', 'قُلْ أَعُوذُ بِرَبِّ النَّاسِ', 'Say: I seek refuge in the Lord of mankind.', 'Surah An-Nas 114:1', "Qul a'udhu bi Rabbi n-nas"),
+  readingItem('Al-Falaq, Ayah 1', 'قُلْ أَعُوذُ بِرَبِّ الْفَلَقِ', 'Say: I seek refuge in the Lord of the daybreak.', 'Surah Al-Falaq 113:1', "Qul a'udhu bi Rabbi l-falaq"),
+  simpleItem('The root system: K-T-B', 'See how kataba (wrote), kitab (book), and maktabah (library) share one root.', 'مَكْتَبَة', 'library', 'built on the same root as kitab (book) and kataba (wrote)', 'Maktabah'),
+  simpleItem('The root system: A-L-M', 'See how ‘ilm (knowledge) and ‘alim (scholar) share one root.', 'عَالِم', 'scholar', 'Surah Fatir 35:28, "only those of knowledge fear Allah among His servants"', 'Alim'),
+  simpleItem('Classical vs Modern Arabic', 'Understand that the Quran preserved Classical Arabic for 1400+ years.', 'فُصْحَى', 'classical/formal Arabic', 'the register in which the Quran was revealed', 'Fusha'),
+  simpleItem('Tajweed terms: Makki & Madani', 'Learn how surahs are classified by where they were revealed.', 'مَكِّيَّة', 'Meccan (revealed in Makkah)', 'a classification used for every surah of the Quran', 'Makkiyyah'),
+  simpleItem('Reading comprehension', 'Apply everything learned to a short new passage.', 'وَالْعَصْرِ', 'By time', 'Surah Al-Asr 103:1', 'Wal-Asr'),
+  simpleItem('Capstone: Your Arabic & Quran Journey', 'Celebrate finishing the full 16-stage ArabiKids journey.', 'رَبِّ زِدْنِي عِلْمًا', 'My Lord, increase me in knowledge', 'Surah Taha 20:114', 'Rabbi zidni ilma', { type: 'capstone', concept: 'You’ve learned letters, harakat, vocabulary, grammar, and now you can read real Quranic verses. This dua asks Allah for even more knowledge as your journey continues.' }),
 ];
 
 // ---------------------------------------------------------------------------
 // ASSEMBLE
 // ---------------------------------------------------------------------------
 
-const STAGE_ITEMS = {
+export const STAGE_ITEMS = {
   stage1: stage1Items,
   stage2: stage2Items,
   stage3: stage3Items,
@@ -708,7 +721,17 @@ async function seed() {
   console.log('Admin user ready.');
 }
 
-seed().catch((err) => {
-  console.error('Seed failed:', err);
-  process.exit(1);
-});
+// Only auto-run when executed directly (`node supabase/seed.mjs`) - guarded
+// so other scripts can safely `import { STAGE_ITEMS, STAGES } from
+// './seed.mjs'` to reuse this content without triggering the full
+// destructive reseed (which drops/rebuilds most tables). Uses pathToFileURL
+// rather than manual string surgery - Windows file:// URLs need a third
+// slash before the drive letter (file:///C:/...) that naive concatenation
+// misses, which would have silently made `node supabase/seed.mjs` a no-op.
+const isMain = process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href;
+if (isMain) {
+  seed().catch((err) => {
+    console.error('Seed failed:', err);
+    process.exit(1);
+  });
+}

@@ -115,17 +115,27 @@ export default function Lesson() {
 
       <div className="card" style={{ marginBottom: 20, textAlign: 'center' }}>
         <span className="badge badge-free">Arabic Word</span>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12, margin: '16px 0 8px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12, margin: '16px 0 4px' }}>
           <p className="arabic-text" dir="rtl" style={{ fontSize: '2.5rem', margin: 0 }}>{lesson.arabicWord}</p>
           <SpeakButton text={lesson.arabicWord} size={22} />
         </div>
+        {content.transliteration && (
+          <p style={{ margin: '0 0 4px', color: '#8ea0b6', fontStyle: 'italic', fontSize: '0.95rem' }}>
+            Sounds like: "{content.transliteration}"
+          </p>
+        )}
         <p style={{ fontWeight: 700, color: 'var(--color-blue)' }}>{lesson.arabicWordMeaning}</p>
         {content.secondWord && (
           <>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12, margin: '20px 0 8px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12, margin: '20px 0 4px' }}>
               <p className="arabic-text" dir="rtl" style={{ fontSize: '2rem', margin: 0 }}>{content.secondWord.arabic}</p>
               <SpeakButton text={content.secondWord.arabic} size={22} />
             </div>
+            {content.secondWord.transliteration && (
+              <p style={{ margin: '0 0 4px', color: '#8ea0b6', fontStyle: 'italic', fontSize: '0.95rem' }}>
+                Sounds like: "{content.secondWord.transliteration}"
+              </p>
+            )}
             <p style={{ fontWeight: 700, color: 'var(--color-blue)' }}>{content.secondWord.translation}</p>
           </>
         )}
@@ -137,6 +147,11 @@ export default function Lesson() {
           <p className="arabic-text" dir="rtl" style={{ fontSize: '1.5rem', margin: 0 }}>{content.quranicConnection?.arabic}</p>
           <SpeakButton text={content.quranicConnection?.arabic} size={18} />
         </div>
+        {content.transliteration && (
+          <p style={{ margin: '0 0 8px', color: '#8ea0b6', fontStyle: 'italic', fontSize: '0.9rem' }}>
+            Sounds like: "{content.transliteration}"
+          </p>
+        )}
         <p style={{ margin: '0 0 8px', color: '#4b5a6a', fontStyle: 'italic' }}>"{content.quranicConnection?.translation}"</p>
         <p style={{ margin: 0, color: 'var(--color-blue-dark)', fontWeight: 700 }}>{content.quranicConnection?.reference}</p>
         {content.quranicConnection?.note && <p style={{ margin: '8px 0 0', color: '#6b7a8a' }}>{content.quranicConnection.note}</p>}
