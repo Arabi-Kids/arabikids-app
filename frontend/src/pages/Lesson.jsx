@@ -69,7 +69,7 @@ export default function Lesson() {
     return (
       <div className="container" style={{ padding: 60, textAlign: 'center' }}>
         <h1 className="page-title">Lesson not found</h1>
-        <Link to="/lessons" className="btn btn-primary">Back to Lessons</Link>
+        <Link to="/lessons/curriculum" className="btn btn-primary">Back to Curriculum</Link>
       </div>
     );
   }

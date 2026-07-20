@@ -49,7 +49,7 @@ export default function StageVideo() {
     return (
       <div className="container" style={{ padding: 60, textAlign: 'center' }}>
         <h1 className="page-title">Stage not found</h1>
-        <Link to="/lessons" className="btn btn-primary">Back to Lesson Hub</Link>
+        <Link to="/lessons/curriculum" className="btn btn-primary">Back to Curriculum</Link>
       </div>
     );
   }

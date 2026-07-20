@@ -41,15 +41,15 @@ export default function StageLessons() {
     return (
       <div className="container" style={{ padding: 60, textAlign: 'center' }}>
         <h1 className="page-title">Stage not found</h1>
-        <Link to="/lessons" className="btn btn-primary">Back to Lesson Hub</Link>
+        <Link to="/lessons/curriculum" className="btn btn-primary">Back to Curriculum</Link>
       </div>
     );
   }
 
   return (
     <div className="container" style={{ padding: '48px 0' }}>
-      <Link to="/lessons" style={{ color: 'var(--color-blue)', fontWeight: 700 }}>
-        ← Back to Lesson Hub
+      <Link to="/lessons/curriculum" style={{ color: 'var(--color-blue)', fontWeight: 700 }}>
+        ← Back to Curriculum
       </Link>
       <h1 className="page-title" style={{ marginTop: 12 }}>
         Stage {stage.orderIndex}: {stage.name}

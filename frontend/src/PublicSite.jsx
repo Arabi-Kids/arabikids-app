@@ -19,6 +19,8 @@ import ResetPassword from './pages/ResetPassword.jsx';
 import ThankYou from './pages/ThankYou.jsx';
 import AddChild from './pages/AddChild.jsx';
 import LessonHub from './pages/LessonHub.jsx';
+import ArabicCurriculumHub from './pages/ArabicCurriculumHub.jsx';
+import ComingSoonPillar from './pages/ComingSoonPillar.jsx';
 import StageLessons from './pages/StageLessons.jsx';
 import Lesson from './pages/Lesson.jsx';
 import StageCheckpoint from './pages/StageCheckpoint.jsx';
@@ -67,6 +69,22 @@ export default function PublicSite() {
                 element={
                   <ProtectedRoute>
                     <LessonHub />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/lessons/curriculum"
+                element={
+                  <ProtectedRoute>
+                    <ArabicCurriculumHub />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/lessons/coming-soon/:pillarKey"
+                element={
+                  <ProtectedRoute>
+                    <ComingSoonPillar />
                   </ProtectedRoute>
                 }
               />
