@@ -6,8 +6,10 @@ import { cloneElement } from 'react';
 const SKIN = '#d9a066';
 const DRESS = '#3f8f6f';
 const DRESS_DARK = '#357a5f';
-const HIJAB = '#c8960c';
-const HIJAB_DARK = '#a97c09';
+// Rose/mauve instead of gold - gold read as blonde hair color, which fought
+// against the shape reading as fabric. Rose has no hair association.
+const HIJAB = '#b5657a';
+const HIJAB_DARK = '#8f4d60';
 const DARK = '#1c1a17';
 
 function Face({ pose }) {
@@ -32,11 +34,29 @@ function Face({ pose }) {
 }
 
 function Hijab() {
-  // Simple flat-icon technique: one solid drape shape wide/tall enough to
-  // peek out around the face circle drawn on top of it (Body() draws this
-  // BEFORE Face) - much more reliable than trying to cut a face-shaped hole
-  // out of a single compound path.
-  return <ellipse cx="80" cy="95" rx="46" ry="62" fill={HIJAB} />;
+  // Base drape: one solid shape wide/tall enough to peek out around the face
+  // circle drawn on top of it (Body() draws this BEFORE Face) - much more
+  // reliable than cutting a face-shaped hole out of a compound path.
+  //
+  // A plain smooth ellipse alone reads as a hairstyle, not fabric - what
+  // actually signals "cloth" here: a straight-ish edge across the forehead
+  // (hair grows in wisps, fabric has a clean fold line), visible drape
+  // folds, and an asymmetric flap hanging past one shoulder (hair falls
+  // symmetrically; a wrapped hijab usually doesn't).
+  return (
+    <>
+      <ellipse cx="80" cy="95" rx="46" ry="62" fill={HIJAB} />
+      {/* extra flap draping past the left shoulder, wrapped and pinned - the
+          asymmetry is the main "this is cloth" signal */}
+      <path d="M40 118 Q30 138 40 156 Q54 150 52 128 Z" fill={HIJAB} />
+      <circle cx="46" cy="130" r="3.2" fill={HIJAB_DARK} />
+      {/* clean forehead edge where the fabric meets the face */}
+      <path d="M55 76 Q80 62 105 76" stroke={HIJAB_DARK} strokeWidth="2.2" fill="none" strokeLinecap="round" />
+      {/* drape folds */}
+      <path d="M44 72 Q39 104 48 134" stroke={HIJAB_DARK} strokeWidth="1.6" fill="none" strokeLinecap="round" opacity="0.55" />
+      <path d="M116 72 Q121 104 110 132" stroke={HIJAB_DARK} strokeWidth="1.6" fill="none" strokeLinecap="round" opacity="0.55" />
+    </>
+  );
 }
 
 function Body({ pose }) {

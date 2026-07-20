@@ -26,7 +26,7 @@ export const PILLARS = [
     key: 'character-stories',
     name: 'Character & Stories',
     tagline: 'The Prophet’s life and the stories of the Prophets, made for kids.',
-    icon: '📚',
+    icon: '📜',
     status: 'coming-soon',
     items: [
       'Seerah for kids — age-appropriate stories from the Prophet’s life, tied to manners and character',
@@ -37,7 +37,7 @@ export const PILLARS = [
     key: 'knowledge-extras',
     name: 'Qur’an & Knowledge Extras',
     tagline: 'Memorization tracking, the Islamic calendar, and the 99 Names.',
-    icon: '✨',
+    icon: '🌙',
     status: 'coming-soon',
     items: [
       'Qur’an memorization (Hifz) tracker — short surahs with progress tracking',
