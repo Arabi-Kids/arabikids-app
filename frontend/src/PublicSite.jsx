@@ -64,30 +64,15 @@ export default function PublicSite() {
                   </ProtectedRoute>
                 }
               />
-              <Route
-                path="/lessons"
-                element={
-                  <ProtectedRoute>
-                    <LessonHub />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/lessons/curriculum"
-                element={
-                  <ProtectedRoute>
-                    <ArabicCurriculumHub />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/lessons/coming-soon/:pillarKey"
-                element={
-                  <ProtectedRoute>
-                    <ComingSoonPillar />
-                  </ProtectedRoute>
-                }
-              />
+              {/* These three are the Lessons Hub "index" views - deliberately public
+                  (not wrapped in ProtectedRoute) so a visitor can browse the pillar
+                  tiles and the stage grid before signing up. Everything one level
+                  deeper (an actual stage's lesson list, a lesson, a checkpoint) stays
+                  protected - guests see the shape of the curriculum, never real
+                  content. */}
+              <Route path="/lessons" element={<LessonHub />} />
+              <Route path="/lessons/curriculum" element={<ArabicCurriculumHub />} />
+              <Route path="/lessons/coming-soon/:pillarKey" element={<ComingSoonPillar />} />
               <Route
                 path="/lessons/stage/:stageId"
                 element={

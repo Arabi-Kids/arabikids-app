@@ -46,7 +46,7 @@ export default function Navbar() {
           <Link to="/pricing" onClick={closeMenu}>Pricing</Link>
           <Link to="/about" onClick={closeMenu}>About</Link>
           <Link to="/contact" onClick={closeMenu}>Contact</Link>
-          {user && <Link to="/lessons" onClick={closeMenu}>Lessons</Link>}
+          <Link to="/lessons" onClick={closeMenu}>Lessons</Link>
           {user && <Link to="/progress" onClick={closeMenu}>Progress</Link>}
           {user && childProfiles.length > 1 && (
             <select

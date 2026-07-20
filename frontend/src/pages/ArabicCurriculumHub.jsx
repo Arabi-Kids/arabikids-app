@@ -13,23 +13,71 @@ function stageState(stage, currentStageOrder, isPaidUser) {
 }
 
 export default function ArabicCurriculumHub() {
-  const { isPaid } = useAuth();
+  const { user, isPaid } = useAuth();
   const { activeChild, childProfiles, loading: childrenLoading } = useActiveChild();
   const [levels, setLevels] = useState([]);
   const [masteredStageIds, setMasteredStageIds] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
+  // Levels/stages (names + structure, not lesson content) are public data -
+  // fetch them regardless of auth so a signed-out visitor can see the shape
+  // of the curriculum. Only fetch a specific child's mastered stages once
+  // one is actually selected.
   useEffect(() => {
-    if (!activeChild) return;
-    Promise.all([getCurriculum(), listMasteredStageIds(activeChild.id)])
-      .then(([{ levels: lv }, mastered]) => {
-        setLevels(lv);
-        setMasteredStageIds(mastered);
-      })
+    getCurriculum()
+      .then(({ levels: lv }) => setLevels(lv))
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
+  }, []);
+
+  useEffect(() => {
+    if (!activeChild) return;
+    listMasteredStageIds(activeChild.id)
+      .then(setMasteredStageIds)
+      .catch((err) => setError(err.message));
   }, [activeChild]);
+
+  if (loading) return <div className="container" style={{ padding: 60 }}>Loading...</div>;
+
+  const header = (
+    <>
+      <Link to="/lessons" style={{ color: 'var(--color-blue)', fontWeight: 700 }}>
+        ← Back to Lessons Hub
+      </Link>
+      <h1 className="page-title" style={{ marginTop: 12 }}>Arabic & Qur'an Curriculum</h1>
+    </>
+  );
+
+  // Guest preview: show the full stage grid so a visitor can see exactly
+  // what they'd be signing up for, but every stage is locked and leads to
+  // login instead of real content.
+  if (!user) {
+    return (
+      <div className="container" style={{ padding: '48px 0' }}>
+        {header}
+        <p className="page-subtitle">16 stages, one continuous journey — sign in or create a free account to start.</p>
+        {error && <p className="error-text">{error}</p>}
+        {levels.map((level) => (
+          <div key={level.id} style={{ marginBottom: 32 }}>
+            <h2 style={{ color: 'var(--color-blue)', marginBottom: 4 }}>{level.name}</h2>
+            <p style={{ color: '#8ea0b6', marginTop: 0 }}>{level.description}</p>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: 16 }}>
+              {level.stages.map((stage) => (
+                <Link key={stage.id} to="/login" className="card" style={{ display: 'block', opacity: 0.75 }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                    <span style={{ fontWeight: 800, color: 'var(--color-blue)' }}>Stage {stage.orderIndex}</span>
+                    <span className="badge badge-locked">🔒 Sign in</span>
+                  </div>
+                  <p style={{ margin: 0, fontWeight: 700 }}>{stage.name}</p>
+                </Link>
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+    );
+  }
 
   if (childrenLoading) return <div className="container" style={{ padding: 60 }}>Loading...</div>;
 
@@ -44,18 +92,13 @@ export default function ArabicCurriculumHub() {
     );
   }
 
-  if (loading) return <div className="container" style={{ padding: 60 }}>Loading...</div>;
-
   const currentStageOrder = levels
     .flatMap((l) => l.stages)
     .find((s) => s.id === activeChild?.currentStageId)?.orderIndex ?? 1;
 
   return (
     <div className="container" style={{ padding: '48px 0' }}>
-      <Link to="/lessons" style={{ color: 'var(--color-blue)', fontWeight: 700 }}>
-        ← Back to Lessons Hub
-      </Link>
-      <h1 className="page-title" style={{ marginTop: 12 }}>Arabic & Qur'an Curriculum</h1>
+      {header}
       <p className="page-subtitle">
         {activeChild?.name}'s journey — {isPaid() ? 'full access to all 16 stages.' : 'Stage 1 is free. Subscribe to unlock the rest.'}
       </p>

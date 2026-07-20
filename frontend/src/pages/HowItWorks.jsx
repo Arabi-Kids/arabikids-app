@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import HudMascot from '../components/HudMascot.jsx';
+import LessonWalkthroughAnimation from '../components/LessonWalkthroughAnimation.jsx';
 
 const STEPS = [
   { num: 1, title: 'Sign Up', text: 'Create a free parent account, then add a profile for each child — every child gets their own starting stage.' },
@@ -91,31 +92,10 @@ export default function HowItWorks() {
           <h2 className="page-title" style={{ textAlign: 'center' }}>
             Sample Lesson Walkthrough
           </h2>
-          <div className="card" style={{ maxWidth: 640, margin: '0 auto' }}>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
-              <div>
-                <span className="badge badge-free">Step 1</span>
-                <p style={{ margin: '8px 0 0', fontWeight: 700 }}>Concept: Learn the letter ب (baa)</p>
-              </div>
-              <div>
-                <span className="badge badge-free">Step 2</span>
-                <p className="arabic-text" dir="rtl" style={{ margin: '8px 0 0', fontSize: '1.8rem' }}>بِسْمِ</p>
-                <p style={{ margin: 0, color: '#6b7a8a' }}>"in the name of"</p>
-              </div>
-              <div>
-                <span className="badge badge-locked">Step 3</span>
-                <p style={{ margin: '8px 0 0', color: '#4b5a6a' }}>
-                  Quranic Connection: this is the opening word of Surah Al-Fatihah, 1:1.
-                </p>
-              </div>
-              <div>
-                <span className="badge badge-free">Step 4</span>
-                <p style={{ margin: '8px 0 0', color: '#4b5a6a' }}>
-                  Mark the lesson complete and move on — every few lessons, a checkpoint reviews everything so far.
-                </p>
-              </div>
-            </div>
-          </div>
+          <p className="page-subtitle" style={{ textAlign: 'center' }}>
+            Watch how a single lesson goes from letter to word to real practice.
+          </p>
+          <LessonWalkthroughAnimation />
         </div>
       </section>
 
