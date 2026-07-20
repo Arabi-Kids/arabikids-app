@@ -1,4 +1,4 @@
-// Two-tier Arabic audio: a pre-generated real recording (Google Cloud TTS,
+// Two-tier Arabic audio: a pre-generated real recording (ElevenLabs TTS,
 // see scripts/generate-audio.mjs) if one exists for this exact text, falling
 // back to the browser's built-in Web Speech API if not - so lessons whose
 // audio hasn't been generated yet (or a device/browser that can't load the
