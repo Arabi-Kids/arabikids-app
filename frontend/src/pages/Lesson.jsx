@@ -6,6 +6,7 @@ import { badgeInfo } from '../lib/badges.js';
 import HudMascot from '../components/HudMascot.jsx';
 import SpeakButton from '../components/SpeakButton.jsx';
 import LetterTraceCanvas from '../components/LetterTraceCanvas.jsx';
+import PronunciationCheck from '../components/PronunciationCheck.jsx';
 import { speakSmart } from '../lib/speech.js';
 
 export default function Lesson() {
@@ -215,6 +216,8 @@ export default function Lesson() {
           </>
         )}
       </div>
+
+      <PronunciationCheck text={lesson.arabicWord} />
 
       <div className="card" style={{ marginBottom: 28, background: 'rgba(200,150,12,0.06)', border: '1px solid rgba(200,150,12,0.25)' }}>
         <span className="badge badge-locked">Quranic Connection</span>
