@@ -34,27 +34,29 @@ function Face({ pose }) {
 }
 
 function Hijab() {
-  // Base drape: one solid shape wide/tall enough to peek out around the face
-  // circle drawn on top of it (Body() draws this BEFORE Face) - much more
-  // reliable than cutting a face-shaped hole out of a compound path.
+  // Two-part shape instead of one big ellipse: a TIGHT cap that hugs close
+  // around the face (face circle is r=26 at cy=84; this ellipse leaves only
+  // ~7px margin at cheek height) plus a WIDER lower drape that flares out
+  // toward the shoulders. A single large ellipse the same size everywhere
+  // reads as a halo sitting behind the head (hair), not fabric wrapping the
+  // face - real hijabs hug the temples/cheeks and only flare out lower down.
   //
-  // A plain smooth ellipse alone reads as a hairstyle, not fabric - what
-  // actually signals "cloth" here: a straight-ish edge across the forehead
-  // (hair grows in wisps, fabric has a clean fold line), visible drape
-  // folds, and an asymmetric flap hanging past one shoulder (hair falls
-  // symmetrically; a wrapped hijab usually doesn't).
+  // On top of the shape itself: a clean forehead edge (hair grows in wisps,
+  // fabric has a crisp fold line), visible drape folds down each side, and
+  // an asymmetric flap hanging past one shoulder (hair falls symmetrically;
+  // a wrapped hijab usually doesn't) - these are what read as "cloth".
   return (
     <>
-      <ellipse cx="80" cy="95" rx="46" ry="62" fill={HIJAB} />
-      {/* extra flap draping past the left shoulder, wrapped and pinned - the
-          asymmetry is the main "this is cloth" signal */}
-      <path d="M40 118 Q30 138 40 156 Q54 150 52 128 Z" fill={HIJAB} />
-      <circle cx="46" cy="130" r="3.2" fill={HIJAB_DARK} />
+      <ellipse cx="80" cy="128" rx="44" ry="38" fill={HIJAB} />
+      <ellipse cx="80" cy="80" rx="33" ry="42" fill={HIJAB} />
+      {/* extra flap draping past the left shoulder, wrapped and pinned */}
+      <path d="M38 120 Q28 140 38 158 Q52 152 50 130 Z" fill={HIJAB} />
+      <circle cx="44" cy="132" r="3.2" fill={HIJAB_DARK} />
       {/* clean forehead edge where the fabric meets the face */}
-      <path d="M55 76 Q80 62 105 76" stroke={HIJAB_DARK} strokeWidth="2.2" fill="none" strokeLinecap="round" />
-      {/* drape folds */}
-      <path d="M44 72 Q39 104 48 134" stroke={HIJAB_DARK} strokeWidth="1.6" fill="none" strokeLinecap="round" opacity="0.55" />
-      <path d="M116 72 Q121 104 110 132" stroke={HIJAB_DARK} strokeWidth="1.6" fill="none" strokeLinecap="round" opacity="0.55" />
+      <path d="M52 74 Q80 58 108 74" stroke={HIJAB_DARK} strokeWidth="2.2" fill="none" strokeLinecap="round" />
+      {/* drape folds, hugging the tight upper cap then following the flare */}
+      <path d="M48 68 Q42 100 44 132" stroke={HIJAB_DARK} strokeWidth="1.6" fill="none" strokeLinecap="round" opacity="0.55" />
+      <path d="M112 68 Q118 100 116 130" stroke={HIJAB_DARK} strokeWidth="1.6" fill="none" strokeLinecap="round" opacity="0.55" />
     </>
   );
 }
