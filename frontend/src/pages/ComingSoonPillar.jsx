@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { getPillar } from '../lib/pillars.js';
 import { submitContactMessage } from '../lib/db.js';
+import { functionsApi } from '../lib/functions.js';
 import HudMascot from '../components/HudMascot.jsx';
 import ZaydMascot from '../components/ZaydMascot.jsx';
 import AmalMascot from '../components/AmalMascot.jsx';
@@ -31,6 +32,9 @@ export default function ComingSoonPillar() {
         message: `Please notify me when the "${pillar.name}" track launches.`,
       });
       setNotifySubmitted(true);
+      // Confirmation email only - non-fatal if it fails, the signup itself is
+      // already recorded above.
+      functionsApi.notifyPillarInterest(email, pillar.name).catch(() => {});
     } catch (err) {
       setNotifyError(err.message);
     } finally {

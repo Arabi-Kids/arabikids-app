@@ -1,18 +1,34 @@
 import { cloneElement } from 'react';
 
-// Amal — girl character in a hijab + modest dress, for Pillar 2/3
-// illustrations (wudu/salah steps, Seerah scenes). Same viewBox/pose API as
-// HudMascot.jsx / ZaydMascot.jsx so all three drop in interchangeably.
+// Amal — girl character in a full draping hijab + modest dress, for
+// Pillar 2/3 illustrations (wudu/salah steps, Seerah scenes). Same
+// viewBox/pose API as HudMascot.jsx / ZaydMascot.jsx so all three drop in
+// interchangeably. Styled after a soft "plush toy" reference: a cloak-style
+// hijab that drapes over the shoulders (not just a headscarf), simple dot
+// eyes, small nose, rosy cheeks.
 const SKIN = '#f2c299';
-const DRESS = '#fdfdfd';
-const DRESS_DARK = '#d8d4c8';
-const HIJAB = '#6ec6c1';
-const HIJAB_DARK = '#4a9d97';
+const DRESS = '#f3b8c4';
+const DRESS_DARK = '#e08fa0';
+const HIJAB = '#cda67d';
+const HIJAB_DARK = '#a67c52';
+const UNDERSCARF = '#f7f1e4';
 const DARK = '#1c1a17';
 const CHEEK = '#f5a3a3';
-const SHOE = '#e05a5a';
-const FLOWER_PINK = '#ef8bc4';
-const FLOWER_CENTER = '#ffd35a';
+const SHOE = '#f0dcc8';
+
+function Eye({ cx, cy }) {
+  // Simple solid dot + highlight - bold and legible at the small sizes these
+  // render at sitewide, and reads as soft/friendly rather than a multi-ring
+  // "doll eye".
+  const x = Number(cx);
+  const y = Number(cy);
+  return (
+    <>
+      <circle cx={x} cy={y} r="5.6" fill={DARK} />
+      <circle cx={x - 1.7} cy={y - 1.8} r="1.7" fill="#fff" />
+    </>
+  );
+}
 
 function Face({ pose }) {
   return (
@@ -25,12 +41,12 @@ function Face({ pose }) {
         <path d="M68 88 Q74 83 80 88" stroke={DARK} strokeWidth="2.4" fill="none" strokeLinecap="round" />
       ) : (
         <>
-          <circle cx="71" cy="89" r="6.4" fill={DARK} />
-          <circle cx="89" cy="89" r="6.4" fill={DARK} />
-          <circle cx="73.2" cy="86.6" r="2" fill="#fff" />
-          <circle cx="91.2" cy="86.6" r="2" fill="#fff" />
+          <Eye cx={71} cy={89} />
+          <Eye cx={89} cy={89} />
         </>
       )}
+      {/* small nose */}
+      <path d="M78.5 93 Q80 96.5 81.5 93" stroke={DARK} strokeWidth="1.6" fill="none" strokeLinecap="round" opacity="0.55" />
       <path d="M70 99 Q80 105 90 99" stroke={DARK} strokeWidth="2.2" fill="none" strokeLinecap="round" />
       <circle cx="60" cy="98" r="5.2" fill={CHEEK} opacity="0.55" />
       <circle cx="100" cy="98" r="5.2" fill={CHEEK} opacity="0.55" />
@@ -38,52 +54,16 @@ function Face({ pose }) {
   );
 }
 
-function Flower() {
-  // Small decorative flower pinned at the temple, matching the reference.
-  const petals = [0, 72, 144, 216, 288].map((deg) => (
-    <ellipse
-      key={deg}
-      cx="0"
-      cy="-5.5"
-      rx="4"
-      ry="5.5"
-      fill={FLOWER_PINK}
-      transform={`rotate(${deg})`}
-    />
-  ));
-  return (
-    <g transform="translate(50, 62)">
-      {petals}
-      <circle cx="0" cy="0" r="3.4" fill={FLOWER_CENTER} />
-    </g>
-  );
-}
-
 function Hijab() {
-  // Two-part shape: a tight cap that hugs the face (only a small margin over
-  // the face circle at cheek height) plus a wider lower ellipse that flares
-  // naturally down toward the shoulders - a plain single big ellipse reads
-  // as a hood/hair sitting behind the head rather than fabric wrapping it.
+  // A thin pale underscarf ring peeking out from behind the main hijab
+  // shape, matching the reference's "underscarf visible at the hairline"
+  // detail, plus short fold creases kept inside the hijab's own boundary.
   return (
     <>
-      <ellipse cx="80" cy="132" rx="45" ry="38" fill={HIJAB} />
-      <ellipse cx="80" cy="83" rx="34" ry="43" fill={HIJAB} />
-      {/* clean forehead edge where the fabric meets the face */}
-      <path d="M51 76 Q80 60 109 76" stroke={HIJAB_DARK} strokeWidth="2.2" fill="none" strokeLinecap="round" />
-      {/* drape folds down each side - kept short, well inside the hijab's own
-          boundary, so they read as fabric creases rather than loose cords */}
-      <path d="M49 74 Q45 92 47 108" stroke={HIJAB_DARK} strokeWidth="1.6" fill="none" strokeLinecap="round" opacity="0.5" />
-      <path d="M111 74 Q115 92 113 108" stroke={HIJAB_DARK} strokeWidth="1.6" fill="none" strokeLinecap="round" opacity="0.5" />
-      <Flower />
-    </>
-  );
-}
-
-function ClaspedHands() {
-  return (
-    <>
-      <ellipse cx="80" cy="141" rx="10" ry="7.5" fill={SKIN} />
-      <path d="M70 141 Q80 146 90 141" stroke={DRESS_DARK} strokeWidth="1.4" fill="none" opacity="0.6" />
+      <ellipse cx="80" cy="91" rx="39" ry="49" fill={UNDERSCARF} />
+      <ellipse cx="80" cy="91" rx="36" ry="46" fill={HIJAB} />
+      <path d="M52 84 Q49 96 51 106" stroke={HIJAB_DARK} strokeWidth="1.6" fill="none" strokeLinecap="round" opacity="0.5" />
+      <path d="M108 84 Q111 96 109 106" stroke={HIJAB_DARK} strokeWidth="1.6" fill="none" strokeLinecap="round" opacity="0.5" />
     </>
   );
 }
@@ -93,35 +73,30 @@ function Body({ pose }) {
   return (
     <g transform={tilt}>
       <Hijab />
-      <path d="M50 156 Q50 110 80 108 Q110 110 110 156 Z" fill={DRESS} />
-      <path d="M50 156 Q50 110 80 108 Q110 110 110 156" stroke={DRESS_DARK} strokeWidth="2" fill="none" />
-      {/* red shoes peeking out beneath the hem */}
-      <ellipse cx="68" cy="156" rx="8" ry="4.5" fill={SHOE} />
-      <ellipse cx="92" cy="156" rx="8" ry="4.5" fill={SHOE} />
-      {/* Arms are outlined (a slightly wider DRESS_DARK stroke underneath a
-          narrower DRESS one) so the white sleeves stay visible against the
-          white dress instead of blending into it invisibly. */}
+      {/* outer cloak - drapes over the shoulders like a robe rather than
+          stopping at the collar, matching the reference silhouette */}
+      <path d="M44 158 Q38 120 50 100 Q64 92 80 92 Q96 92 110 100 Q122 120 116 158 Z" fill={HIJAB} />
+      <path d="M50 100 Q64 92 80 92 Q96 92 110 100" stroke={HIJAB_DARK} strokeWidth="2" fill="none" strokeLinecap="round" opacity="0.6" />
+      {/* pink under-dress peeking through the front */}
+      <path d="M66 158 Q62 128 68 106 Q80 101 92 106 Q98 128 94 158 Z" fill={DRESS} stroke={DRESS_DARK} strokeWidth="1.5" />
+      {/* shoes peeking out beneath the hem */}
+      <ellipse cx="70" cy="157" rx="7" ry="4" fill={SHOE} />
+      <ellipse cx="90" cy="157" rx="7" ry="4" fill={SHOE} />
       {pose === 'celebrate' ? (
         <>
-          <path d="M64 114 Q42 98 38 72" stroke={DRESS_DARK} strokeWidth="13" fill="none" strokeLinecap="round" />
-          <path d="M96 114 Q118 98 122 72" stroke={DRESS_DARK} strokeWidth="13" fill="none" strokeLinecap="round" />
-          <path d="M64 114 Q42 98 38 72" stroke={DRESS} strokeWidth="10" fill="none" strokeLinecap="round" />
-          <path d="M96 114 Q118 98 122 72" stroke={DRESS} strokeWidth="10" fill="none" strokeLinecap="round" />
+          <path d="M58 112 Q38 98 34 74" stroke={HIJAB} strokeWidth="14" fill="none" strokeLinecap="round" />
+          <path d="M102 112 Q122 98 126 74" stroke={HIJAB} strokeWidth="14" fill="none" strokeLinecap="round" />
         </>
       ) : pose === 'lost' ? (
         <>
-          <path d="M62 118 Q48 128 52 140" stroke={DRESS_DARK} strokeWidth="13" fill="none" strokeLinecap="round" />
-          <path d="M98 116 Q114 110 116 94" stroke={DRESS_DARK} strokeWidth="13" fill="none" strokeLinecap="round" />
-          <path d="M62 118 Q48 128 52 140" stroke={DRESS} strokeWidth="10" fill="none" strokeLinecap="round" />
-          <path d="M98 116 Q114 110 116 94" stroke={DRESS} strokeWidth="10" fill="none" strokeLinecap="round" />
+          <path d="M56 118 Q44 128 48 140" stroke={HIJAB} strokeWidth="14" fill="none" strokeLinecap="round" />
+          <path d="M104 116 Q118 110 120 96" stroke={HIJAB} strokeWidth="14" fill="none" strokeLinecap="round" />
         </>
       ) : (
         <>
-          <path d="M62 116 Q56 130 68 142" stroke={DRESS_DARK} strokeWidth="13" fill="none" strokeLinecap="round" />
-          <path d="M98 116 Q104 130 92 142" stroke={DRESS_DARK} strokeWidth="13" fill="none" strokeLinecap="round" />
-          <path d="M62 116 Q56 130 68 142" stroke={DRESS} strokeWidth="10" fill="none" strokeLinecap="round" />
-          <path d="M98 116 Q104 130 92 142" stroke={DRESS} strokeWidth="10" fill="none" strokeLinecap="round" />
-          <ClaspedHands />
+          {/* hands tucked into the cloak's sleeves, just peeking out */}
+          <ellipse cx="46" cy="128" rx="7" ry="6" fill={SKIN} />
+          <ellipse cx="114" cy="128" rx="7" ry="6" fill={SKIN} />
         </>
       )}
       <Face pose={pose} />

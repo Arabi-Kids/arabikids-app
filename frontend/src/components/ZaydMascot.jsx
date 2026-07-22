@@ -5,10 +5,11 @@ import { cloneElement } from 'react';
 // so the two drop in interchangeably wherever a mascot is used.
 const SKIN = '#f2c299';
 const HAIR = '#3a2a1e';
-const SHIRT = '#8fcfea';
-const SHIRT_DARK = '#5fa9cc';
-const KUFI = '#faf3e3';
-const TRIM = '#5fa9cc';
+const SHIRT = '#2f6bb0';
+const SHIRT_DARK = '#1b4f8a';
+const KUFI = '#fdfbf6';
+const KUFI_OUTLINE = '#c8960c';
+const TRIM = '#c8960c';
 const DARK = '#1c1a17';
 const CHEEK = '#f5a3a3';
 
@@ -20,6 +21,19 @@ function KufiTrim() {
   return <polyline points={points.join(' ')} stroke={TRIM} strokeWidth="2" fill="none" strokeLinejoin="round" strokeLinecap="round" />;
 }
 
+function Eye({ cx, cy }) {
+  // Simple solid dot + highlight - bold and legible at the small sizes these
+  // render at sitewide, matching Amal's eyes for a consistent pair.
+  const x = Number(cx);
+  const y = Number(cy);
+  return (
+    <>
+      <circle cx={x} cy={y} r="5.4" fill={DARK} />
+      <circle cx={x - 1.6} cy={y - 1.7} r="1.6" fill="#fff" />
+    </>
+  );
+}
+
 function Face({ pose }) {
   return (
     <>
@@ -27,8 +41,9 @@ function Face({ pose }) {
       {/* short hair peeking out at the temples, below the cap */}
       <path d="M50 82 Q48 72 54 66 Q52 78 56 86 Z" fill={HAIR} />
       <path d="M110 82 Q112 72 106 66 Q108 78 104 86 Z" fill={HAIR} />
-      {/* kufi cap */}
-      <path d="M52 70 Q80 36 108 70 Q80 58 52 70 Z" fill={KUFI} />
+      {/* kufi cap - stroked outline so the pale fill still reads clearly
+          against light backgrounds instead of blending into them */}
+      <path d="M52 70 Q80 36 108 70 Q80 58 52 70 Z" fill={KUFI} stroke={KUFI_OUTLINE} strokeWidth="2" strokeLinejoin="round" />
       <KufiTrim />
       {/* eyebrows */}
       <path d="M64 76 Q69 73 74 76" stroke={DARK} strokeWidth="2" fill="none" strokeLinecap="round" />
@@ -38,12 +53,12 @@ function Face({ pose }) {
         <path d="M67 86 Q74 81 81 86" stroke={DARK} strokeWidth="2.4" fill="none" strokeLinecap="round" />
       ) : (
         <>
-          <circle cx="70" cy="87" r="6.2" fill={DARK} />
-          <circle cx="90" cy="87" r="6.2" fill={DARK} />
-          <circle cx="72.2" cy="84.8" r="1.9" fill="#fff" />
-          <circle cx="92.2" cy="84.8" r="1.9" fill="#fff" />
+          <Eye cx={70} cy={87} />
+          <Eye cx={90} cy={87} />
         </>
       )}
+      {/* small nose */}
+      <path d="M78.5 92 Q80 95.5 81.5 92" stroke={DARK} strokeWidth="1.6" fill="none" strokeLinecap="round" opacity="0.55" />
       <path d="M68 98 Q80 110 92 98 Q80 106 68 98 Z" fill={DARK} />
       <circle cx="60" cy="96" r="5" fill={CHEEK} opacity="0.55" />
       <circle cx="100" cy="96" r="5" fill={CHEEK} opacity="0.55" />

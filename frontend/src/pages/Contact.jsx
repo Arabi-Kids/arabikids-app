@@ -73,8 +73,8 @@ export default function Contact() {
 
       <p style={{ textAlign: 'center', marginTop: 32, color: '#6b7a8a' }}>
         Or email us directly at{' '}
-        <a href="mailto:ArabiKidsApp@gmail.com" style={{ color: 'var(--color-blue)', fontWeight: 700 }}>
-          ArabiKidsApp@gmail.com
+        <a href="mailto:hello@arabikids.online" style={{ color: 'var(--color-blue)', fontWeight: 700 }}>
+          hello@arabikids.online
         </a>
       </p>
     </div>

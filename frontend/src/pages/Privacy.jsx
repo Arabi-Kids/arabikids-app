@@ -101,7 +101,7 @@ export default function Privacy() {
       <section style={SECTION_STYLE}>
         <h3 style={HEADING_STYLE}>9. Contact Us</h3>
         <p style={BODY_STYLE}>
-          Questions about this Privacy Policy or your data: <strong>ArabiKidsApp@gmail.com</strong>
+          Questions about this Privacy Policy or your data: <strong>hello@arabikids.online</strong>
         </p>
       </section>
 

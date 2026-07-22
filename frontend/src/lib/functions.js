@@ -29,4 +29,5 @@ export const functionsApi = {
   cancelSubscription: () => callFunction('/cancel-subscription'),
   subscribeEnginemailer: (payload) => callFunction('/subscribe-enginemailer', payload),
   requestPasswordReset: (email) => callFunction('/request-password-reset', { email }),
+  notifyPillarInterest: (email, pillarName) => callFunction('/notify-pillar-interest', { email, pillarName }),
 };
