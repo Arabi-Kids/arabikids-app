@@ -19,6 +19,7 @@ export default function ArabicCurriculumHub() {
   const [masteredStageIds, setMasteredStageIds] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [search, setSearch] = useState('');
 
   // Levels/stages (names + structure, not lesson content) are public data -
   // fetch them regardless of auth so a signed-out visitor can see the shape
@@ -49,6 +50,27 @@ export default function ArabicCurriculumHub() {
     </>
   );
 
+  const query = search.trim().toLowerCase();
+  const matchesSearch = (stage) => !query || stage.name.toLowerCase().includes(query) || `stage ${stage.orderIndex}`.includes(query);
+  const searchBox = (
+    <input
+      type="search"
+      placeholder="Search stages..."
+      value={search}
+      onChange={(e) => setSearch(e.target.value)}
+      style={{
+        display: 'block',
+        width: '100%',
+        maxWidth: 320,
+        margin: '16px 0 24px',
+        padding: '10px 14px',
+        borderRadius: 'var(--radius-md)',
+        border: '2px solid #e0dccd',
+        fontSize: '1rem',
+      }}
+    />
+  );
+
   // Guest preview: show the full stage grid so a visitor can see exactly
   // what they'd be signing up for, but every stage is locked and leads to
   // login instead of real content.
@@ -57,24 +79,29 @@ export default function ArabicCurriculumHub() {
       <div className="container" style={{ padding: '48px 0' }}>
         {header}
         <p className="page-subtitle">16 stages, one continuous journey — sign in or create a free account to start.</p>
+        {searchBox}
         {error && <p className="error-text">{error}</p>}
-        {levels.map((level) => (
-          <div key={level.id} style={{ marginBottom: 32 }}>
-            <h2 style={{ color: 'var(--color-blue)', marginBottom: 4 }}>{level.name}</h2>
-            <p style={{ color: '#8ea0b6', marginTop: 0 }}>{level.description}</p>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: 16 }}>
-              {level.stages.map((stage) => (
-                <Link key={stage.id} to="/login" className="card" style={{ display: 'block', opacity: 0.75 }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-                    <span style={{ fontWeight: 800, color: 'var(--color-blue)' }}>Stage {stage.orderIndex}</span>
-                    <span className="badge badge-locked">🔒 Sign in</span>
-                  </div>
-                  <p style={{ margin: 0, fontWeight: 700 }}>{stage.name}</p>
-                </Link>
-              ))}
+        {levels.map((level) => {
+          const stages = level.stages.filter(matchesSearch);
+          if (stages.length === 0) return null;
+          return (
+            <div key={level.id} style={{ marginBottom: 32 }}>
+              <h2 style={{ color: 'var(--color-blue)', marginBottom: 4 }}>{level.name}</h2>
+              <p style={{ color: '#8ea0b6', marginTop: 0 }}>{level.description}</p>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: 16 }}>
+                {stages.map((stage) => (
+                  <Link key={stage.id} to="/login" className="card" style={{ display: 'block', opacity: 0.75 }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                      <span style={{ fontWeight: 800, color: 'var(--color-blue)' }}>Stage {stage.orderIndex}</span>
+                      <span className="badge badge-locked">🔒 Sign in</span>
+                    </div>
+                    <p style={{ margin: 0, fontWeight: 700 }}>{stage.name}</p>
+                  </Link>
+                ))}
+              </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     );
   }
@@ -102,15 +129,19 @@ export default function ArabicCurriculumHub() {
       <p className="page-subtitle">
         {activeChild?.name}'s journey — {isPaid() ? 'full access to all 16 stages.' : 'Stage 1 is free. Subscribe to unlock the rest.'}
       </p>
+      {searchBox}
 
       {error && <p className="error-text">{error}</p>}
 
-      {levels.map((level) => (
+      {levels.map((level) => {
+        const stages = level.stages.filter(matchesSearch);
+        if (stages.length === 0) return null;
+        return (
         <div key={level.id} style={{ marginBottom: 32 }}>
           <h2 style={{ color: 'var(--color-blue)', marginBottom: 4 }}>{level.name}</h2>
           <p style={{ color: '#8ea0b6', marginTop: 0 }}>{level.description}</p>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: 16 }}>
-            {level.stages.map((stage) => {
+            {stages.map((stage) => {
               const state = stageState(stage, currentStageOrder, isPaid());
               const isCurrent = stage.orderIndex === currentStageOrder;
               const isMastered = masteredStageIds.includes(stage.id);
@@ -144,7 +175,8 @@ export default function ArabicCurriculumHub() {
             })}
           </div>
         </div>
-      ))}
+        );
+      })}
     </div>
   );
 }
