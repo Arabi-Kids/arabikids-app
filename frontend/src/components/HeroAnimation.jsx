@@ -21,7 +21,7 @@ export default function HeroAnimation({ videoUrl = null }) {
   return (
     <div className="hero-animation" aria-hidden="true">
       {STEPS.map((step, i) => (
-        <div key={i} className="hero-animation-step" style={{ animationDelay: `${i * -3}s` }}>
+        <div key={i} className="hero-animation-step" style={{ animationDelay: `${i * 3}s` }}>
           <span className="hero-animation-badge">{step.badge}</span>
           <p className="arabic-text hero-animation-arabic">{step.arabic}</p>
           <p className="hero-animation-sub">{step.sub}</p>
