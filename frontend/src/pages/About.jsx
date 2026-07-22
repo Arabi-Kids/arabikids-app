@@ -14,9 +14,9 @@ export default function About() {
       <h1 className="page-title" style={{ textAlign: 'center' }}>About ArabiKids</h1>
 
       <div style={{ display: 'flex', justifyContent: 'center', gap: 8, margin: '0 0 32px' }}>
-        <HudMascot pose="hero" size={90} />
-        <ZaydMascot pose="hero" size={90} />
-        <AmalMascot pose="hero" size={90} />
+        <HudMascot pose="hero" size={90} className="mascot-bounce" style={{ animationDelay: '0s' }} />
+        <ZaydMascot pose="hero" size={90} className="mascot-bounce" style={{ animationDelay: '0.2s' }} />
+        <AmalMascot pose="hero" size={90} className="mascot-bounce" style={{ animationDelay: '0.4s' }} />
       </div>
 
       <div className="card" style={{ maxWidth: 720, margin: '0 auto 24px' }}>

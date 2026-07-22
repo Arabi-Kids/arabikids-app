@@ -54,11 +54,11 @@ export default function ComingSoonPillar() {
       </Link>
       {PILLAR_MASCOTS.has(pillar.key) ? (
         <div style={{ display: 'flex', justifyContent: 'center', gap: 4, margin: '24px auto 12px' }}>
-          <ZaydMascot pose="hero" size={76} />
-          <AmalMascot pose="hero" size={76} />
+          <ZaydMascot pose="hero" size={76} className="mascot-bounce" style={{ animationDelay: '0s' }} />
+          <AmalMascot pose="hero" size={76} className="mascot-bounce" style={{ animationDelay: '0.3s' }} />
         </div>
       ) : (
-        <HudMascot pose="mark" size={80} style={{ margin: '24px auto 12px' }} />
+        <HudMascot pose="mark" size={80} className="mascot-bounce" style={{ margin: '24px auto 12px' }} />
       )}
       <span className="badge badge-locked">Coming Soon</span>
       <h1 className="page-title" style={{ marginTop: 12 }}>

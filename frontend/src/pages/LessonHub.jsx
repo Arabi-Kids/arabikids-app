@@ -6,6 +6,8 @@ import { getCurriculum, getChildProgressSummary } from '../lib/db.js';
 import { badgeInfo } from '../lib/badges.js';
 import { PILLARS } from '../lib/pillars.js';
 import HudMascot from '../components/HudMascot.jsx';
+import ZaydMascot from '../components/ZaydMascot.jsx';
+import AmalMascot from '../components/AmalMascot.jsx';
 
 export default function LessonHub() {
   const { user } = useAuth();
@@ -30,12 +32,17 @@ export default function LessonHub() {
 
   return (
     <div className="container" style={{ padding: '48px 0' }}>
-      <h1 className="page-title">Lessons Hub</h1>
-      <p className="page-subtitle">Everything ArabiKids teaches, organised into tracks.</p>
+      <div style={{ display: 'flex', justifyContent: 'center', gap: 4, marginBottom: 8 }}>
+        <HudMascot pose="mark" size={56} className="mascot-bounce" style={{ animationDelay: '0s' }} />
+        <ZaydMascot pose="hero" size={56} className="mascot-bounce" style={{ animationDelay: '0.2s' }} />
+        <AmalMascot pose="hero" size={56} className="mascot-bounce" style={{ animationDelay: '0.4s' }} />
+      </div>
+      <h1 className="page-title" style={{ textAlign: 'center' }}>Lessons Hub</h1>
+      <p className="page-subtitle" style={{ textAlign: 'center' }}>Everything ArabiKids teaches, organised into tracks.</p>
 
       {user && activeChild && currentStage && (
         <div className="card" style={{ marginBottom: 24, display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'wrap' }}>
-          <HudMascot pose="mark" size={56} />
+          <HudMascot pose="mark" size={56} className="mascot-bounce" />
           <div style={{ flex: 1, minWidth: 200 }}>
             <p style={{ margin: '0 0 4px', fontWeight: 800, color: 'var(--color-blue)' }}>
               {activeChild.name} is on Stage {currentStage.orderIndex}: {currentStage.name}
