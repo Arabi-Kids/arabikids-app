@@ -3,58 +3,79 @@ import { cloneElement } from 'react';
 // Zayd — boy character in a thobe + kufi, for Pillar 2/3 illustrations
 // (wudu/salah steps, Seerah scenes). Same viewBox/pose API as HudMascot.jsx
 // so the two drop in interchangeably wherever a mascot is used.
-const SKIN = '#d9a066';
-const THOBE = '#3f8f6f';
-const THOBE_DARK = '#357a5f';
-const KUFI = '#f4ede0';
-const TRIM = '#c8960c';
+const SKIN = '#f2c299';
+const HAIR = '#3a2a1e';
+const SHIRT = '#8fcfea';
+const SHIRT_DARK = '#5fa9cc';
+const KUFI = '#faf3e3';
+const TRIM = '#5fa9cc';
 const DARK = '#1c1a17';
+const CHEEK = '#f5a3a3';
+
+function KufiTrim() {
+  // Zigzag/diamond trim band, matching the reference cap's patterned edge
+  // instead of a single plain stroke.
+  const points = [];
+  for (let x = 57; x <= 103; x += 7.5) points.push(`${x},68 ${x + 3.75},74`);
+  return <polyline points={points.join(' ')} stroke={TRIM} strokeWidth="2" fill="none" strokeLinejoin="round" strokeLinecap="round" />;
+}
 
 function Face({ pose }) {
   return (
     <>
-      <circle cx="80" cy="82" r="27" fill={SKIN} />
+      <circle cx="80" cy="86" r="30" fill={SKIN} />
+      {/* short hair peeking out at the temples, below the cap */}
+      <path d="M50 82 Q48 72 54 66 Q52 78 56 86 Z" fill={HAIR} />
+      <path d="M110 82 Q112 72 106 66 Q108 78 104 86 Z" fill={HAIR} />
       {/* kufi cap */}
-      <path d="M55 72 Q80 40 105 72 Q80 62 55 72 Z" fill={KUFI} />
-      <path d="M57 70 Q80 62 103 70" stroke={TRIM} strokeWidth="2.5" fill="none" strokeLinecap="round" />
+      <path d="M52 70 Q80 36 108 70 Q80 58 52 70 Z" fill={KUFI} />
+      <KufiTrim />
+      {/* eyebrows */}
+      <path d="M64 76 Q69 73 74 76" stroke={DARK} strokeWidth="2" fill="none" strokeLinecap="round" />
+      <path d="M86 76 Q91 73 96 76" stroke={DARK} strokeWidth="2" fill="none" strokeLinecap="round" />
       {/* face */}
       {pose === 'lost' ? (
-        <path d="M68 82 Q74 78 80 82" stroke={DARK} strokeWidth="2.2" fill="none" strokeLinecap="round" />
+        <path d="M67 86 Q74 81 81 86" stroke={DARK} strokeWidth="2.4" fill="none" strokeLinecap="round" />
       ) : (
         <>
-          <circle cx="71" cy="82" r="3.2" fill={DARK} />
-          <circle cx="89" cy="82" r="3.2" fill={DARK} />
-          <circle cx="72.2" cy="80.8" r="0.9" fill="#fff" />
-          <circle cx="90.2" cy="80.8" r="0.9" fill="#fff" />
+          <circle cx="70" cy="87" r="6.2" fill={DARK} />
+          <circle cx="90" cy="87" r="6.2" fill={DARK} />
+          <circle cx="72.2" cy="84.8" r="1.9" fill="#fff" />
+          <circle cx="92.2" cy="84.8" r="1.9" fill="#fff" />
         </>
       )}
-      <path d="M70 92 Q80 99 90 92" stroke={DARK} strokeWidth="2.2" fill="none" strokeLinecap="round" />
-      <circle cx="62" cy="90" r="4" fill="#e8875f" opacity="0.35" />
-      <circle cx="98" cy="90" r="4" fill="#e8875f" opacity="0.35" />
+      <path d="M68 98 Q80 110 92 98 Q80 106 68 98 Z" fill={DARK} />
+      <circle cx="60" cy="96" r="5" fill={CHEEK} opacity="0.55" />
+      <circle cx="100" cy="96" r="5" fill={CHEEK} opacity="0.55" />
     </>
   );
 }
 
 function Body({ pose }) {
-  const tilt = pose === 'lost' ? 'rotate(-6 80 118)' : undefined;
+  const tilt = pose === 'lost' ? 'rotate(-6 80 122)' : undefined;
   return (
     <g transform={tilt}>
-      <path d="M50 150 Q50 100 80 98 Q110 100 110 150 Z" fill={THOBE} />
-      <path d="M50 150 Q50 100 80 98 Q110 100 110 150" stroke={THOBE_DARK} strokeWidth="2" fill="none" />
+      <path d="M48 152 Q48 104 80 102 Q112 104 112 152 Z" fill={SHIRT} />
+      <path d="M48 152 Q48 104 80 102 Q112 104 112 152" stroke={SHIRT_DARK} strokeWidth="2" fill="none" />
+      {/* embroidered placket down the front, matching the reference shirt */}
+      <path d="M80 106 L80 150" stroke="#fff" strokeWidth="2.5" fill="none" opacity="0.85" />
+      <circle cx="80" cy="116" r="2" fill="#fff" opacity="0.9" />
+      <circle cx="80" cy="128" r="2" fill="#fff" opacity="0.9" />
+      <circle cx="80" cy="140" r="2" fill="#fff" opacity="0.9" />
       {pose === 'celebrate' ? (
         <>
-          <path d="M62 104 Q38 88 34 62" stroke={THOBE} strokeWidth="12" fill="none" strokeLinecap="round" />
-          <path d="M98 104 Q122 88 126 62" stroke={THOBE} strokeWidth="12" fill="none" strokeLinecap="round" />
+          <path d="M60 108 Q36 92 32 66" stroke={SHIRT} strokeWidth="13" fill="none" strokeLinecap="round" />
+          <path d="M100 108 Q124 92 128 66" stroke={SHIRT} strokeWidth="13" fill="none" strokeLinecap="round" />
         </>
       ) : pose === 'lost' ? (
         <>
-          <path d="M60 108 Q46 118 50 132" stroke={THOBE} strokeWidth="12" fill="none" strokeLinecap="round" />
-          <path d="M100 106 Q116 100 118 84" stroke={THOBE} strokeWidth="12" fill="none" strokeLinecap="round" />
+          <path d="M58 112 Q44 122 48 136" stroke={SHIRT} strokeWidth="13" fill="none" strokeLinecap="round" />
+          <path d="M102 110 Q118 104 120 88" stroke={SHIRT} strokeWidth="13" fill="none" strokeLinecap="round" />
         </>
       ) : (
         <>
-          <path d="M58 108 Q48 128 56 148" stroke={THOBE} strokeWidth="12" fill="none" strokeLinecap="round" />
-          <path d="M102 108 Q112 128 104 148" stroke={THOBE} strokeWidth="12" fill="none" strokeLinecap="round" />
+          <path d="M56 112 Q46 132 54 152" stroke={SHIRT} strokeWidth="13" fill="none" strokeLinecap="round" />
+          <path d="M104 112 Q114 132 106 152" stroke={SHIRT} strokeWidth="13" fill="none" strokeLinecap="round" />
         </>
       )}
       <Face pose={pose} />
@@ -81,7 +102,7 @@ const POSES = {
     </svg>
   ),
   mark: (
-    <svg viewBox="30 28 100 90" role="img" aria-label="Zayd">
+    <svg viewBox="30 30 100 96" role="img" aria-label="Zayd">
       <Body pose="hero" />
     </svg>
   ),
