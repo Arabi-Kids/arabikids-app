@@ -362,6 +362,29 @@ function buildStageCheckpoints(items) {
 // STAGE CONTENT
 // ---------------------------------------------------------------------------
 
+// Bare consonant sound per letter, used to build a short-vs-long madd
+// comparison (letter+fatha vs letter+fatha+alif) for every letter-pair
+// lesson - so the short/long vowel-length distinction is introduced as
+// early as Stage 1, not only in Stage 5's dedicated madd lessons. Alif has
+// no consonant sound of its own, so it's excluded (no maddPair for it).
+const LETTER_ROMAN = {
+  'ب': 'B', 'ت': 'T', 'ث': 'Th', 'ج': 'J', 'ح': 'H', 'خ': 'Kh',
+  'د': 'D', 'ذ': 'Dh', 'ر': 'R', 'ز': 'Z', 'س': 'S', 'ش': 'Sh',
+  'ص': 'S', 'ض': 'D', 'ط': 'T', 'ظ': 'Z', 'ع': "'", 'غ': 'Gh',
+  'ف': 'F', 'ق': 'Q', 'ك': 'K', 'ل': 'L', 'م': 'M', 'ن': 'N',
+  'ه': 'H', 'و': 'W', 'ي': 'Y',
+};
+const FATHA = 'َ';
+const ALIF = 'ا';
+function maddPairFor(letter) {
+  const roman = LETTER_ROMAN[letter];
+  if (!roman) return null;
+  return {
+    short: { arabic: letter + FATHA, transliteration: `${roman}a`, label: 'Short (1 count)' },
+    long: { arabic: letter + FATHA + ALIF, transliteration: `${roman}aa`, label: 'Long (2 counts) - alif madd' },
+  };
+}
+
 function letterPairItem([l1, n1, w1, m1, r1, t1], [l2, n2, w2, m2, r2, t2]) {
   return {
     title: `Letters ${l1} & ${l2} (${n1}, ${n2})`,
@@ -374,8 +397,8 @@ function letterPairItem([l1, n1, w1, m1, r1, t1], [l2, n2, w2, m2, r2, t2]) {
     concept: `Learn to recognise, sound out and write the letters ${l1} (${n1}) and ${l2} (${n2}).`,
     extra: {
       letters: [
-        { letter: l1, name: n1, positions: LETTER_POSITIONS[l1] || null },
-        { letter: l2, name: n2, positions: LETTER_POSITIONS[l2] || null },
+        { letter: l1, name: n1, positions: LETTER_POSITIONS[l1] || null, maddPair: maddPairFor(l1) },
+        { letter: l2, name: n2, positions: LETTER_POSITIONS[l2] || null, maddPair: maddPairFor(l2) },
       ],
       secondWord: { arabic: w2, translation: m2, reference: r2, transliteration: t2 },
     },
