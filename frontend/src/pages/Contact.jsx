@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { submitContactMessage } from '../lib/db.js';
+import HudMascot from '../components/HudMascot.jsx';
 
 export default function Contact() {
   const [form, setForm] = useState({ name: '', email: '', message: '' });
@@ -23,6 +24,7 @@ export default function Contact() {
 
   return (
     <div className="container" style={{ padding: '60px 0' }}>
+      <HudMascot pose="mark" size={64} style={{ display: 'block', margin: '0 auto 12px' }} />
       <h1 className="page-title" style={{ textAlign: 'center' }}>Contact Us</h1>
       <p className="page-subtitle" style={{ textAlign: 'center' }}>
         Questions, feedback, or partnership ideas? We'd love to hear from you.

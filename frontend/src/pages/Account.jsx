@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext.jsx';
 import { useActiveChild } from '../context/ActiveChildContext.jsx';
 import { functionsApi } from '../lib/functions.js';
 import { getCurriculum, renameChildProfile } from '../lib/db.js';
+import HudMascot from '../components/HudMascot.jsx';
 
 export default function Account() {
   const { user, isPaid, changePassword } = useAuth();
@@ -100,7 +101,10 @@ export default function Account() {
 
   return (
     <div className="container" style={{ padding: '48px 0', maxWidth: 560 }}>
-      <h1 className="page-title">My Account</h1>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 4 }}>
+        <HudMascot pose="mark" size={44} />
+        <h1 className="page-title" style={{ margin: 0 }}>My Account</h1>
+      </div>
 
       <div className="card" style={{ marginBottom: 20 }}>
         <h3 style={{ color: 'var(--color-blue)', marginTop: 0 }}>Profile</h3>

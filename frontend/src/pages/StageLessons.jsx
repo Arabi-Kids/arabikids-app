@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext.jsx';
 import { useActiveChild } from '../context/ActiveChildContext.jsx';
 import { getCurriculum, listStageLessonsForChild } from '../lib/db.js';
 import { StarSparkleIcon } from '../components/Icons.jsx';
+import HudMascot from '../components/HudMascot.jsx';
 
 export default function StageLessons() {
   const { stageId } = useParams();
@@ -51,9 +52,12 @@ export default function StageLessons() {
       <Link to="/lessons/curriculum" style={{ color: 'var(--color-blue)', fontWeight: 700 }}>
         ← Back to Curriculum
       </Link>
-      <h1 className="page-title" style={{ marginTop: 12 }}>
-        Stage {stage.orderIndex}: {stage.name}
-      </h1>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 12 }}>
+        <HudMascot pose="mark" size={40} />
+        <h1 className="page-title" style={{ margin: 0 }}>
+          Stage {stage.orderIndex}: {stage.name}
+        </h1>
+      </div>
 
       {error && <p className="error-text">{error}</p>}
 

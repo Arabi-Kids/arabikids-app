@@ -1,3 +1,7 @@
+import HudMascot from '../components/HudMascot.jsx';
+import ZaydMascot from '../components/ZaydMascot.jsx';
+import AmalMascot from '../components/AmalMascot.jsx';
+
 const TEAM = [
   { name: 'Founder & Curriculum Lead', role: 'Arabic & Islamic Studies' },
   { name: 'Product & Engineering', role: 'Platform & App' },
@@ -8,6 +12,12 @@ export default function About() {
   return (
     <div className="container" style={{ padding: '60px 0' }}>
       <h1 className="page-title" style={{ textAlign: 'center' }}>About ArabiKids</h1>
+
+      <div style={{ display: 'flex', justifyContent: 'center', gap: 8, margin: '0 0 32px' }}>
+        <HudMascot pose="hero" size={90} />
+        <ZaydMascot pose="hero" size={90} />
+        <AmalMascot pose="hero" size={90} />
+      </div>
 
       <div className="card" style={{ maxWidth: 720, margin: '0 auto 24px' }}>
         <h3 style={{ color: 'var(--color-blue)', marginTop: 0 }}>Our Story</h3>
