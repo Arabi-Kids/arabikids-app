@@ -568,3 +568,25 @@ export async function submitContactMessage({ name, email, message }) {
   const { error } = await supabase.from('contact_messages').insert({ name, email, message });
   if (error) throw new Error(error.message);
 }
+
+// ---------------------------------------------------------------------------
+// Push notifications (streak reminders)
+// ---------------------------------------------------------------------------
+
+export async function savePushSubscription(childId, subscription) {
+  const { error } = await supabase.from('push_subscriptions').upsert(
+    {
+      child_id: childId,
+      endpoint: subscription.endpoint,
+      p256dh: subscription.keys.p256dh,
+      auth: subscription.keys.auth,
+    },
+    { onConflict: 'child_id,endpoint' }
+  );
+  if (error) throw new Error(error.message);
+}
+
+export async function deletePushSubscription(childId, endpoint) {
+  const { error } = await supabase.from('push_subscriptions').delete().eq('child_id', childId).eq('endpoint', endpoint);
+  if (error) throw new Error(error.message);
+}

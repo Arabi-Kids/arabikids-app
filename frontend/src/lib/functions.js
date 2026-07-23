@@ -30,4 +30,5 @@ export const functionsApi = {
   subscribeEnginemailer: (payload) => callFunction('/subscribe-enginemailer', payload),
   requestPasswordReset: (email) => callFunction('/request-password-reset', { email }),
   notifyPillarInterest: (email, pillarName) => callFunction('/notify-pillar-interest', { email, pillarName }),
+  sendWelcomeEmail: (name, email) => callFunction('/send-welcome-email', { name, email }),
 };

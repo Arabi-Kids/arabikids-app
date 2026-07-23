@@ -39,6 +39,7 @@ export default function Signup() {
     try {
       const { needsEmailConfirmation } = await register(form);
       functionsApi.subscribeEnginemailer({ name: form.name, email: form.email }).catch(() => {});
+      functionsApi.sendWelcomeEmail(form.name, form.email).catch(() => {});
       if (needsEmailConfirmation) {
         setConfirmEmailSent(true);
       } else {

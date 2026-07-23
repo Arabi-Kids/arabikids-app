@@ -8,6 +8,7 @@ import { PILLARS } from '../lib/pillars.js';
 import HudMascot from '../components/HudMascot.jsx';
 import ZaydMascot from '../components/ZaydMascot.jsx';
 import AmalMascot from '../components/AmalMascot.jsx';
+import PushNotificationPrompt from '../components/PushNotificationPrompt.jsx';
 
 export default function LessonHub() {
   const { user } = useAuth();
@@ -54,6 +55,7 @@ export default function LessonHub() {
                 {progress.badges.length > 0 && <> ({badgeInfo(progress.badges[0]).name}{progress.badges.length > 1 ? ' and more' : ''})</>}
               </p>
             )}
+            <PushNotificationPrompt childId={activeChild.id} />
           </div>
           <Link to={`/lessons/stage/${currentStage.id}`} className="btn btn-primary">
             Continue Learning →
