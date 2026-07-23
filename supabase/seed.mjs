@@ -375,6 +375,8 @@ const LETTER_ROMAN = {
   'ه': 'H', 'و': 'W', 'ي': 'Y',
 };
 const FATHA = 'َ';
+const KASRA = 'ِ';
+const DAMMA = 'ُ';
 const ALIF = 'ا';
 function maddPairFor(letter) {
   const roman = LETTER_ROMAN[letter];
@@ -382,6 +384,20 @@ function maddPairFor(letter) {
   return {
     short: { arabic: letter + FATHA, transliteration: `${roman}a`, label: 'Short (1 count)' },
     long: { arabic: letter + FATHA + ALIF, transliteration: `${roman}aa`, label: 'Long (2 counts) - alif madd' },
+  };
+}
+
+// The three basic short-vowel harakat (fatha/kasra/damma - "ba/bi/bu") per
+// letter, introduced right in Stage 1's letter-pair lessons rather than only
+// as Stage 2-3's separate dedicated harakat lessons - so a kid meets the
+// full "ba be boo" sound set for a letter as soon as they meet the letter.
+function harakatSetFor(letter) {
+  const roman = LETTER_ROMAN[letter];
+  if (!roman) return null;
+  return {
+    fatha: { arabic: letter + FATHA, transliteration: `${roman}a`, label: 'Fatha' },
+    kasra: { arabic: letter + KASRA, transliteration: `${roman}i`, label: 'Kasra' },
+    damma: { arabic: letter + DAMMA, transliteration: `${roman}u`, label: 'Damma' },
   };
 }
 
@@ -397,8 +413,8 @@ function letterPairItem([l1, n1, w1, m1, r1, t1], [l2, n2, w2, m2, r2, t2]) {
     concept: `Learn to recognise, sound out and write the letters ${l1} (${n1}) and ${l2} (${n2}).`,
     extra: {
       letters: [
-        { letter: l1, name: n1, positions: LETTER_POSITIONS[l1] || null, maddPair: maddPairFor(l1) },
-        { letter: l2, name: n2, positions: LETTER_POSITIONS[l2] || null, maddPair: maddPairFor(l2) },
+        { letter: l1, name: n1, positions: LETTER_POSITIONS[l1] || null, maddPair: maddPairFor(l1), harakatSet: harakatSetFor(l1) },
+        { letter: l2, name: n2, positions: LETTER_POSITIONS[l2] || null, maddPair: maddPairFor(l2), harakatSet: harakatSetFor(l2) },
       ],
       secondWord: { arabic: w2, translation: m2, reference: r2, transliteration: t2 },
     },

@@ -1,7 +1,9 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { SHAPES } from './LetterPositions.jsx';
 
 const SIZE = 160;
 const GUIDE_FONT = `700 ${SIZE * 0.75}px Amiri, serif`;
+const FORM_LABELS = { isolated: 'Alone', initial: 'Start', medial: 'Middle', final: 'End' };
 
 function drawGuide(ctx) {
   ctx.clearRect(0, 0, SIZE, SIZE);
@@ -9,20 +11,26 @@ function drawGuide(ctx) {
   ctx.font = GUIDE_FONT;
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
-  ctx.fillText(ctx.canvas.dataset.letter, SIZE / 2, SIZE / 2 + SIZE * 0.06);
+  ctx.fillText(ctx.canvas.dataset.glyph, SIZE / 2, SIZE / 2 + SIZE * 0.06);
 }
 
-export default function LetterTraceCanvas({ letter }) {
+export default function LetterTraceCanvas({ letter, positions }) {
   const canvasRef = useRef(null);
   const drawing = useRef(false);
   const last = useRef(null);
+  const [form, setForm] = useState('isolated');
+
+  // Only offer positions this letter actually takes (e.g. alif only has
+  // "final" since it never connects to what follows it).
+  const forms = ['isolated', ...['initial', 'medial', 'final'].filter((pos) => positions?.[pos])];
+  const glyph = SHAPES[form](letter);
 
   useEffect(() => {
     const canvas = canvasRef.current;
     const dpr = window.devicePixelRatio || 1;
     canvas.width = SIZE * dpr;
     canvas.height = SIZE * dpr;
-    canvas.dataset.letter = letter;
+    canvas.dataset.glyph = glyph;
     const ctx = canvas.getContext('2d');
     ctx.scale(dpr, dpr);
 
@@ -33,7 +41,7 @@ export default function LetterTraceCanvas({ letter }) {
     return () => {
       cancelled = true;
     };
-  }, [letter]);
+  }, [glyph]);
 
   function pointFromEvent(e) {
     const rect = canvasRef.current.getBoundingClientRect();
@@ -71,6 +79,29 @@ export default function LetterTraceCanvas({ letter }) {
 
   return (
     <div style={{ textAlign: 'center' }}>
+      {forms.length > 1 && (
+        <div style={{ display: 'flex', gap: 4, justifyContent: 'center', marginBottom: 8, flexWrap: 'wrap' }}>
+          {forms.map((f) => (
+            <button
+              key={f}
+              type="button"
+              onClick={() => setForm(f)}
+              style={{
+                background: form === f ? 'var(--color-blue)' : '#fff',
+                color: form === f ? '#fff' : 'var(--color-blue)',
+                border: '2px solid var(--color-blue)',
+                borderRadius: 999,
+                padding: '2px 10px',
+                fontSize: '0.75rem',
+                fontWeight: 700,
+                cursor: 'pointer',
+              }}
+            >
+              {FORM_LABELS[f]}
+            </button>
+          ))}
+        </div>
+      )}
       <canvas
         ref={canvasRef}
         style={{

@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { speakSmart } from '../lib/speech.js';
+import PronunciationCheck from './PronunciationCheck.jsx';
 
 // Forces the browser's own Arabic shaping engine to render the letter in a
 // given joined form using zero-width joiners, instead of hand-coding
@@ -7,7 +8,8 @@ import { speakSmart } from '../lib/speech.js';
 // to transcribe correctly from memory, and unnecessary - every modern
 // browser already implements real Arabic contextual shaping).
 const ZWJ = '‍';
-const SHAPES = {
+export const SHAPES = {
+  isolated: (letter) => letter,
   initial: (letter) => letter + ZWJ,
   medial: (letter) => ZWJ + letter + ZWJ,
   final: (letter) => ZWJ + letter,
@@ -60,6 +62,7 @@ export default function LetterPositions({ letter, positions }) {
             "{activeInfo.transliteration}" — {activeInfo.meaning}
           </p>
           <p style={{ margin: 0, fontSize: '0.75rem', color: '#8ea0b6' }}>{activeInfo.reference}</p>
+          <PronunciationCheck text={activeInfo.word} compact />
         </div>
       )}
     </div>

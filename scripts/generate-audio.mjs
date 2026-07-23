@@ -69,6 +69,7 @@ function collectTexts() {
           if (l.positions) for (const pos of Object.values(l.positions)) if (pos.word) texts.add(pos.word);
           if (l.maddPair?.short?.arabic) texts.add(l.maddPair.short.arabic);
           if (l.maddPair?.long?.arabic) texts.add(l.maddPair.long.arabic);
+          if (l.harakatSet) for (const h of Object.values(l.harakatSet)) if (h.arabic) texts.add(h.arabic);
         }
       }
     }

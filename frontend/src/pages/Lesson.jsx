@@ -143,19 +143,64 @@ export default function Lesson() {
                   <p style={{ margin: '8px 0 0', fontSize: '0.75rem', color: '#8ea0b6' }}>🔊 Tap to hear</p>
                 </button>
                 <LetterPositions letter={item.letter} positions={item.positions} />
+                <PronunciationCheck text={item.letter} compact />
               </div>
             ))}
           </div>
         </div>
       )}
 
+      {content.letters?.some((l) => l.harakatSet) && (
+        <div className="card" style={{ marginBottom: 20 }}>
+          <span className="badge badge-gold">Vowel Sounds</span>
+          <p style={{ margin: '10px 0 16px', color: '#4b5a6a' }}>
+            Every letter changes sound with its vowel mark - tap to hear "{content.letters.find((l) => l.harakatSet)?.name} a / i / u".
+          </p>
+          {content.letters.filter((l) => l.harakatSet).map((l, li) => (
+            <div key={li} style={{ marginBottom: li < content.letters.length - 1 ? 16 : 0 }}>
+              <p style={{ margin: '0 0 8px', fontWeight: 700, color: 'var(--color-blue)' }}>{l.name}</p>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10 }}>
+                {['fatha', 'kasra', 'damma'].map((key) => {
+                  const item = l.harakatSet[key];
+                  return (
+                    <div
+                      key={key}
+                      style={{
+                        background: 'rgba(27,79,138,0.05)',
+                        border: '2px solid var(--color-blue)',
+                        borderRadius: 'var(--radius-md)',
+                        padding: '14px 8px',
+                        textAlign: 'center',
+                      }}
+                    >
+                      <button
+                        type="button"
+                        onClick={() => speakSmart(item.arabic, { rate: 0.6 })}
+                        style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, width: '100%' }}
+                      >
+                        <p className="arabic-text" dir="rtl" style={{ fontSize: '1.8rem', margin: '0 0 4px' }}>{item.arabic}</p>
+                        <p style={{ margin: '0 0 2px', fontWeight: 700, color: 'var(--color-blue)' }}>"{item.transliteration}"</p>
+                        <p style={{ margin: 0, fontSize: '0.7rem', color: '#8ea0b6' }}>{item.label}</p>
+                      </button>
+                      <PronunciationCheck text={item.arabic} compact />
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
       {content.letters && (
         <div className="card" style={{ marginBottom: 20 }}>
           <span className="badge badge-gold">Practice Writing</span>
-          <p style={{ margin: '10px 0 16px', color: '#4b5a6a' }}>Trace over each letter with your finger or mouse.</p>
+          <p style={{ margin: '10px 0 16px', color: '#4b5a6a' }}>
+            Trace each letter with your finger or mouse - try its Start, Middle and End shapes too.
+          </p>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
             {content.letters.map((item, i) => (
-              <LetterTraceCanvas key={i} letter={item.letter} />
+              <LetterTraceCanvas key={i} letter={item.letter} positions={item.positions} />
             ))}
           </div>
         </div>
