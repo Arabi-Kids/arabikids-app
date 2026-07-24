@@ -556,19 +556,22 @@ export async function isLevelComplete(childId, levelId) {
   return masteredRows.length >= levelStages.length;
 }
 
-/** Aggregates the unique letters/tanween/tajweed content taught across a
- * level's stages, for that level's printable worksheet - derived from the
- * live `lessons.content` (single source of truth) rather than duplicating
- * supabase/seed.mjs's data in the frontend bundle (that file is Node-only -
- * dotenv/node:url - and can't be imported into browser code). */
+/** Aggregates the unique letters/tanween/tajweed/vocabulary/comparison content
+ * taught across a level's stages, for that level's printable worksheet -
+ * derived from the live `lessons` table (single source of truth) rather than
+ * duplicating supabase/seed.mjs's data in the frontend bundle (that file is
+ * Node-only - dotenv/node:url - and can't be imported into browser code).
+ * Letters/tanween only ever appear in Level 1 (Stages 1-4); vocabulary and
+ * comparisonSet cover every level, so the later levels' worksheets aren't
+ * near-empty. */
 export async function getLevelPrintableData(levelId) {
   const { data: stages, error: stagesError } = await supabase.from('stages').select('id').eq('level_id', levelId);
   if (stagesError) throw new Error(stagesError.message);
-  if (stages.length === 0) return { letters: [], tajweedRules: [], tanweenForms: null };
+  if (stages.length === 0) return { letters: [], tajweedRules: [], tanweenForms: null, vocabulary: [], comparisons: [] };
 
   const { data: lessons, error: lessonsError } = await supabase
     .from('lessons')
-    .select('content')
+    .select('title, arabic_word, arabic_word_meaning, content')
     .in(
       'stage_id',
       stages.map((s) => s.id)
@@ -578,8 +581,10 @@ export async function getLevelPrintableData(levelId) {
   const lettersByChar = new Map();
   const tajweedRules = [];
   let tanweenForms = null;
+  const vocabularyByWord = new Map();
+  const comparisonsByKey = new Map();
 
-  for (const { content } of lessons) {
+  for (const { title, arabic_word: arabicWord, arabic_word_meaning: meaning, content } of lessons) {
     if (content?.letters) {
       for (const l of content.letters) {
         if (!lettersByChar.has(l.letter)) lettersByChar.set(l.letter, { letter: l.letter, name: l.name, positions: l.positions });
@@ -587,9 +592,29 @@ export async function getLevelPrintableData(levelId) {
     }
     if (content?.tajweedRule) tajweedRules.push(content.tajweedRule);
     if (content?.tanweenForms) tanweenForms = content.tanweenForms;
+    // Some words are reused verbatim across two lessons (e.g. an Idafa
+    // example revisited in a later review lesson) - dedupe by the Arabic
+    // text itself, same as the letters map above, so the printable doesn't
+    // list the same word twice.
+    if (content?.type !== 'reading' && arabicWord && !vocabularyByWord.has(arabicWord)) {
+      vocabularyByWord.set(arabicWord, { arabic: arabicWord, meaning, transliteration: content?.transliteration, title });
+    }
+    if (content?.comparisonSet) {
+      // Some pairs are authored twice (once per lesson, sides reversed) so
+      // both lessons can show "the other side" - dedupe by the sorted set of
+      // Arabic words so the printable only lists each pair once.
+      const key = content.comparisonSet.items.map((it) => it.arabic).sort().join('|');
+      if (!comparisonsByKey.has(key)) comparisonsByKey.set(key, content.comparisonSet);
+    }
   }
 
-  return { letters: [...lettersByChar.values()], tajweedRules, tanweenForms };
+  return {
+    letters: [...lettersByChar.values()],
+    tajweedRules,
+    tanweenForms,
+    vocabulary: [...vocabularyByWord.values()],
+    comparisons: [...comparisonsByKey.values()],
+  };
 }
 
 /** Stage IDs the child has actually mastered (passed the mastery checkpoint

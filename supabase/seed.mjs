@@ -810,6 +810,12 @@ const stage6Items = [
   simpleItem('Shape: Circle', 'Learn the word for circle.', 'دَائِرَة', 'circle', 'a shape seen throughout Allah’s creation', "Da'irah", { type: 'shape' }),
   simpleItem('Shape: Crescent', 'Learn the word for crescent moon.', 'هِلَال', 'crescent moon', 'a symbol used to mark Islamic months', 'Hilal', { type: 'shape' }),
 ];
+attachRecapGroups(stage6Items, [
+  'You learned three colours - yellow, white, and green - each one tied to a real Quranic description.',
+  'You added black and counted from one to six, connecting every number to its own ayah.',
+  'You finished the numbers (seven through ten) and learned the words for circle and crescent, a shape used to mark Islamic months.',
+  'Review complete: colours, numbers 1-10, and two everyday shapes.',
+]);
 
 // --- Stage 7: Islamic Vocabulary I (10 lessons) ---
 const stage7Items = [
@@ -824,6 +830,12 @@ const stage7Items = [
   simpleItem('Iman', 'The Arabic word for faith or belief.', 'إِيمَان', 'faith', 'Surah Al-Hujurat 49:14, discussing faith entering the heart', 'Iman', { quranRef: { surah: 49, ayah: 14, surahName: 'Al-Hujurat' } }),
   simpleItem('Islam', 'The Arabic word meaning submission to Allah.', 'إِسْلَام', 'submission (to Allah)', 'Surah Aal-E-Imran 3:19, "the religion in the sight of Allah is Islam"', 'Islam', { quranRef: { surah: 3, ayah: 19, surahName: 'Aal-E-Imran' } }),
 ];
+attachRecapGroups(stage7Items, [
+  'You learned Allah, Rabb (Lord), and Salah (prayer) - three foundational Islamic words.',
+  'You added Quran, Nabi (Prophet), and Malak (angel) to your Islamic vocabulary.',
+  'You learned Rasul (Messenger), Ummah (community), and Iman (faith).',
+  'Review complete: Allah, Rabb, Salah, Quran, Nabi, Malak, Rasul, Ummah, Iman, and Islam.',
+]);
 
 // --- Stage 8: Islamic Vocabulary II & Phrases (10 lessons) ---
 const stage8Items = [
@@ -838,6 +850,12 @@ const stage8Items = [
   simpleItem('Allahu Akbar', 'The phrase declaring Allah is greatest, said in prayer.', 'اللَّهُ أَكْبَر', 'Allah is greatest', 'said throughout the five daily prayers', 'Allahu Akbar', { type: 'phrase' }),
   simpleItem('Surah Al-Ikhlas, Ayah 1', 'Read the opening of a short, well-known surah.', 'قُلْ هُوَ اللَّهُ أَحَدٌ', 'Say: He is Allah, One', 'Surah Al-Ikhlas 112:1', 'Qul huwa Allahu ahad', { type: 'reading', quranRef: { surah: 112, ayah: 1, surahName: 'Al-Ikhlas' } }),
 ];
+attachRecapGroups(stage8Items, [
+  'You learned Bismillah, Alhamdulillah, and Subhanallah - three phrases said every day.',
+  'You added Astaghfirullah, InshaAllah, and MashaAllah to your everyday phrases.',
+  'You learned the greeting Assalamu Alaykum, the declaration La ilaha illallah, and Allahu Akbar.',
+  'You read the opening line of Surah Al-Ikhlas, putting a whole phrase into a real ayah.',
+]);
 
 // --- Stage 9: Nouns & Gender (10 lessons) ---
 const stage9Items = [
@@ -916,6 +934,12 @@ const stage9Items = [
     quranRef: { surah: 1, ayah: 3, surahName: 'Al-Fatihah' },
   }),
 ];
+attachRecapGroups(stage9Items, [
+  'You learned the definite article ال, then masculine/feminine gender and singular/dual/plural - the two core ways an Arabic noun can change form.',
+  'You learned sound masculine and feminine plurals, then broken plurals - three different ways Arabic makes a noun plural.',
+  'You learned adjective agreement and took your first look at noun cases, then reviewed key nouns together in one real phrase.',
+  'Review complete: the definite article, gender, singular/dual/plural, sound and broken plurals, adjective agreement, and noun cases.',
+]);
 
 // --- Stage 10: Demonstratives & Definite Article (10 lessons) ---
 const stage10Items = [
@@ -991,6 +1015,12 @@ const stage10Items = [
     quranRef: { surah: 6, ayah: 153, surahName: "Al-An'am" },
   }),
 ];
+attachRecapGroups(stage10Items, [
+  'You learned "this" for masculine and feminine nouns, then "that" - the three core demonstrative words.',
+  'You learned the sun and moon letter rule for pronouncing ال, then met the Idafa possessive construction.',
+  'You saw Idafa in a real phrase (House of Allah), then learned attached pronouns for "my/your" and "his/her".',
+  'Review complete: this/that, sun and moon letters, Idafa, and attached pronouns.',
+]);
 
 // --- Stage 11: Prepositions & Location (10 lessons) ---
 const stage11Items = [
@@ -1058,6 +1088,12 @@ const stage11Items = [
     quranRef: { surah: 2, ayah: 25, surahName: 'Al-Baqarah' },
   }),
 ];
+attachRecapGroups(stage11Items, [
+  'You learned three prepositions - fi (in), ala (on), and min (from) - each in a real Quranic phrase.',
+  'You learned ila (to), bi (with/by), and taht (under), your first opposite pair of this stage.',
+  'You learned fawq (above), amam (in front of), and khalf (behind) - two more opposite pairs.',
+  'Review complete: in, on, from, to, with/by, under, above, in front of, and behind.',
+]);
 
 // --- Stage 12: Questions & Possession (Idafa) (10 lessons) ---
 const stage12Items = [
@@ -1100,6 +1136,12 @@ const stage12Items = [
     concept: 'Review time: who, what, where, when, how, yes/no questions with هَلْ, and more practice with the Idafa possessive construction.',
   }),
 ];
+attachRecapGroups(stage12Items, [
+  'You learned three question words - man (who), ma (what), and ayna (where).',
+  'You learned mata (when), kayfa (how), and hal, which turns a sentence into a yes/no question.',
+  'You practiced the Idafa possessive construction again in two real Quranic phrases, then combined a question word with Idafa.',
+  'Review complete: all six question words plus more practice with Idafa.',
+]);
 
 // --- Stage 13: Pronouns & Past Tense Verbs (10 lessons) ---
 const stage13Items = [
@@ -1183,6 +1225,12 @@ const stage13Items = [
     quranRef: { surah: 1, ayah: 5, surahName: 'Al-Fatihah' },
   }),
 ];
+attachRecapGroups(stage13Items, [
+  'You learned three pronouns - huwa (he), hiya (she), and nahnu (we).',
+  'You learned ana (I), then the past-tense verbs kataba (wrote) and dhahaba (went).',
+  'You learned two more past-tense verbs - qara\'a (read) and khalaqa (created) - then how the ending changes for "I/we".',
+  'You learned the tajweed rules Izhar and Iqlab, then reviewed pronouns and past-tense verbs together.',
+]);
 
 // --- Stage 14: Present Tense & Plurals (10 lessons) ---
 const stage14Items = [
@@ -1261,6 +1309,12 @@ const stage14Items = [
     quranRef: { surah: 112, ayah: 4, surahName: 'Al-Ikhlas' },
   }),
 ];
+attachRecapGroups(stage14Items, [
+  'You learned three present-tense verbs - ya\'lamu (he knows), yarzuqu (He provides), and na\'budu (we worship).',
+  'You learned nasta\'een (we ask for help), the imperative "Read!", and the broken plural for "Prophets".',
+  'You learned the broken plural for "Worlds", then two ways to say "not" - la (present tense) and lam (past tense).',
+  'You learned the tajweed rule Meem Sakinah, then reviewed present-tense verbs, plurals, and negation.',
+]);
 
 // --- Stage 15: Complex Sentences & Quranic Patterns (10 lessons, reading Al-Fatihah in full) ---
 const readingItem = (title, arabicWord, meaning, reference, transliteration, quranRef) =>
@@ -1311,6 +1365,12 @@ const stage15Items = [
     quranRef: { surah: 1, ayah: 7, surahName: 'Al-Fatihah' },
   }),
 ];
+attachRecapGroups(stage15Items, [
+  'You read the first three ayahs of Al-Fatihah, word by word.',
+  'You read ayahs four through six of Al-Fatihah, continuing straight through the surah.',
+  'You read the seventh and final ayah of Al-Fatihah, then learned the two conditional words in (real) and law (hypothetical).',
+  'You learned the tajweed rule Madd \'Aarid Lissukoon, then reviewed all seven ayahs of Al-Fatihah together.',
+]);
 
 // --- Stage 16: Fluency & Quranic Application (Capstone) (10 lessons) ---
 const stage16Items = [
@@ -1362,6 +1422,12 @@ const stage16Items = [
     quranRef: { surah: 20, ayah: 114, surahName: 'Taha' },
   }),
 ];
+attachRecapGroups(stage16Items, [
+  'You read the opening of Surah Al-Ikhlas and the start of An-Nas - two more short surahs, word by word.',
+  'You read the opening of Al-Falaq, then explored two Arabic root systems: K-T-B ("writing") and A-L-M ("knowledge").',
+  'You learned about Classical vs everyday Arabic, how surahs are classified as Makki or Madani, and the tajweed rule Qalqalah Kubra.',
+  'You learned the tajweed rule Waqf (stopping), practiced reading comprehension, and completed your full 16-stage ArabiKids journey!',
+]);
 
 // ---------------------------------------------------------------------------
 // ASSEMBLE

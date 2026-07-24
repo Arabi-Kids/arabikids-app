@@ -80,31 +80,74 @@ export default function LevelPrintable() {
 
       <h1 className="page-title" style={{ textAlign: 'center' }}>{level.name} Practice Sheet</h1>
       <p className="page-subtitle" style={{ textAlign: 'center', marginBottom: 32 }}>
-        Every letter, vowel mark, and tajweed rule from {level.name} - great for extra practice on paper.
+        Everything you've learned in {level.name} - great for extra practice on paper.
       </p>
 
-      <h2 style={{ color: 'var(--color-blue)' }}>The Letters</h2>
-      <div className="print-letter-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(120px, 1fr))', gap: 16, marginBottom: 32 }}>
-        {data.letters.map((l) => (
-          <div key={l.letter} className="card no-print-shadow" style={{ textAlign: 'center', padding: 12 }}>
-            <button
-              type="button"
-              onClick={() => speakSmart(l.letter, { rate: 0.6 })}
-              style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, width: '100%' }}
-            >
-              <p className="arabic-text" dir="rtl" style={{ fontSize: '2.2rem', margin: '0 0 4px' }}>{l.letter}</p>
-            </button>
-            <p style={{ margin: '0 0 6px', fontWeight: 700, color: 'var(--color-blue)', fontSize: '0.85rem' }}>{l.name}</p>
-            <div style={{ display: 'flex', justifyContent: 'center', gap: 4, flexWrap: 'wrap' }}>
-              {POSITION_ORDER.filter((p) => p === 'isolated' || l.positions?.[p]).map((p) => (
-                <span key={p} className="arabic-text" dir="rtl" title={POSITION_LABELS[p]} style={{ fontSize: '1.1rem', color: '#4b5a6a' }}>
-                  {SHAPES[p](l.letter)}
-                </span>
-              ))}
-            </div>
+      {data.letters.length > 0 && (
+        <>
+          <h2 style={{ color: 'var(--color-blue)' }}>The Letters</h2>
+          <div className="print-letter-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(120px, 1fr))', gap: 16, marginBottom: 32 }}>
+            {data.letters.map((l) => (
+              <div key={l.letter} className="card no-print-shadow" style={{ textAlign: 'center', padding: 12 }}>
+                <button
+                  type="button"
+                  onClick={() => speakSmart(l.letter, { rate: 0.6 })}
+                  style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, width: '100%' }}
+                >
+                  <p className="arabic-text" dir="rtl" style={{ fontSize: '2.2rem', margin: '0 0 4px' }}>{l.letter}</p>
+                </button>
+                <p style={{ margin: '0 0 6px', fontWeight: 700, color: 'var(--color-blue)', fontSize: '0.85rem' }}>{l.name}</p>
+                <div style={{ display: 'flex', justifyContent: 'center', gap: 4, flexWrap: 'wrap' }}>
+                  {POSITION_ORDER.filter((p) => p === 'isolated' || l.positions?.[p]).map((p) => (
+                    <span key={p} className="arabic-text" dir="rtl" title={POSITION_LABELS[p]} style={{ fontSize: '1.1rem', color: '#4b5a6a' }}>
+                      {SHAPES[p](l.letter)}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            ))}
           </div>
-        ))}
-      </div>
+        </>
+      )}
+
+      {data.vocabulary.length > 0 && (
+        <>
+          <h2 style={{ color: 'var(--color-blue)' }}>Key Vocabulary</h2>
+          <div className="print-letter-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))', gap: 16, marginBottom: 32 }}>
+            {data.vocabulary.map((v, i) => (
+              <div key={i} className="card no-print-shadow" style={{ textAlign: 'center', padding: 12 }}>
+                <button
+                  type="button"
+                  onClick={() => speakSmart(v.arabic, { rate: 0.6 })}
+                  style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, width: '100%' }}
+                >
+                  <p className="arabic-text" dir="rtl" style={{ fontSize: '1.6rem', margin: '0 0 4px' }}>{v.arabic}</p>
+                </button>
+                {v.transliteration && <p style={{ margin: '0 0 2px', fontWeight: 700, color: 'var(--color-blue)', fontSize: '0.8rem' }}>"{v.transliteration}"</p>}
+                <p style={{ margin: 0, fontSize: '0.75rem', color: '#4b5a6a' }}>{v.meaning}</p>
+              </div>
+            ))}
+          </div>
+        </>
+      )}
+
+      {data.comparisons.length > 0 && (
+        <>
+          <h2 style={{ color: 'var(--color-blue)' }}>Compare Both Sides</h2>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: 16, marginBottom: 32 }}>
+            {data.comparisons.map((cmp, i) => (
+              <div key={i} className="card" style={{ padding: 12, display: 'flex', gap: 8, justifyContent: 'center' }}>
+                {cmp.items.map((item, j) => (
+                  <div key={j} style={{ textAlign: 'center', flex: 1 }}>
+                    <p className="arabic-text" dir="rtl" style={{ fontSize: '1.4rem', margin: '0 0 4px' }}>{item.arabic}</p>
+                    <p style={{ margin: 0, fontSize: '0.75rem', color: '#8ea0b6' }}>{item.label}</p>
+                  </div>
+                ))}
+              </div>
+            ))}
+          </div>
+        </>
+      )}
 
       {data.tanweenForms && (
         <>
