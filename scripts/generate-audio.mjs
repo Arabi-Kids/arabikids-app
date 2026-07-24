@@ -72,6 +72,11 @@ function collectTexts() {
           if (l.harakatSet) for (const h of Object.values(l.harakatSet)) if (h.arabic) texts.add(h.arabic);
         }
       }
+      if (c.tanweenForms?.forms) for (const f of c.tanweenForms.forms) if (f.arabic) texts.add(f.arabic);
+      if (c.maddTypes?.types) for (const t of c.maddTypes.types) if (t.example?.arabic) texts.add(t.example.arabic);
+      if (c.tajweedRule?.example?.arabic) texts.add(c.tajweedRule.example.arabic);
+      if (c.recapGroup?.highlights) for (const h of c.recapGroup.highlights) if (h.arabic) texts.add(h.arabic);
+      if (c.comparisonSet?.items) for (const item of c.comparisonSet.items) if (item.arabic) texts.add(item.arabic);
     }
   }
   return [...texts];

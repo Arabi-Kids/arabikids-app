@@ -350,10 +350,22 @@ export async function completeCheckpointForChild({ childId, checkpoint, answers 
   });
   const score = Math.round((correct / checkpoint.questions.length) * 100);
   const passed = score >= PASS_THRESHOLD;
+  const nowIso = new Date().toISOString();
+
+  // Recorded for EVERY checkpoint (not just mastery ones) so the post-
+  // checkpoint recap card can be gated/revisited later - mastery-checkpoint
+  // passes additionally still update child_stage_progress below, unchanged.
+  // Non-blocking: until add_checkpoint_progress.sql has been run, this table
+  // doesn't exist yet - the core checkpoint-pass flow must still work either
+  // way, so a failure here only disables the recap card, not completion.
+  const { error: checkpointProgressError } = await supabase.from('child_checkpoint_progress').upsert(
+    { child_id: childId, stage_exercise_id: checkpoint.id, score, passed_at: passed ? nowIso : null },
+    { onConflict: 'child_id,stage_exercise_id' }
+  );
+  if (checkpointProgressError) console.warn('child_checkpoint_progress upsert failed (recap card will be unavailable):', checkpointProgressError.message);
 
   let newBadges = [];
   if (checkpoint.isMastery && passed) {
-    const nowIso = new Date().toISOString();
     const { error: progressError } = await supabase.from('child_stage_progress').upsert(
       { child_id: childId, stage_id: checkpoint.stageId, mastery_passed_at: nowIso, badge_earned_at: nowIso },
       { onConflict: 'child_id,stage_id' }
@@ -364,6 +376,41 @@ export async function completeCheckpointForChild({ childId, checkpoint, answers 
   }
 
   return { score, passed, results, newBadges };
+}
+
+/** Whether this checkpoint has ever been passed by this child - gates
+ * revisiting its recap card, mirroring getStageVideoStatus's "mastered"
+ * gate pattern. Fails safe to { passed: false } (rather than throwing) if
+ * child_checkpoint_progress doesn't exist yet (add_checkpoint_progress.sql
+ * not yet run) - the caller shows "not unlocked yet" either way, not a
+ * broken error page. */
+export async function getCheckpointProgress(childId, stageExerciseId) {
+  const { data, error } = await supabase
+    .from('child_checkpoint_progress')
+    .select('passed_at')
+    .eq('child_id', childId)
+    .eq('stage_exercise_id', stageExerciseId)
+    .maybeSingle();
+  if (error) {
+    console.warn('getCheckpointProgress failed:', error.message);
+    return { passed: false };
+  }
+  return { passed: !!data?.passed_at };
+}
+
+/** The recapGroup content attached to the last lesson of a checkpoint
+ * window (see attachRecapGroups in supabase/seed.mjs) - fetched by stage +
+ * checkpoint order rather than lesson order_index, since callers only know
+ * "which checkpoint", not which lesson happens to be last in its window. */
+export async function getRecapGroup(stageId, checkpointOrder) {
+  const { data: lessons, error } = await supabase
+    .from('lessons')
+    .select('content, order_index')
+    .eq('stage_id', stageId)
+    .order('order_index', { ascending: false });
+  if (error) throw new Error(error.message);
+  const match = lessons.find((l) => l.content?.recapGroup?.checkpointOrder === checkpointOrder);
+  return match?.content?.recapGroup ?? null;
 }
 
 // ---------------------------------------------------------------------------
@@ -484,6 +531,65 @@ async function checkLevelBadge(childId, stageId) {
   const badgeCode = LEVEL_BADGE_BY_ORDER[stageRow.levels.order_index];
   if (!badgeCode) return [];
   return awardBadges(childId, [badgeCode]);
+}
+
+/** Whether every stage in a level has been mastered by this child - gates
+ * that level's printable worksheet. Same "all stages mastered" check as
+ * checkLevelBadge above, just parameterized by levelId directly instead of
+ * derived from a stageId. */
+export async function isLevelComplete(childId, levelId) {
+  const { data: levelStages, error: levelStagesError } = await supabase.from('stages').select('id').eq('level_id', levelId);
+  if (levelStagesError) throw new Error(levelStagesError.message);
+  if (levelStages.length === 0) return false;
+
+  const { data: masteredRows, error: masteredError } = await supabase
+    .from('child_stage_progress')
+    .select('stage_id')
+    .eq('child_id', childId)
+    .in(
+      'stage_id',
+      levelStages.map((s) => s.id)
+    )
+    .not('mastery_passed_at', 'is', null);
+  if (masteredError) throw new Error(masteredError.message);
+
+  return masteredRows.length >= levelStages.length;
+}
+
+/** Aggregates the unique letters/tanween/tajweed content taught across a
+ * level's stages, for that level's printable worksheet - derived from the
+ * live `lessons.content` (single source of truth) rather than duplicating
+ * supabase/seed.mjs's data in the frontend bundle (that file is Node-only -
+ * dotenv/node:url - and can't be imported into browser code). */
+export async function getLevelPrintableData(levelId) {
+  const { data: stages, error: stagesError } = await supabase.from('stages').select('id').eq('level_id', levelId);
+  if (stagesError) throw new Error(stagesError.message);
+  if (stages.length === 0) return { letters: [], tajweedRules: [], tanweenForms: null };
+
+  const { data: lessons, error: lessonsError } = await supabase
+    .from('lessons')
+    .select('content')
+    .in(
+      'stage_id',
+      stages.map((s) => s.id)
+    );
+  if (lessonsError) throw new Error(lessonsError.message);
+
+  const lettersByChar = new Map();
+  const tajweedRules = [];
+  let tanweenForms = null;
+
+  for (const { content } of lessons) {
+    if (content?.letters) {
+      for (const l of content.letters) {
+        if (!lettersByChar.has(l.letter)) lettersByChar.set(l.letter, { letter: l.letter, name: l.name, positions: l.positions });
+      }
+    }
+    if (content?.tajweedRule) tajweedRules.push(content.tajweedRule);
+    if (content?.tanweenForms) tanweenForms = content.tanweenForms;
+  }
+
+  return { letters: [...lettersByChar.values()], tajweedRules, tanweenForms };
 }
 
 /** Stage IDs the child has actually mastered (passed the mastery checkpoint

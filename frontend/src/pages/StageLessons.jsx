@@ -61,6 +61,21 @@ export default function StageLessons() {
 
       {error && <p className="error-text">{error}</p>}
 
+      {lessons.length > 0 && (
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', margin: '4px 0 20px' }}>
+          {Array.from({ length: Math.ceil(lessons.length / 3) }, (_, i) => i + 1).map((checkpointOrder) => (
+            <Link
+              key={checkpointOrder}
+              to={`/lessons/stage/${stage.id}/recap/${checkpointOrder}`}
+              className="badge badge-gold"
+              style={{ textDecoration: 'none' }}
+            >
+              📋 Recap {checkpointOrder}
+            </Link>
+          ))}
+        </div>
+      )}
+
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: 16 }}>
         {lessons.map((lesson) => (
           <Link

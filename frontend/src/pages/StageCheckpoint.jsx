@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useActiveChild } from '../context/ActiveChildContext.jsx';
-import { getCurriculum, getStageCheckpoint, completeCheckpointForChild } from '../lib/db.js';
+import { getCurriculum, getStageCheckpoint, completeCheckpointForChild, getRecapGroup } from '../lib/db.js';
 import ExerciseCard from '../components/ExerciseCard.jsx';
 import HudMascot from '../components/HudMascot.jsx';
+import LessonRecapCard from '../components/LessonRecapCard.jsx';
 import { badgeInfo } from '../lib/badges.js';
 
 export default function StageCheckpoint() {
@@ -14,9 +15,17 @@ export default function StageCheckpoint() {
   const [checkpoint, setCheckpoint] = useState(null);
   const [answers, setAnswers] = useState({});
   const [results, setResults] = useState(null);
+  const [recapGroup, setRecapGroup] = useState(null);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
+
+  useEffect(() => {
+    if (!results?.passed) return;
+    getRecapGroup(Number(stageId), Number(checkpointOrder))
+      .then(setRecapGroup)
+      .catch(() => {});
+  }, [results, stageId, checkpointOrder]);
 
   useEffect(() => {
     setLoading(true);
@@ -98,6 +107,7 @@ export default function StageCheckpoint() {
       ) : (
         <div className="card" style={{ textAlign: 'center', background: results.passed ? 'rgba(26,122,74,0.08)' : 'rgba(200,150,12,0.08)' }}>
           <h3 style={{ margin: '0 0 8px' }}>Score: {results.score}%</h3>
+          {results.passed && recapGroup && <LessonRecapCard recapGroup={recapGroup} />}
           {checkpoint.isMastery ? (
             results.passed ? (
               <>

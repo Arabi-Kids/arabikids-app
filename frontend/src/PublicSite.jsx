@@ -24,7 +24,9 @@ import ComingSoonPillar from './pages/ComingSoonPillar.jsx';
 import StageLessons from './pages/StageLessons.jsx';
 import Lesson from './pages/Lesson.jsx';
 import StageCheckpoint from './pages/StageCheckpoint.jsx';
+import StageRecap from './pages/StageRecap.jsx';
 import StageVideo from './pages/StageVideo.jsx';
+import LevelPrintable from './pages/LevelPrintable.jsx';
 import Progress from './pages/Progress.jsx';
 import Account from './pages/Account.jsx';
 import Privacy from './pages/Privacy.jsx';
@@ -102,6 +104,22 @@ export default function PublicSite() {
                 element={
                   <ProtectedRoute>
                     <StageVideo />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/lessons/stage/:stageId/recap/:checkpointOrder"
+                element={
+                  <ProtectedRoute>
+                    <StageRecap />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/lessons/level/:levelId/printable"
+                element={
+                  <ProtectedRoute>
+                    <LevelPrintable />
                   </ProtectedRoute>
                 }
               />

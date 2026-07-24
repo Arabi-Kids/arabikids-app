@@ -140,6 +140,9 @@ export default function ArabicCurriculumHub() {
         <div key={level.id} style={{ marginBottom: 32 }}>
           <h2 style={{ color: 'var(--color-blue)', marginBottom: 4 }}>{level.name}</h2>
           <p style={{ color: '#8ea0b6', marginTop: 0 }}>{level.description}</p>
+          <Link to={`/lessons/level/${level.id}/printable`} className="badge badge-gold" style={{ textDecoration: 'none', display: 'inline-block', marginBottom: 12 }}>
+            📄 Printable Worksheet
+          </Link>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: 16 }}>
             {stages.map((stage) => {
               const state = stageState(stage, currentStageOrder, isPaid());
