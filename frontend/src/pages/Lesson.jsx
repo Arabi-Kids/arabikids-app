@@ -23,6 +23,25 @@ export default function Lesson() {
   const [submitting, setSubmitting] = useState(false);
   const [completed, setCompleted] = useState(false);
   const [newBadges, setNewBadges] = useState([]);
+  const [playingFluencyCheck, setPlayingFluencyCheck] = useState(false);
+
+  // Chains every ayah's real reciter audio back-to-back via onEnd, so tapping
+  // once plays the whole surah straight through - reuses the same per-ayah
+  // URLs as the single-ayah "Hear a Reciter" button, no new audio needed.
+  function playFluencySurah({ surahNumber, surahName, ayahs }) {
+    setPlayingFluencyCheck(true);
+    let i = 0;
+    const playNext = () => {
+      if (i >= ayahs.length) {
+        setPlayingFluencyCheck(false);
+        return;
+      }
+      const ayah = ayahs[i];
+      i += 1;
+      playReciterAudio({ surah: surahNumber, ayah: ayah.ayah, surahName }, { onEnd: playNext, onError: () => setPlayingFluencyCheck(false) });
+    };
+    playNext();
+  }
 
   useEffect(() => {
     setLoading(true);
@@ -394,6 +413,81 @@ export default function Lesson() {
             <p className="arabic-text" dir="rtl" style={{ fontSize: '1.8rem', margin: '0 0 4px' }}>{content.tajweedRule.example.arabic}</p>
             <p style={{ margin: 0, fontWeight: 700, color: 'var(--color-blue)' }}>"{content.tajweedRule.example.transliteration}"</p>
             <p style={{ margin: '6px 0 0', fontSize: '0.75rem', color: '#8ea0b6' }}>🔊 Tap to hear</p>
+          </button>
+        </div>
+      )}
+
+      {content.surahCorner && (
+        <div className="card" style={{ marginBottom: 20 }}>
+          <span className="badge badge-gold">🌙 Surah Corner</span>
+          <p style={{ margin: '10px 0 16px', fontWeight: 700, color: 'var(--color-blue)' }}>
+            {content.surahCorner.surahName} — Ayah {content.surahCorner.ayahNumber} of {content.surahCorner.totalAyahsInSurah}
+          </p>
+          <button
+            type="button"
+            onClick={() => playReciterAudio(content.quranRef)}
+            style={{
+              background: 'rgba(200,150,12,0.08)',
+              border: '2px solid var(--color-gold)',
+              borderRadius: 'var(--radius-md)',
+              padding: '14px 12px',
+              cursor: 'pointer',
+              textAlign: 'center',
+              width: '100%',
+            }}
+          >
+            <p className="arabic-text" dir="rtl" style={{ fontSize: '1.8rem', margin: '0 0 4px' }}>{content.surahCorner.arabic}</p>
+            <p style={{ margin: 0, fontWeight: 700, color: 'var(--color-blue)' }}>"{content.surahCorner.transliteration}"</p>
+            <p style={{ margin: '6px 0 0', fontSize: '0.75rem', color: '#8ea0b6' }}>🎧 New ayah — tap to hear a reciter</p>
+          </button>
+          {content.surahCorner.cumulativeAyahs.length > 1 && (
+            <>
+              <p style={{ margin: '16px 0 10px', fontWeight: 700, color: 'var(--color-blue-dark)', fontSize: '0.9rem' }}>
+                Recite what you've learned so far, then check yourself:
+              </p>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                {content.surahCorner.cumulativeAyahs.slice(0, -1).map((a) => (
+                  <button
+                    key={a.ayah}
+                    type="button"
+                    onClick={() => playReciterAudio({ surah: content.surahCorner.surahNumber, ayah: a.ayah, surahName: content.surahCorner.surahName })}
+                    style={{
+                      background: 'rgba(27,79,138,0.05)',
+                      border: '1px solid var(--color-blue)',
+                      borderRadius: 'var(--radius-md)',
+                      padding: '10px 12px',
+                      cursor: 'pointer',
+                      textAlign: 'right',
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      gap: 10,
+                    }}
+                  >
+                    <span style={{ fontSize: '0.75rem', color: '#8ea0b6', whiteSpace: 'nowrap' }}>Ayah {a.ayah} 🎧</span>
+                    <span className="arabic-text" dir="rtl" style={{ fontSize: '1.2rem' }}>{a.arabic}</span>
+                  </button>
+                ))}
+              </div>
+            </>
+          )}
+        </div>
+      )}
+
+      {content.surahFluencyCheck && (
+        <div className="card" style={{ marginBottom: 20 }}>
+          <span className="badge badge-gold">🌙 Fluency Check: {content.surahFluencyCheck.surahName}</span>
+          <p style={{ margin: '10px 0 16px', color: '#4b5a6a' }}>
+            Try reciting all {content.surahFluencyCheck.ayahs.length} ayat of {content.surahFluencyCheck.surahName} from memory first, then
+            tap below to hear a reciter go through the whole surah, start to finish.
+          </p>
+          <button
+            type="button"
+            className="btn btn-primary"
+            disabled={playingFluencyCheck}
+            onClick={() => playFluencySurah(content.surahFluencyCheck)}
+          >
+            {playingFluencyCheck ? '🎧 Playing...' : '🎧 Play the Whole Surah'}
           </button>
         </div>
       )}

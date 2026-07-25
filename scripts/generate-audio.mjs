@@ -77,6 +77,8 @@ function collectTexts() {
       if (c.tajweedRule?.example?.arabic) texts.add(c.tajweedRule.example.arabic);
       if (c.recapGroup?.highlights) for (const h of c.recapGroup.highlights) if (h.arabic) texts.add(h.arabic);
       if (c.comparisonSet?.items) for (const item of c.comparisonSet.items) if (item.arabic) texts.add(item.arabic);
+      if (c.surahCorner?.cumulativeAyahs) for (const a of c.surahCorner.cumulativeAyahs) if (a.arabic) texts.add(a.arabic);
+      if (c.surahFluencyCheck?.ayahs) for (const a of c.surahFluencyCheck.ayahs) if (a.arabic) texts.add(a.arabic);
     }
   }
   return [...texts];

@@ -20,6 +20,7 @@ export default function ArabicCurriculumHub() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [search, setSearch] = useState('');
+  const [expandedParents, setExpandedParents] = useState({});
 
   // Levels/stages (names + structure, not lesson content) are public data -
   // fetch them regardless of auth so a signed-out visitor can see the shape
@@ -173,6 +174,36 @@ export default function ArabicCurriculumHub() {
                     )}
                   </div>
                   <p style={{ margin: 0, fontWeight: 700 }}>{stage.name}</p>
+                  {stage.introKids && (
+                    <p style={{ margin: '6px 0 0', color: '#8ea0b6', fontSize: '0.85rem' }}>{stage.introKids}</p>
+                  )}
+                  {stage.introParents && (
+                    <>
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          setExpandedParents((prev) => ({ ...prev, [stage.id]: !prev[stage.id] }));
+                        }}
+                        style={{
+                          background: 'none',
+                          border: 'none',
+                          padding: 0,
+                          marginTop: 10,
+                          color: 'var(--color-blue)',
+                          fontWeight: 700,
+                          fontSize: '0.8rem',
+                          cursor: 'pointer',
+                        }}
+                      >
+                        {expandedParents[stage.id] ? '▾ Hide' : '▸ For Parents'}
+                      </button>
+                      {expandedParents[stage.id] && (
+                        <p style={{ margin: '6px 0 0', color: '#4b5a6a', fontSize: '0.85rem' }}>{stage.introParents}</p>
+                      )}
+                    </>
+                  )}
                 </Link>
               );
             })}

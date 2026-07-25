@@ -167,6 +167,8 @@ export async function getCurriculum() {
     videoUrl: s.video_url,
     minPlacementAge: s.min_placement_age,
     isFree: s.is_free,
+    introKids: s.intro_kids,
+    introParents: s.intro_parents,
   }));
 
   const mappedLevels = levels.map((level) => ({

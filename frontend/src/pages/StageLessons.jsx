@@ -58,6 +58,7 @@ export default function StageLessons() {
           Stage {stage.orderIndex}: {stage.name}
         </h1>
       </div>
+      {stage.introKids && <p style={{ margin: '6px 0 20px', color: '#4b5a6a', fontSize: '1.05rem' }}>{stage.introKids}</p>}
 
       {error && <p className="error-text">{error}</p>}
 
