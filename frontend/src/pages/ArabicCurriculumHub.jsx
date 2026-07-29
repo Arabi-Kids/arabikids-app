@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.jsx';
 import { useActiveChild } from '../context/ActiveChildContext.jsx';
 import { getCurriculum, listMasteredStageIds } from '../lib/db.js';
@@ -13,6 +13,7 @@ function stageState(stage, currentStageOrder, isPaidUser) {
 }
 
 export default function ArabicCurriculumHub() {
+  const navigate = useNavigate();
   const { user, isPaid } = useAuth();
   const { activeChild, childProfiles, loading: childrenLoading } = useActiveChild();
   const [levels, setLevels] = useState([]);
@@ -203,6 +204,20 @@ export default function ArabicCurriculumHub() {
                         <p style={{ margin: '6px 0 0', color: '#4b5a6a', fontSize: '0.85rem' }}>{stage.introParents}</p>
                       )}
                     </>
+                  )}
+                  {isMastered && (
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        navigate(`/lessons/stage/${stage.id}/review`);
+                      }}
+                      className="badge badge-gold"
+                      style={{ display: 'inline-block', marginTop: 10, border: 'none', cursor: 'pointer' }}
+                    >
+                      🔄 Review This Stage
+                    </button>
                   )}
                 </Link>
               );

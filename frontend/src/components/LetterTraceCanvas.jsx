@@ -2,23 +2,27 @@ import { useEffect, useRef, useState } from 'react';
 import { SHAPES } from './LetterPositions.jsx';
 
 const SIZE = 160;
-const GUIDE_FONT = `700 ${SIZE * 0.75}px Amiri, serif`;
 const FORM_LABELS = { isolated: 'Alone', initial: 'Start', medial: 'Middle', final: 'End' };
 
-function drawGuide(ctx) {
-  ctx.clearRect(0, 0, SIZE, SIZE);
+function drawGuide(ctx, width, guideFont) {
+  ctx.clearRect(0, 0, width, SIZE);
   ctx.fillStyle = 'rgba(27,79,138,0.16)';
-  ctx.font = GUIDE_FONT;
+  ctx.font = guideFont;
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
-  ctx.fillText(ctx.canvas.dataset.glyph, SIZE / 2, SIZE / 2 + SIZE * 0.06);
+  ctx.fillText(ctx.canvas.dataset.glyph, width / 2, SIZE / 2 + SIZE * 0.06);
 }
 
-export default function LetterTraceCanvas({ letter, positions }) {
+// `width`/`fontScale` let a caller trace a whole multi-character word (the
+// Review Hub's Write tab) instead of a single letter - defaults reproduce
+// the original single-letter sizing exactly, so every existing call site is
+// unaffected.
+export default function LetterTraceCanvas({ letter, positions, width = SIZE, fontScale = 0.75 }) {
   const canvasRef = useRef(null);
   const drawing = useRef(false);
   const last = useRef(null);
   const [form, setForm] = useState('isolated');
+  const guideFont = `700 ${SIZE * fontScale}px Amiri, serif`;
 
   // Only offer positions this letter actually takes (e.g. alif only has
   // "final" since it never connects to what follows it).
@@ -28,20 +32,20 @@ export default function LetterTraceCanvas({ letter, positions }) {
   useEffect(() => {
     const canvas = canvasRef.current;
     const dpr = window.devicePixelRatio || 1;
-    canvas.width = SIZE * dpr;
+    canvas.width = width * dpr;
     canvas.height = SIZE * dpr;
     canvas.dataset.glyph = glyph;
     const ctx = canvas.getContext('2d');
     ctx.scale(dpr, dpr);
 
     let cancelled = false;
-    document.fonts.load(GUIDE_FONT).finally(() => {
-      if (!cancelled) drawGuide(ctx);
+    document.fonts.load(guideFont).finally(() => {
+      if (!cancelled) drawGuide(ctx, width, guideFont);
     });
     return () => {
       cancelled = true;
     };
-  }, [glyph]);
+  }, [glyph, width, guideFont]);
 
   function pointFromEvent(e) {
     const rect = canvasRef.current.getBoundingClientRect();
@@ -74,7 +78,7 @@ export default function LetterTraceCanvas({ letter, positions }) {
   }
 
   function handleClear() {
-    drawGuide(canvasRef.current.getContext('2d'));
+    drawGuide(canvasRef.current.getContext('2d'), width, guideFont);
   }
 
   return (
@@ -105,7 +109,7 @@ export default function LetterTraceCanvas({ letter, positions }) {
       <canvas
         ref={canvasRef}
         style={{
-          width: SIZE,
+          width,
           height: SIZE,
           maxWidth: '100%',
           touchAction: 'none',

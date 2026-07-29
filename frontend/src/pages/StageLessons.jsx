@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.jsx';
 import { useActiveChild } from '../context/ActiveChildContext.jsx';
-import { getCurriculum, listStageLessonsForChild } from '../lib/db.js';
+import { getCurriculum, listStageLessonsForChild, listMasteredStageIds } from '../lib/db.js';
 import { StarSparkleIcon } from '../components/Icons.jsx';
 import HudMascot from '../components/HudMascot.jsx';
 
@@ -12,6 +12,7 @@ export default function StageLessons() {
   const { activeChild } = useActiveChild();
   const [stage, setStage] = useState(null);
   const [lessons, setLessons] = useState([]);
+  const [mastered, setMastered] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
@@ -26,12 +27,16 @@ export default function StageLessons() {
         if (!stageRow) return;
         const currentStage = stages.find((s) => s.id === activeChild.currentStageId);
         const stageUnlocked = stageRow.orderIndex <= (currentStage?.orderIndex ?? 1);
-        const list = await listStageLessonsForChild(stageRow.id, {
-          childId: activeChild.id,
-          isPaidUser: isPaid(),
-          stageUnlocked,
-        });
+        const [list, masteredIds] = await Promise.all([
+          listStageLessonsForChild(stageRow.id, {
+            childId: activeChild.id,
+            isPaidUser: isPaid(),
+            stageUnlocked,
+          }),
+          listMasteredStageIds(activeChild.id),
+        ]);
         setLessons(list);
+        setMastered(masteredIds.includes(stageRow.id));
       })
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
@@ -59,6 +64,16 @@ export default function StageLessons() {
         </h1>
       </div>
       {stage.introKids && <p style={{ margin: '6px 0 20px', color: '#4b5a6a', fontSize: '1.05rem' }}>{stage.introKids}</p>}
+
+      {mastered && (
+        <Link
+          to={`/lessons/stage/${stage.id}/review`}
+          className="badge badge-gold"
+          style={{ textDecoration: 'none', display: 'inline-block', marginBottom: 20 }}
+        >
+          🔄 Review This Stage
+        </Link>
+      )}
 
       {error && <p className="error-text">{error}</p>}
 

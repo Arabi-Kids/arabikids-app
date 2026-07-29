@@ -26,6 +26,7 @@ import Lesson from './pages/Lesson.jsx';
 import StageCheckpoint from './pages/StageCheckpoint.jsx';
 import StageRecap from './pages/StageRecap.jsx';
 import StageVideo from './pages/StageVideo.jsx';
+import StageReviewHub from './pages/StageReviewHub.jsx';
 import LevelPrintable from './pages/LevelPrintable.jsx';
 import Progress from './pages/Progress.jsx';
 import Account from './pages/Account.jsx';
@@ -112,6 +113,14 @@ export default function PublicSite() {
                 element={
                   <ProtectedRoute>
                     <StageRecap />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/lessons/stage/:stageId/review"
+                element={
+                  <ProtectedRoute>
+                    <StageReviewHub />
                   </ProtectedRoute>
                 }
               />

@@ -723,3 +723,115 @@ export async function deletePushSubscription(childId, endpoint) {
   const { error } = await supabase.from('push_subscriptions').delete().eq('child_id', childId).eq('endpoint', endpoint);
   if (error) throw new Error(error.message);
 }
+
+// ---------------------------------------------------------------------------
+// Stage Review Hub — a non-gating revisit space unlocked once a stage is
+// mastered (Watch & Learn / My Vocabulary / Read / Write / Practice / Play).
+// Nothing here ever writes to child_stage_progress or
+// child_checkpoint_progress — nothing in this hub can affect real gating.
+// ---------------------------------------------------------------------------
+
+/** Every distinct vocabulary word taught in one stage, derived from the
+ * `lessons` table itself (there is no separate vocabulary table) - same
+ * dedupe-by-word approach as getLevelPrintableData, scoped to a single stage
+ * and including each lesson's id so My Vocabulary/Write can key off it (e.g.
+ * for favoriting). */
+export async function getStageVocabulary(stageId) {
+  const { data: lessons, error } = await supabase
+    .from('lessons')
+    .select('id, arabic_word, arabic_word_meaning, content')
+    .eq('stage_id', stageId)
+    .order('order_index');
+  if (error) throw new Error(error.message);
+
+  const byWord = new Map();
+  for (const { id, arabic_word: arabic, arabic_word_meaning: meaning, content } of lessons) {
+    if (content?.type === 'reading' || !arabic || byWord.has(arabic)) continue;
+    byWord.set(arabic, { lessonId: id, arabic, meaning, transliteration: content?.transliteration });
+  }
+  return [...byWord.values()];
+}
+
+export async function getFavoriteWordIds(childId, stageId) {
+  const { data: lessons, error: lessonsError } = await supabase.from('lessons').select('id').eq('stage_id', stageId);
+  if (lessonsError) throw new Error(lessonsError.message);
+  const lessonIds = lessons.map((l) => l.id);
+  if (lessonIds.length === 0) return [];
+
+  const { data, error } = await supabase
+    .from('stage_vocabulary_favorites')
+    .select('lesson_id')
+    .eq('child_id', childId)
+    .in('lesson_id', lessonIds);
+  if (error) throw new Error(error.message);
+  return data.map((r) => r.lesson_id);
+}
+
+/** Toggles a word's favorite status; returns the new state (true = now favorited). */
+export async function toggleFavoriteWord(childId, lessonId, currentlyFavorited) {
+  if (currentlyFavorited) {
+    const { error } = await supabase
+      .from('stage_vocabulary_favorites')
+      .delete()
+      .eq('child_id', childId)
+      .eq('lesson_id', lessonId);
+    if (error) throw new Error(error.message);
+    return false;
+  }
+  const { error } = await supabase
+    .from('stage_vocabulary_favorites')
+    .upsert({ child_id: childId, lesson_id: lessonId }, { onConflict: 'child_id,lesson_id' });
+  if (error) throw new Error(error.message);
+  return true;
+}
+
+export async function getStageReadingPassages(stageId) {
+  const { data, error } = await supabase
+    .from('stage_reading_passages')
+    .select('id, text_content, translation, order_index')
+    .eq('stage_id', stageId)
+    .order('order_index');
+  if (error) throw new Error(error.message);
+  return data.map((p) => ({ id: p.id, textContent: p.text_content, translation: p.translation, orderIndex: p.order_index }));
+}
+
+/** The stage's mastery checkpoint (its highest checkpoint_order, is_mastery
+ * true) - same shape as getStageCheckpoint, reused by the Practice tab as a
+ * replayable, non-gating quiz. */
+export async function getStageMasteryCheckpoint(stageId) {
+  const { data: se, error } = await supabase
+    .from('stage_exercises')
+    .select('*, exercise_questions(*)')
+    .eq('stage_id', stageId)
+    .eq('is_mastery', true)
+    .maybeSingle();
+  if (error) throw new Error(error.message);
+  if (!se) return null;
+
+  return {
+    id: se.id,
+    stageId: se.stage_id,
+    checkpointOrder: se.checkpoint_order,
+    isMastery: se.is_mastery,
+    questions: se.exercise_questions
+      .slice()
+      .sort((a, b) => a.question_number - b.question_number)
+      .map((q) => ({
+        id: q.id,
+        questionNumber: q.question_number,
+        title: q.title,
+        instruction: q.instruction,
+        options: q.options,
+        correctAnswer: q.correct_answer,
+        explanation: q.explanation,
+      })),
+  };
+}
+
+/** Logs any Review Hub tab-open/attempt for parent-facing engagement
+ * analytics later - purely additive, never read by gating logic. `score` is
+ * optional (only Practice/Play attempts are scored). */
+export async function logReviewActivity(childId, stageId, tabType, score = null) {
+  const { error } = await supabase.from('review_activity').insert({ child_id: childId, stage_id: stageId, tab_type: tabType, score });
+  if (error) throw new Error(error.message);
+}
