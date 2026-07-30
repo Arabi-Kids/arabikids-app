@@ -166,3 +166,30 @@ export async function updateLevel(levelId, updates) {
   const { error } = await supabaseAdmin.from('levels').update(updates).eq('id', levelId);
   if (error) throw new Error(error.message);
 }
+
+export async function listAdminNotifications() {
+  const { data, error } = await supabaseAdmin.from('admin_notifications').select('*').order('created_at', { ascending: false });
+  if (error) throw new Error(error.message);
+  return data;
+}
+
+/** Calls the send-admin-notification Netlify Function under the ADMIN
+ * portal's own session (supabaseAdmin, distinct storage key from the public
+ * app's client) - the first admin action in this codebase that needs a
+ * server-side effect (sending push with a private VAPID key) rather than a
+ * direct Supabase call under is_admin() RLS. */
+export async function sendAdminNotification({ title, body, url, sendEmail }) {
+  const {
+    data: { session },
+  } = await supabaseAdmin.auth.getSession();
+  if (!session?.access_token) throw new Error('Not authenticated.');
+
+  const res = await fetch('/api/send-admin-notification', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session.access_token}` },
+    body: JSON.stringify({ title, body, url: url || undefined, sendEmail: !!sendEmail }),
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data.message || 'Failed to send notification.');
+  return data;
+}

@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.jsx';
 import { useActiveChild } from '../context/ActiveChildContext.jsx';
 import { functionsApi } from '../lib/functions.js';
-import { getCurriculum, renameChildProfile } from '../lib/db.js';
+import { getCurriculum, renameChildProfile, getNotifications } from '../lib/db.js';
 import HudMascot from '../components/HudMascot.jsx';
 
 export default function Account() {
@@ -20,6 +20,7 @@ export default function Account() {
   const [stagesById, setStagesById] = useState({});
   const [editingChildId, setEditingChildId] = useState(null);
   const [editingName, setEditingName] = useState('');
+  const [notifications, setNotifications] = useState([]);
 
   useEffect(() => {
     getCurriculum()
@@ -27,6 +28,10 @@ export default function Account() {
         setStagesById(Object.fromEntries(stages.map((s) => [s.id, s])));
       })
       .catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    getNotifications().then(setNotifications).catch(() => {});
   }, []);
 
   async function handleCancel() {
@@ -105,6 +110,28 @@ export default function Account() {
         <HudMascot pose="mark" size={44} />
         <h1 className="page-title" style={{ margin: 0 }}>My Account</h1>
       </div>
+
+      {notifications.length > 0 && (
+        <div className="card" style={{ marginBottom: 20 }}>
+          <h3 style={{ color: 'var(--color-blue)', marginTop: 0 }}>🔔 Announcements</h3>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+            {notifications.map((n) => (
+              <div key={n.id} style={{ borderTop: '1px solid #e0dccd', paddingTop: 12 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 12, flexWrap: 'wrap' }}>
+                  <p style={{ margin: 0, fontWeight: 700, color: 'var(--color-blue)' }}>{n.title}</p>
+                  <p style={{ margin: 0, color: '#8ea0b6', fontSize: '0.8rem' }}>{new Date(n.created_at).toLocaleDateString()}</p>
+                </div>
+                <p style={{ margin: '6px 0 0', color: '#4b5a6a' }}>{n.body}</p>
+                {n.url && (
+                  <Link to={n.url} style={{ display: 'inline-block', marginTop: 6, color: 'var(--color-blue)', fontWeight: 700 }}>
+                    Learn more →
+                  </Link>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       <div className="card" style={{ marginBottom: 20 }}>
         <h3 style={{ color: 'var(--color-blue)', marginTop: 0 }}>Profile</h3>

@@ -21,6 +21,7 @@ export default function AdminLayout() {
         <NavLink to="/admin/subscriptions" className={({ isActive }) => (isActive ? 'active' : '')}>Subscriptions</NavLink>
         <NavLink to="/admin/lessons" className={({ isActive }) => (isActive ? 'active' : '')}>Lessons Manager</NavLink>
         <NavLink to="/admin/support" className={({ isActive }) => (isActive ? 'active' : '')}>Support</NavLink>
+        <NavLink to="/admin/notifications" className={({ isActive }) => (isActive ? 'active' : '')}>Notifications</NavLink>
         <button
           onClick={handleLogout}
           style={{

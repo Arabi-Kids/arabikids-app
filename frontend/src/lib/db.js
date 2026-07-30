@@ -835,3 +835,19 @@ export async function logReviewActivity(childId, stageId, tabType, score = null)
   const { error } = await supabase.from('review_activity').insert({ child_id: childId, stage_id: stageId, tab_type: tabType, score });
   if (error) throw new Error(error.message);
 }
+
+// ---------------------------------------------------------------------------
+// In-app notification feed - reads what the admin portal broadcasts via
+// send-admin-notification.js. Same table backs the admin's send-history
+// list; this is the customer-facing side of it (see Account.jsx).
+// ---------------------------------------------------------------------------
+
+export async function getNotifications(limit = 20) {
+  const { data, error } = await supabase
+    .from('admin_notifications')
+    .select('id, title, body, url, created_at')
+    .order('created_at', { ascending: false })
+    .limit(limit);
+  if (error) throw new Error(error.message);
+  return data;
+}
