@@ -28,7 +28,7 @@ export default function LetterPositions({ letter, positions }) {
   return (
     <div style={{ marginTop: 12 }}>
       <p style={{ margin: '0 0 6px', fontSize: '0.8rem', color: '#8ea0b6' }}>Shapes in a word:</p>
-      <div style={{ display: 'flex', gap: 8, justifyContent: 'center' }}>
+      <div style={{ display: 'flex', gap: 8, justifyContent: 'center', flexWrap: 'wrap' }}>
         {order.map((pos) => (
           <button
             key={pos}

@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 import HeroAnimation from '../components/HeroAnimation.jsx';
-import { BookIcon, PathIcon, TargetIcon, DeviceIcon } from '../components/Icons.jsx';
+import { BookIcon, PathIcon, TargetIcon, DeviceIcon, StarSparkleIcon } from '../components/Icons.jsx';
 
 const TRUST_STRIP = [
   ['16', 'Stages, One Journey'],
@@ -14,6 +14,7 @@ const FEATURES = [
   { Icon: PathIcon, title: 'One Continuous Path', text: 'From first letters to fluent reading — no separate tracks, just the right stage for your child.' },
   { Icon: TargetIcon, title: 'Interactive', text: 'Every stage ends in a checkpoint review, not passive video watching.' },
   { Icon: DeviceIcon, title: 'Any Device', text: 'Works on phone, tablet or laptop, so kids can learn wherever you are.' },
+  { Icon: StarSparkleIcon, title: 'Review Hub', text: 'Once a stage is mastered, revisit it anytime — rewatch the recap, browse vocabulary, read, trace, practice, and play, all for free reinforcement.' },
 ];
 
 const LEVELS = [

@@ -141,7 +141,7 @@ export default function Lesson() {
         <div className="card" style={{ marginBottom: 20 }}>
           <span className="badge badge-gold">Hear the Letters</span>
           <p style={{ margin: '10px 0 16px', color: '#4b5a6a' }}>Tap each letter to hear how it sounds.</p>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 16 }}>
             {content.letters.map((item, i) => (
               <div
                 key={i}
@@ -180,7 +180,7 @@ export default function Lesson() {
             <div key={li} style={{ marginBottom: li < content.letters.length - 1 ? 16 : 0 }}>
               <p style={{ margin: '0 0 8px', fontWeight: 700, color: 'var(--color-blue)' }}>{l.name}</p>
               {l.harakatSet ? (
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10 }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(90px, 1fr))', gap: 10 }}>
                   {['fatha', 'kasra', 'damma'].map((key) => {
                     const item = l.harakatSet[key];
                     return (
@@ -224,7 +224,7 @@ export default function Lesson() {
           <p style={{ margin: '10px 0 16px', color: '#4b5a6a' }}>
             Trace each letter with your finger or mouse - try its Start, Middle and End shapes too.
           </p>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))', gap: 16 }}>
             {content.letters.map((item, i) => (
               <LetterTraceCanvas key={i} letter={item.letter} positions={item.positions} />
             ))}
@@ -236,7 +236,7 @@ export default function Lesson() {
         <div className="card" style={{ marginBottom: 20 }}>
           <span className="badge badge-gold">Short vs Long</span>
           <p style={{ margin: '10px 0 16px', color: '#4b5a6a' }}>Tap each box to hear the difference in length.</p>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 16 }}>
             {['short', 'long'].map((key) => {
               const item = content.maddPair[key];
               const isLong = key === 'long';
@@ -272,7 +272,7 @@ export default function Lesson() {
           {content.letters.filter((l) => l.maddPair).map((l, li) => (
             <div key={li} style={{ marginBottom: li < content.letters.length - 1 ? 16 : 0 }}>
               <p style={{ margin: '0 0 8px', fontWeight: 700, color: 'var(--color-blue)' }}>{l.name}</p>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 16 }}>
                 {['short', 'long'].map((key) => {
                   const item = l.maddPair[key];
                   const isLong = key === 'long';
@@ -307,7 +307,7 @@ export default function Lesson() {
         <div className="card" style={{ marginBottom: 20 }}>
           <span className="badge badge-gold">Tanween's 3 Forms</span>
           <p style={{ margin: '10px 0 16px', color: '#4b5a6a' }}>{content.tanweenForms.intro}</p>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(100px, 1fr))', gap: 10 }}>
             {content.tanweenForms.forms.map((form) => (
               <button
                 key={form.key}
@@ -335,7 +335,7 @@ export default function Lesson() {
         <div className="card" style={{ marginBottom: 20 }}>
           <span className="badge badge-gold">Compare Both Sides</span>
           {content.comparisonSet.intro && <p style={{ margin: '10px 0 16px', color: '#4b5a6a' }}>{content.comparisonSet.intro}</p>}
-          <div style={{ display: 'grid', gridTemplateColumns: `repeat(${content.comparisonSet.items.length}, 1fr)`, gap: 10 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: 10 }}>
             {content.comparisonSet.items.map((item, i) => (
               <button
                 key={i}
