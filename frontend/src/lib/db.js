@@ -535,29 +535,6 @@ async function checkLevelBadge(childId, stageId) {
   return awardBadges(childId, [badgeCode]);
 }
 
-/** Whether every stage in a level has been mastered by this child - gates
- * that level's printable worksheet. Same "all stages mastered" check as
- * checkLevelBadge above, just parameterized by levelId directly instead of
- * derived from a stageId. */
-export async function isLevelComplete(childId, levelId) {
-  const { data: levelStages, error: levelStagesError } = await supabase.from('stages').select('id').eq('level_id', levelId);
-  if (levelStagesError) throw new Error(levelStagesError.message);
-  if (levelStages.length === 0) return false;
-
-  const { data: masteredRows, error: masteredError } = await supabase
-    .from('child_stage_progress')
-    .select('stage_id')
-    .eq('child_id', childId)
-    .in(
-      'stage_id',
-      levelStages.map((s) => s.id)
-    )
-    .not('mastery_passed_at', 'is', null);
-  if (masteredError) throw new Error(masteredError.message);
-
-  return masteredRows.length >= levelStages.length;
-}
-
 /** Aggregates the unique letters/tanween/tajweed/vocabulary/comparison content
  * taught across a level's stages, for that level's printable worksheet -
  * derived from the live `lessons` table (single source of truth) rather than
@@ -565,10 +542,18 @@ export async function isLevelComplete(childId, levelId) {
  * Node-only - dotenv/node:url - and can't be imported into browser code).
  * Letters/tanween only ever appear in Level 1 (Stages 1-4); vocabulary and
  * comparisonSet cover every level, so the later levels' worksheets aren't
- * near-empty. */
-export async function getLevelPrintableData(levelId) {
-  const { data: stages, error: stagesError } = await supabase.from('stages').select('id').eq('level_id', levelId);
-  if (stagesError) throw new Error(stagesError.message);
+ * near-empty. `stageIds` optionally scopes the sheet to just the stages the
+ * child has actually mastered so far (see LevelPrintable.jsx) instead of
+ * every stage in the level - defaults to the whole level when omitted. */
+export async function getLevelPrintableData(levelId, stageIds) {
+  let stages;
+  if (stageIds) {
+    stages = stageIds.map((id) => ({ id }));
+  } else {
+    const { data, error: stagesError } = await supabase.from('stages').select('id').eq('level_id', levelId);
+    if (stagesError) throw new Error(stagesError.message);
+    stages = data;
+  }
   if (stages.length === 0) return { letters: [], tajweedRules: [], tanweenForms: null, vocabulary: [], comparisons: [] };
 
   const { data: lessons, error: lessonsError } = await supabase

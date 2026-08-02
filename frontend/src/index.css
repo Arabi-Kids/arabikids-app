@@ -419,6 +419,118 @@ button {
   }
 }
 
+/* ---------------- Stage recap animation (narrated slideshow, no video file) ---------------- */
+.stage-recap-anim {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.stage-recap-anim-progress {
+  width: 100%;
+  max-width: 420px;
+  height: 6px;
+  border-radius: 999px;
+  background: var(--color-sky);
+  overflow: hidden;
+  margin-bottom: 20px;
+}
+
+.stage-recap-anim-progress-bar {
+  height: 100%;
+  background: var(--color-gold);
+  transition: width 0.3s ease;
+}
+
+.stage-recap-anim-slide {
+  width: 100%;
+  max-width: 420px;
+  min-height: 220px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 24px;
+  animation: recapSlideIn 0.35s ease;
+}
+
+@keyframes recapSlideIn {
+  from { opacity: 0; transform: translateY(8px) scale(0.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.stage-recap-anim-badge {
+  display: inline-block;
+  background: var(--color-sky);
+  color: var(--color-blue);
+  font-weight: 800;
+  font-size: 0.75rem;
+  padding: 4px 10px;
+  border-radius: 999px;
+  margin: 12px 0 6px;
+}
+
+.stage-recap-anim-title {
+  color: var(--color-blue);
+  margin: 4px 0;
+}
+
+.stage-recap-anim-arabic {
+  font-size: 3.2rem;
+  margin: 0 0 10px;
+  color: var(--color-blue-dark);
+}
+
+.stage-recap-anim-label {
+  margin: 0 0 4px;
+  font-weight: 700;
+  color: var(--color-blue);
+}
+
+.stage-recap-anim-meaning {
+  margin: 0;
+  color: #6b7a8a;
+}
+
+.stage-recap-anim-compare {
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.stage-recap-anim-compare-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  background: #fff;
+  border: 2px solid var(--color-blue);
+  border-radius: var(--radius-md);
+  padding: 14px 18px;
+  font-size: 1.6rem;
+  cursor: pointer;
+}
+
+.stage-recap-anim-compare-item span:last-child {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #6b7a8a;
+}
+
+.stage-recap-anim-controls {
+  display: flex;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .stage-recap-anim-slide {
+    animation: none;
+  }
+}
+
 /* ---------------- How It Works: 4-step lesson walkthrough animation ---------------- */
 .walkthrough-animation {
   position: relative;

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useActiveChild } from '../context/ActiveChildContext.jsx';
-import { getCurriculum, getLevelPrintableData, isLevelComplete } from '../lib/db.js';
+import { getCurriculum, getLevelPrintableData, listMasteredStageIds } from '../lib/db.js';
 import { SHAPES } from '../components/LetterPositions.jsx';
 import { speakSmart } from '../lib/speech.js';
 import HudMascot from '../components/HudMascot.jsx';
@@ -10,9 +10,12 @@ const POSITION_ORDER = ['isolated', 'initial', 'medial', 'final'];
 const POSITION_LABELS = { isolated: 'Alone', initial: 'Start', medial: 'Middle', final: 'End' };
 
 // Print-optimized worksheet - @media print CSS lets the browser's own
-// "Print to PDF" cover the hard-copy need, no PDF library required. Gated
-// behind isLevelComplete so it only unlocks once every stage in the level
-// is mastered.
+// "Print to PDF" cover the hard-copy need, no PDF library required. Unlocks
+// as soon as the child has mastered at least one stage in the level (used to
+// require every stage in the level, which meant a free-tier child - who only
+// ever has Stage 1 of Level 1 unlocked - could never reach it). The sheet
+// itself is scoped to just the stages they've actually mastered so far, so
+// it never previews content from stages they haven't reached yet.
 export default function LevelPrintable() {
   const { levelId } = useParams();
   const { activeChild } = useActiveChild();
@@ -26,11 +29,16 @@ export default function LevelPrintable() {
     if (!activeChild) return;
     setLoading(true);
     setError('');
-    Promise.all([getCurriculum(), isLevelComplete(activeChild.id, Number(levelId)), getLevelPrintableData(Number(levelId))])
-      .then(([{ levels }, complete, printableData]) => {
-        setLevel(levels.find((l) => l.id === Number(levelId)));
-        setUnlocked(complete);
-        setData(printableData);
+    Promise.all([getCurriculum(), listMasteredStageIds(activeChild.id)])
+      .then(async ([{ levels }, masteredIds]) => {
+        const levelRow = levels.find((l) => l.id === Number(levelId));
+        setLevel(levelRow);
+        if (!levelRow) return;
+        const masteredStageIdsInLevel = levelRow.stages.filter((s) => masteredIds.includes(s.id)).map((s) => s.id);
+        setUnlocked(masteredStageIdsInLevel.length > 0);
+        if (masteredStageIdsInLevel.length > 0) {
+          setData(await getLevelPrintableData(Number(levelId), masteredStageIdsInLevel));
+        }
       })
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
@@ -53,7 +61,7 @@ export default function LevelPrintable() {
       <div className="container" style={{ padding: 60, textAlign: 'center' }}>
         <HudMascot pose="mark" size={72} style={{ margin: '0 auto 12px' }} />
         <h1 className="page-title">Not quite yet</h1>
-        <p className="page-subtitle">Complete every stage in {level.name} first to unlock its printable worksheet.</p>
+        <p className="page-subtitle">Master at least one stage in {level.name} first to unlock its printable worksheet.</p>
         <Link to="/lessons/curriculum" className="btn btn-primary">Back to Curriculum</Link>
       </div>
     );

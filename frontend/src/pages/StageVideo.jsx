@@ -3,6 +3,7 @@ import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useActiveChild } from '../context/ActiveChildContext.jsx';
 import { getCurriculum, getStageVideoStatus, completeStageVideoForChild } from '../lib/db.js';
 import HudMascot from '../components/HudMascot.jsx';
+import StageRecapAnimation from '../components/StageRecapAnimation.jsx';
 
 export default function StageVideo() {
   const { stageId } = useParams();
@@ -84,13 +85,8 @@ export default function StageVideo() {
           <video controls src={status.videoUrl} style={{ width: '100%', display: 'block' }} />
         </div>
       ) : (
-        <div className="card" style={{ textAlign: 'center', marginBottom: 24, padding: 48 }}>
-          <HudMascot pose="mark" size={90} style={{ margin: '0 auto 16px' }} />
-          <h3 style={{ margin: '0 0 8px', color: 'var(--color-blue)' }}>Video coming soon!</h3>
-          <p style={{ color: '#6b7a8a', margin: 0 }}>
-            We're producing a fun sing-along recap of everything you learned in Stage {stage.orderIndex}.
-            Check back soon — for now, keep going!
-          </p>
+        <div className="card" style={{ marginBottom: 24, padding: 24 }}>
+          <StageRecapAnimation stageId={Number(stageId)} stageName={stage.name} />
         </div>
       )}
 
