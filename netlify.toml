@@ -46,3 +46,8 @@
   for = "/manifest.webmanifest"
   [headers.values]
     Cache-Control = "no-cache"
+
+[[headers]]
+  for = "/admin-manifest.webmanifest"
+  [headers.values]
+    Cache-Control = "no-cache"

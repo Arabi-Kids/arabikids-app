@@ -65,15 +65,13 @@ export default function StageLessons() {
       </div>
       {stage.introKids && <p style={{ margin: '6px 0 20px', color: '#4b5a6a', fontSize: '1.05rem' }}>{stage.introKids}</p>}
 
-      {mastered && (
-        <Link
-          to={`/lessons/stage/${stage.id}/review`}
-          className="badge badge-gold"
-          style={{ textDecoration: 'none', display: 'inline-block', marginBottom: 20 }}
-        >
-          🔄 Review This Stage
-        </Link>
-      )}
+      <Link
+        to={`/lessons/stage/${stage.id}/review`}
+        className={mastered ? 'badge badge-gold' : 'badge badge-locked'}
+        style={{ textDecoration: 'none', display: 'inline-block', marginBottom: 20 }}
+      >
+        {mastered ? '🔄 Review This Stage' : '🔒 Review Hub'}
+      </Link>
 
       {error && <p className="error-text">{error}</p>}
 

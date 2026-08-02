@@ -144,6 +144,125 @@ export default function Home() {
         </div>
       </section>
 
+      <section style={{ background: 'var(--color-sky)', padding: '60px 0' }}>
+        <div className="container">
+          <h2 className="page-title" style={{ textAlign: 'center' }}>
+            See the Review Hub in Action
+          </h2>
+          <p className="page-subtitle" style={{ textAlign: 'center' }}>
+            Once a stage is mastered, your child unlocks a free reinforcement space — here&apos;s a taste
+            of two of the six activities inside.
+          </p>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 24 }}>
+            <div className="card">
+              <span className="badge badge-gold" style={{ marginBottom: 12 }}>🎬 Watch &amp; Learn</span>
+              <h3 style={{ color: 'var(--color-blue)', margin: '4px 0 10px' }}>Rewatch the stage recap, anytime</h3>
+              <div
+                style={{
+                  position: 'relative',
+                  borderRadius: 'var(--radius-md)',
+                  background: 'var(--color-blue-dark)',
+                  aspectRatio: '16/9',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  marginBottom: 12,
+                }}
+              >
+                <div
+                  style={{
+                    width: 56,
+                    height: 56,
+                    borderRadius: '50%',
+                    background: 'rgba(255,255,255,0.15)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: '#fff',
+                    fontSize: '1.4rem',
+                  }}
+                >
+                  ▶
+                </div>
+                <span
+                  className="arabic-text"
+                  dir="rtl"
+                  style={{ position: 'absolute', bottom: 10, left: 14, color: 'var(--color-gold-light)', fontWeight: 700 }}
+                >
+                  بِسْمِ اللَّٰهِ
+                </span>
+              </div>
+              <p style={{ color: '#5a6a7a', margin: 0 }}>
+                The full recap video plus every lesson&apos;s vocabulary, free to browse again.
+              </p>
+            </div>
+            <div className="card">
+              <span className="badge badge-gold" style={{ marginBottom: 12 }}>🎮 Play</span>
+              <h3 style={{ color: 'var(--color-blue)', margin: '4px 0 10px' }}>Match the word to its meaning</h3>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 12 }}>
+                <div
+                  className="arabic-text"
+                  dir="rtl"
+                  style={{
+                    padding: '10px 8px',
+                    borderRadius: 'var(--radius-sm)',
+                    border: '2px solid var(--color-gold)',
+                    background: 'rgba(200,150,12,0.08)',
+                    textAlign: 'center',
+                    fontSize: '1.1rem',
+                  }}
+                >
+                  كِتَاب
+                </div>
+                <div
+                  style={{
+                    padding: '10px 8px',
+                    borderRadius: 'var(--radius-sm)',
+                    border: '2px solid var(--color-gold)',
+                    background: 'rgba(200,150,12,0.08)',
+                    textAlign: 'center',
+                    fontSize: '0.9rem',
+                    fontWeight: 700,
+                  }}
+                >
+                  Book
+                </div>
+                <div
+                  className="arabic-text"
+                  dir="rtl"
+                  style={{
+                    padding: '10px 8px',
+                    borderRadius: 'var(--radius-sm)',
+                    border: '2px solid var(--color-blue)',
+                    textAlign: 'center',
+                    fontSize: '1.1rem',
+                    opacity: 0.6,
+                  }}
+                >
+                  بَيْت
+                </div>
+                <div
+                  style={{
+                    padding: '10px 8px',
+                    borderRadius: 'var(--radius-sm)',
+                    border: '2px solid var(--color-blue)',
+                    textAlign: 'center',
+                    fontSize: '0.9rem',
+                    fontWeight: 700,
+                    opacity: 0.6,
+                  }}
+                >
+                  House
+                </div>
+              </div>
+              <p style={{ color: '#5a6a7a', margin: 0 }}>
+                A quick matching game pulled straight from the stage&apos;s own vocabulary — no pass or fail, just stars.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
       <section className="container" style={{ padding: '60px 0' }}>
         <h2 className="page-title" style={{ textAlign: 'center' }}>
           How It Works

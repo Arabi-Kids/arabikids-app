@@ -205,7 +205,7 @@ export default function ArabicCurriculumHub() {
                       )}
                     </>
                   )}
-                  {isMastered && (
+                  {state === 'active' && (
                     <button
                       type="button"
                       onClick={(e) => {
@@ -213,10 +213,10 @@ export default function ArabicCurriculumHub() {
                         e.stopPropagation();
                         navigate(`/lessons/stage/${stage.id}/review`);
                       }}
-                      className="badge badge-gold"
+                      className={isMastered ? 'badge badge-gold' : 'badge badge-locked'}
                       style={{ display: 'inline-block', marginTop: 10, border: 'none', cursor: 'pointer' }}
                     >
-                      🔄 Review This Stage
+                      {isMastered ? '🔄 Review This Stage' : '🔒 Review Hub'}
                     </button>
                   )}
                 </Link>

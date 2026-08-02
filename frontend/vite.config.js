@@ -6,9 +6,9 @@ export default defineConfig({
   plugins: [
     react(),
     VitePWA({
-      // We register the service worker ourselves from main.jsx (and skip it
-      // entirely on /admin/* routes) instead of letting the plugin auto-inject
-      // registration — the admin portal must stay a plain, non-installable app.
+      // We register the service worker ourselves from main.jsx, which also
+      // swaps in a separate manifest (admin-manifest.webmanifest) on /admin/*
+      // routes so the admin portal installs as its own PWA.
       injectRegister: false,
       registerType: 'autoUpdate',
       includeAssets: ['icons/apple-touch-icon.png'],
