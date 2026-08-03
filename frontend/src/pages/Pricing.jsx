@@ -1,12 +1,29 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.jsx';
-import { functionsApi } from '../lib/functions.js';
 import HudMascot from '../components/HudMascot.jsx';
 
 const TIER_PRICING = {
   standard: { monthly: '$9.99', annual: '$89.99', childLine: 'One child profile' },
   family: { monthly: '$14.99', annual: '$134.99', childLine: 'Multiple child profiles (1.5x Standard price)' },
+};
+
+// Stripe Payment Links (created directly in the Stripe Dashboard, one per
+// package) instead of a dynamically-created Checkout Session - no server
+// call needed to start checkout. Each link must have its own `tier`/`plan`
+// metadata set in the Dashboard (Payment Link -> Advanced options ->
+// Metadata) so stripe-webhook.js can tell which package was purchased; the
+// buying user's id is appended below as `client_reference_id` so the
+// webhook can link the resulting subscription back to their account.
+const PAYMENT_LINKS = {
+  standard: {
+    monthly: import.meta.env.VITE_STRIPE_LINK_STANDARD_MONTHLY,
+    annual: import.meta.env.VITE_STRIPE_LINK_STANDARD_ANNUAL,
+  },
+  family: {
+    monthly: import.meta.env.VITE_STRIPE_LINK_FAMILY_MONTHLY,
+    annual: import.meta.env.VITE_STRIPE_LINK_FAMILY_ANNUAL,
+  },
 };
 
 const FAQS = [
@@ -59,7 +76,7 @@ export default function Pricing() {
     ['Price', '$0', `${pricing.monthly}/mo`, `${pricing.annual}/yr`],
   ];
 
-  async function handleChoose(planId) {
+  function handleChoose(planId) {
     if (planId === 'free') {
       navigate(user ? '/lessons' : '/signup');
       return;
@@ -69,16 +86,16 @@ export default function Pricing() {
       return;
     }
     setError('');
-    setLoadingPlan(planId);
-    try {
-      const { url } = await functionsApi.createCheckout(planId, tier);
-      if (!url) throw new Error('Could not start checkout — please try again.');
-      window.location.href = url;
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setLoadingPlan(null);
+    const link = PAYMENT_LINKS[tier]?.[planId];
+    if (!link) {
+      setError('This plan is not available for checkout yet — please try again shortly.');
+      return;
     }
+    setLoadingPlan(planId);
+    const url = new URL(link);
+    url.searchParams.set('client_reference_id', user.id);
+    if (user.email) url.searchParams.set('prefilled_email', user.email);
+    window.location.href = url.toString();
   }
 
   return (

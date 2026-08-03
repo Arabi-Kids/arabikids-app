@@ -93,7 +93,25 @@ exports.handler = async (event) => {
       case 'checkout.session.completed': {
         const session = stripeEvent.data.object;
         if (session.subscription) {
-          const subscription = await stripe.subscriptions.retrieve(session.subscription);
+          let subscription = await stripe.subscriptions.retrieve(session.subscription);
+          // Subscriptions started from a Stripe-Dashboard Payment Link (rather
+          // than a Checkout Session we created ourselves) never get a userId
+          // in their metadata automatically - backfill it here from
+          // client_reference_id (the app appends this as a URL param when
+          // linking to the Payment Link) and from the Payment Link's own
+          // metadata (plan/tier, set once per link in the Dashboard, which
+          // Stripe copies onto session.metadata). Once written back onto the
+          // subscription itself, every later event (renewal, cancellation,
+          // etc.) keeps resolving the same way via subscription.metadata.
+          if (!subscription.metadata?.userId && session.client_reference_id) {
+            subscription = await stripe.subscriptions.update(subscription.id, {
+              metadata: {
+                userId: session.client_reference_id,
+                plan: session.metadata?.plan || '',
+                tier: session.metadata?.tier || 'standard',
+              },
+            });
+          }
           const result = await updateUserFromSubscription(supabase, subscription, eventCreatedAt);
           if (result) {
             notifyAdmin(

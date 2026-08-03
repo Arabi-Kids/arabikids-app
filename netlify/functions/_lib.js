@@ -14,19 +14,6 @@ function getStripe() {
   return new Stripe(process.env.STRIPE_SECRET_KEY, { apiVersion: '2024-06-20' });
 }
 
-// Family is priced at 1.5x Standard — a separate Stripe Price per tier/period
-// (not a quantity multiplier), so each has its own env-configured price ID.
-const PRICE_IDS = {
-  standard: {
-    monthly: process.env.STRIPE_MONTHLY_PRICE_ID,
-    annual: process.env.STRIPE_ANNUAL_PRICE_ID,
-  },
-  family: {
-    monthly: process.env.STRIPE_FAMILY_MONTHLY_PRICE_ID,
-    annual: process.env.STRIPE_FAMILY_ANNUAL_PRICE_ID,
-  },
-};
-
 // Verifies the caller's Supabase access token (sent as `Authorization: Bearer <token>`
 // from the frontend, using the session it already has) and returns that auth user.
 async function getAuthedUser(event) {
@@ -43,4 +30,4 @@ function json(statusCode, body) {
   return { statusCode, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) };
 }
 
-module.exports = { getServiceClient, getStripe, PRICE_IDS, getAuthedUser, json };
+module.exports = { getServiceClient, getStripe, getAuthedUser, json };

@@ -24,9 +24,6 @@ async function callFunction(path, body) {
 }
 
 export const functionsApi = {
-  createCheckout: (plan, tier = 'standard') => callFunction('/create-checkout', { plan, tier }),
-  billingPortal: () => callFunction('/billing-portal'),
-  cancelSubscription: () => callFunction('/cancel-subscription'),
   subscribeEnginemailer: (payload) => callFunction('/subscribe-enginemailer', payload),
   requestPasswordReset: (email) => callFunction('/request-password-reset', { email }),
   notifyPillarInterest: (email, pillarName) => callFunction('/notify-pillar-interest', { email, pillarName }),

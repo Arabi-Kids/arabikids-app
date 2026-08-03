@@ -2,9 +2,15 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.jsx';
 import { useActiveChild } from '../context/ActiveChildContext.jsx';
-import { functionsApi } from '../lib/functions.js';
 import { getCurriculum, renameChildProfile, getNotifications } from '../lib/db.js';
 import HudMascot from '../components/HudMascot.jsx';
+
+// Stripe's own hosted Customer Portal login link (Settings -> Billing ->
+// Customer portal in the Stripe Dashboard) - customers verify by email on
+// Stripe's side, so no app-side session/API call is needed to open it, and
+// it already covers cancel + plan-switch once those are enabled for this
+// portal configuration.
+const STRIPE_PORTAL_LINK = 'https://billing.stripe.com/p/login/28EaEZ2WJ2Ix2EacTZe3e00';
 
 export default function Account() {
   const { user, isPaid, changePassword } = useAuth();
@@ -15,7 +21,6 @@ export default function Account() {
 
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [showCancelConfirm, setShowCancelConfirm] = useState(false);
 
   const [stagesById, setStagesById] = useState({});
   const [editingChildId, setEditingChildId] = useState(null);
@@ -33,34 +38,6 @@ export default function Account() {
   useEffect(() => {
     getNotifications().then(setNotifications).catch(() => {});
   }, []);
-
-  async function handleCancel() {
-    setError('');
-    setMessage('');
-    setLoading(true);
-    setShowCancelConfirm(false);
-    try {
-      const data = await functionsApi.cancelSubscription();
-      setMessage(data.message);
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  async function handleBillingPortal() {
-    setError('');
-    setLoading(true);
-    try {
-      const { url } = await functionsApi.billingPortal();
-      if (!url) throw new Error('Could not open billing portal.');
-      window.location.href = url;
-    } catch (err) {
-      setError(err.message);
-      setLoading(false);
-    }
-  }
 
   async function handleChangePassword(e) {
     e.preventDefault();
@@ -224,24 +201,14 @@ export default function Account() {
 
         {isPaid() ? (
           <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
-            <button className="btn btn-outline" onClick={handleBillingPortal} disabled={loading}>
-              Manage Billing
-            </button>
-            {showCancelConfirm ? (
-              <>
-                <span style={{ alignSelf: 'center', fontWeight: 700 }}>Cancel at period end?</span>
-                <button className="btn btn-primary" onClick={handleCancel} disabled={loading}>
-                  {loading ? 'Working...' : 'Yes, Cancel'}
-                </button>
-                <button className="btn btn-outline" onClick={() => setShowCancelConfirm(false)} disabled={loading}>
-                  Never Mind
-                </button>
-              </>
-            ) : (
-              <button className="btn btn-outline" onClick={() => setShowCancelConfirm(true)} disabled={loading}>
-                Cancel Subscription
-              </button>
-            )}
+            <a
+              className="btn btn-outline"
+              href={`${STRIPE_PORTAL_LINK}?prefilled_email=${encodeURIComponent(user.email)}`}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Manage Subscription
+            </a>
           </div>
         ) : (
           <Link to="/pricing" className="btn btn-primary">
