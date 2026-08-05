@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 import HudMascot from '../components/HudMascot.jsx';
 import LessonWalkthroughAnimation from '../components/LessonWalkthroughAnimation.jsx';
+import Seo from '../components/Seo.jsx';
 
 const STEPS = [
   { num: 1, title: 'Sign Up', text: 'Create a free parent account, then add a profile for each child — every child gets their own starting stage.' },
@@ -21,6 +22,11 @@ const LEVELS = [
 export default function HowItWorks() {
   return (
     <div>
+      <Seo
+        title="How It Works | ArabiKids"
+        description="See how ArabiKids teaches Arabic and Qur'an together in one continuous journey, with checkpoints and progress tracking every step of the way."
+        path="/how-it-works"
+      />
       <div className="container" style={{ padding: '60px 0 40px', textAlign: 'center' }}>
         <HudMascot pose="mark" size={64} style={{ marginBottom: 12 }} />
         <h1 className="page-title">How ArabiKids Works</h1>

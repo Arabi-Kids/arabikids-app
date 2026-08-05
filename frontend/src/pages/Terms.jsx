@@ -1,3 +1,5 @@
+import Seo from '../components/Seo.jsx';
+
 const SECTION_STYLE = { marginBottom: 28 };
 const HEADING_STYLE = { color: 'var(--color-blue)' };
 const BODY_STYLE = { color: '#4b5a6a' };
@@ -6,6 +8,11 @@ const LIST_STYLE = { color: '#4b5a6a', paddingLeft: 20, margin: '8px 0 0' };
 export default function Terms() {
   return (
     <div className="container" style={{ padding: '60px 0', maxWidth: 760, margin: '0 auto' }}>
+      <Seo
+        title="Terms of Use | ArabiKids"
+        description="Read the ArabiKids terms of use governing your family's use of the platform."
+        path="/terms"
+      />
       <h1 className="page-title">Terms of Use</h1>
       <p style={{ color: '#8ea0b6' }}>Last Updated: July 19, 2026</p>
       <p style={BODY_STYLE}>

@@ -9,6 +9,7 @@ import HudMascot from '../components/HudMascot.jsx';
 import ZaydMascot from '../components/ZaydMascot.jsx';
 import AmalMascot from '../components/AmalMascot.jsx';
 import PushNotificationPrompt from '../components/PushNotificationPrompt.jsx';
+import Seo from '../components/Seo.jsx';
 
 export default function LessonHub() {
   const { user } = useAuth();
@@ -33,6 +34,11 @@ export default function LessonHub() {
 
   return (
     <div className="container" style={{ padding: '48px 0' }}>
+      <Seo
+        title="Lessons Hub | ArabiKids"
+        description="Explore ArabiKids' learning pillars and browse the 16-stage Arabic and Qur'an curriculum, from first letters to fluent recitation."
+        path="/lessons"
+      />
       <div style={{ display: 'flex', justifyContent: 'center', gap: 4, marginBottom: 8 }}>
         <HudMascot pose="mark" size={56} className="mascot-bounce" style={{ animationDelay: '0s' }} />
         <ZaydMascot pose="hero" size={56} className="mascot-bounce" style={{ animationDelay: '0.2s' }} />

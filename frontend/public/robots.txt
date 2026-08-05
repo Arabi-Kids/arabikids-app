@@ -1,0 +1,10 @@
+User-agent: *
+Allow: /
+Disallow: /account
+Disallow: /progress
+Disallow: /add-child
+Disallow: /thank-you
+Disallow: /reset-password
+Disallow: /admin
+
+Sitemap: https://arabikids.online/sitemap.xml

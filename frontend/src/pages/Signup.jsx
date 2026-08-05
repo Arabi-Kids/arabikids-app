@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.jsx';
 import { functionsApi } from '../lib/functions.js';
 import HudMascot from '../components/HudMascot.jsx';
+import Seo from '../components/Seo.jsx';
 
 export default function Signup() {
   const { register } = useAuth();
@@ -69,6 +70,11 @@ export default function Signup() {
 
   return (
     <div className="container">
+      <Seo
+        title="Sign Up Free | ArabiKids"
+        description="Create your free ArabiKids parent account. Stage 1 is free for every child, no credit card required."
+        path="/signup"
+      />
       <div className="card auth-card">
         <HudMascot pose="mark" size={56} style={{ margin: '0 auto 12px', display: 'block' }} />
         <h1 className="page-title" style={{ textAlign: 'center' }}>

@@ -1,3 +1,5 @@
+import Seo from '../components/Seo.jsx';
+
 const SECTION_STYLE = { marginBottom: 28 };
 const HEADING_STYLE = { color: 'var(--color-blue)' };
 const BODY_STYLE = { color: '#4b5a6a' };
@@ -6,6 +8,11 @@ const LIST_STYLE = { color: '#4b5a6a', paddingLeft: 20, margin: '8px 0 0' };
 export default function Privacy() {
   return (
     <div className="container" style={{ padding: '60px 0', maxWidth: 760, margin: '0 auto' }}>
+      <Seo
+        title="Privacy Policy | ArabiKids"
+        description="Read ArabiKids' privacy policy to learn how we collect, use, and protect your family's data."
+        path="/privacy"
+      />
       <h1 className="page-title">Privacy Policy</h1>
       <p style={{ color: '#8ea0b6' }}>Last Updated: July 19, 2026</p>
       <p style={BODY_STYLE}>

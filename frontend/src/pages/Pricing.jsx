@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.jsx';
 import HudMascot from '../components/HudMascot.jsx';
+import Seo from '../components/Seo.jsx';
 
 const TIER_PRICING = {
   standard: { monthly: '$9.99', annual: '$89.99', childLine: 'One child profile' },
@@ -100,6 +101,11 @@ export default function Pricing() {
 
   return (
     <div>
+    <Seo
+      title="Pricing | ArabiKids"
+      description="Simple, family-friendly pricing for ArabiKids. Start free with Stage 1, no credit card required, then upgrade to unlock all 16 stages."
+      path="/pricing"
+    />
     <div className="container" style={{ padding: '60px 0 24px', textAlign: 'center' }}>
       <HudMascot pose="mark" size={64} style={{ marginBottom: 12 }} />
       <h1 className="page-title">Simple, Family-Friendly Pricing</h1>

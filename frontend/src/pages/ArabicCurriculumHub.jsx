@@ -5,6 +5,13 @@ import { useActiveChild } from '../context/ActiveChildContext.jsx';
 import { getCurriculum, listMasteredStageIds } from '../lib/db.js';
 import HudMascot from '../components/HudMascot.jsx';
 import { StarSparkleIcon } from '../components/Icons.jsx';
+import Seo from '../components/Seo.jsx';
+
+const CURRICULUM_SEO = {
+  title: "Arabic & Qur'an Curriculum | ArabiKids",
+  description: "Browse all 16 stages of the ArabiKids Arabic and Qur'an curriculum, from first letters to full sentences and Qur'anic fluency.",
+  path: '/lessons/curriculum',
+};
 
 function stageState(stage, currentStageOrder, isPaidUser) {
   if (stage.orderIndex > currentStageOrder) return 'locked';
@@ -79,6 +86,7 @@ export default function ArabicCurriculumHub() {
   if (!user) {
     return (
       <div className="container" style={{ padding: '48px 0' }}>
+        <Seo {...CURRICULUM_SEO} />
         {header}
         <p className="page-subtitle">16 stages, one continuous journey — sign in or create a free account to start.</p>
         {searchBox}
@@ -127,6 +135,7 @@ export default function ArabicCurriculumHub() {
 
   return (
     <div className="container" style={{ padding: '48px 0' }}>
+      <Seo {...CURRICULUM_SEO} />
       {header}
       <p className="page-subtitle">
         {activeChild?.name}'s journey — {isPaid() ? 'full access to all 16 stages.' : 'Stage 1 is free. Subscribe to unlock the rest.'}

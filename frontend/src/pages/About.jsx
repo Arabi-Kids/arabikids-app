@@ -1,6 +1,7 @@
 import HudMascot from '../components/HudMascot.jsx';
 import ZaydMascot from '../components/ZaydMascot.jsx';
 import AmalMascot from '../components/AmalMascot.jsx';
+import Seo from '../components/Seo.jsx';
 
 const TEAM = [
   { name: 'Founder & Curriculum Lead', role: 'Arabic & Islamic Studies' },
@@ -11,6 +12,11 @@ const TEAM = [
 export default function About() {
   return (
     <div className="container" style={{ padding: '60px 0' }}>
+      <Seo
+        title="About Us | ArabiKids"
+        description="ArabiKids was built to help Muslim children growing up outside the Arab world understand the Arabic and Qur'an they recite."
+        path="/about"
+      />
       <h1 className="page-title" style={{ textAlign: 'center' }}>About ArabiKids</h1>
 
       <div style={{ display: 'flex', justifyContent: 'center', gap: 8, margin: '0 0 32px' }}>

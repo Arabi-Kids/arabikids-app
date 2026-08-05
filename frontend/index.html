@@ -5,7 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#1b4f8a" />
     <meta name="description" content="Arabic language learning platform for Muslim children aged 3-17, connecting every lesson to a Quranic word or verse." />
+    <meta name="robots" content="index, follow" />
     <title>ArabiKids - Teaching the Language of the Quran, One Kid at a Time</title>
+    <link rel="canonical" href="https://arabikids.online/" />
     <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
     <link rel="icon" type="image/png" sizes="32x32" href="/icons/favicon-32.png" />
     <link rel="icon" type="image/png" sizes="192x192" href="/icons/icon-192.png" />
@@ -15,6 +17,34 @@
       href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Amiri:wght@400;700&family=Baloo+2:wght@600;700;800&display=swap"
       rel="stylesheet"
     />
+
+    <!-- Open Graph / social sharing - Seo.jsx overrides title/description/url
+         per route once React mounts, for crawlers that execute JS. Non-JS
+         bots (most link-preview unfurlers) only ever see these defaults. -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="ArabiKids" />
+    <meta property="og:title" content="ArabiKids - Teaching the Language of the Quran, One Kid at a Time" />
+    <meta property="og:description" content="Arabic language learning platform for Muslim children aged 3-17, connecting every lesson to a Quranic word or verse." />
+    <meta property="og:url" content="https://arabikids.online/" />
+    <meta property="og:image" content="https://arabikids.online/icons/og-image.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="ArabiKids - Teaching the Language of the Quran, One Kid at a Time" />
+    <meta name="twitter:description" content="Arabic language learning platform for Muslim children aged 3-17, connecting every lesson to a Quranic word or verse." />
+    <meta name="twitter:image" content="https://arabikids.online/icons/og-image.png" />
+
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "EducationalOrganization",
+        "name": "ArabiKids",
+        "url": "https://arabikids.online/",
+        "logo": "https://arabikids.online/icons/icon-512.png",
+        "description": "ArabiKids teaches Arabic and Qur'an together in one continuous curriculum for Muslim children aged 3-17, connecting every lesson to a Qur'anic word or verse.",
+        "sameAs": []
+      }
+    </script>
   </head>
   <body>
     <div id="root"></div>
