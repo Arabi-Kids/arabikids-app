@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import { supabase } from '../lib/supabase.js';
 import { mapUserRow } from '../lib/db.js';
+import { getAttribution } from '../lib/attribution.js';
 
 const AuthContext = createContext(null);
 
@@ -78,6 +79,13 @@ export function AuthProvider({ children }) {
         profileRow = row;
         if (!profileRow) await new Promise((r) => setTimeout(r, 400));
       }
+
+      // Best-effort - a failed attribution write must never block signup.
+      const attribution = getAttribution();
+      if (attribution) {
+        supabase.from('users').update({ signup_source: attribution }).eq('id', data.user.id).then(() => {}, () => {});
+      }
+
       setUser(mapUserRow(profileRow));
       return { needsEmailConfirmation: false, user: mapUserRow(profileRow) };
     },

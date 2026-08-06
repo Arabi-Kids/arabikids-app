@@ -187,6 +187,17 @@ export default function Account() {
 
       <div className="card">
         <h3 style={{ color: 'var(--color-blue)', marginTop: 0 }}>Subscription</h3>
+        {user.subscriptionStatus === 'past_due' && (
+          <div style={{ background: 'rgba(197,48,48,0.08)', border: '1px solid #c53030', borderRadius: 'var(--radius-md)', padding: 14, marginBottom: 16 }}>
+            <p style={{ margin: 0, fontWeight: 700, color: '#c53030' }}>⚠️ Your last payment didn't go through</p>
+            <p style={{ margin: '6px 0 0', color: '#4b5a6a' }}>
+              Update your payment method below to keep full access.{' '}
+              <Link to="/checkout?status=failed" style={{ color: '#c53030', fontWeight: 700 }}>
+                Learn more
+              </Link>
+            </p>
+          </div>
+        )}
         <p>
           <strong>Status:</strong>{' '}
           <span className={isPaid() ? 'badge badge-free' : 'badge badge-locked'}>{user.subscriptionStatus}</span>

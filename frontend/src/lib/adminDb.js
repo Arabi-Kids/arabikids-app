@@ -52,7 +52,7 @@ export async function getDashboardStats() {
 export async function listUsers({ search, status } = {}) {
   let query = supabaseAdmin
     .from('users')
-    .select('id, name, email, role, subscription_status, subscription_plan, subscription_tier, created_at')
+    .select('id, name, email, role, subscription_status, subscription_plan, subscription_tier, created_at, signup_source')
     .order('created_at', { ascending: false });
 
   if (status) query = query.eq('subscription_status', status);

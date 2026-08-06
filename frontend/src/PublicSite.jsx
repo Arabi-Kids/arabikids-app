@@ -10,6 +10,7 @@ import SessionPacingReminder from './components/SessionPacingReminder.jsx';
 import Home from './pages/Home.jsx';
 import HowItWorks from './pages/HowItWorks.jsx';
 import Pricing from './pages/Pricing.jsx';
+import CheckoutStatus from './pages/CheckoutStatus.jsx';
 import About from './pages/About.jsx';
 import Contact from './pages/Contact.jsx';
 import Login from './pages/Login.jsx';
@@ -45,6 +46,7 @@ export default function PublicSite() {
               <Route path="/" element={<Home />} />
               <Route path="/how-it-works" element={<HowItWorks />} />
               <Route path="/pricing" element={<Pricing />} />
+              <Route path="/checkout" element={<CheckoutStatus />} />
               <Route path="/about" element={<About />} />
               <Route path="/contact" element={<Contact />} />
               <Route path="/login" element={<Login />} />

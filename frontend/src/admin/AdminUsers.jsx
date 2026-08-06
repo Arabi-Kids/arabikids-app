@@ -1,6 +1,24 @@
 import { useEffect, useState } from 'react';
 import { listUsers, updateUserSubscriptionStatus } from '../lib/adminDb.js';
 
+/** Best-effort human label for signup_source (see
+ * frontend/src/lib/attribution.js for what's actually captured). Prefers
+ * UTM campaign data (what a Google/Meta ad would set) over a bare referrer
+ * hostname, and falls back to "Direct" when neither is present. */
+function formatSource(source) {
+  if (!source) return 'Direct';
+  if (source.gclid) return `Google Ads${source.utmCampaign ? ` — ${source.utmCampaign}` : ''}`;
+  if (source.utmSource) return `${source.utmSource}${source.utmCampaign ? ` — ${source.utmCampaign}` : ''}`;
+  if (source.referrer) {
+    try {
+      return new URL(source.referrer).hostname.replace(/^www\./, '');
+    } catch {
+      return source.referrer;
+    }
+  }
+  return 'Direct';
+}
+
 export default function AdminUsers() {
   const [users, setUsers] = useState([]);
   const [search, setSearch] = useState('');
@@ -65,7 +83,7 @@ export default function AdminUsers() {
       <div className="admin-card">
         <table className="admin-table">
           <thead>
-            <tr><th>Name</th><th>Email</th><th>Children</th><th>Tier</th><th>Status</th><th>Manual Override</th></tr>
+            <tr><th>Name</th><th>Email</th><th>Children</th><th>Tier</th><th>Status</th><th>Registered</th><th>Source</th><th>Manual Override</th></tr>
           </thead>
           <tbody>
             {users.map((u) => (
@@ -75,6 +93,11 @@ export default function AdminUsers() {
                 <td>{u.children.length > 0 ? u.children.map((c) => c.name).join(', ') : '-'}</td>
                 <td style={{ textTransform: 'capitalize' }}>{u.subscription_tier}</td>
                 <td>{u.subscription_status}</td>
+                <td style={{ whiteSpace: 'nowrap' }}>
+                  {new Date(u.created_at).toLocaleDateString()}{' '}
+                  <span style={{ color: 'var(--admin-muted)' }}>{new Date(u.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                </td>
+                <td>{formatSource(u.signup_source)}</td>
                 <td>
                   <select
                     className="admin-input"
@@ -91,7 +114,7 @@ export default function AdminUsers() {
               </tr>
             ))}
             {users.length === 0 && (
-              <tr><td colSpan={6} style={{ textAlign: 'center', color: 'var(--admin-muted)' }}>No users found.</td></tr>
+              <tr><td colSpan={8} style={{ textAlign: 'center', color: 'var(--admin-muted)' }}>No users found.</td></tr>
             )}
           </tbody>
         </table>
