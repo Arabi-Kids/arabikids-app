@@ -25,8 +25,17 @@ export default function Footer() {
           <Link to="/contact" style={{ opacity: 0.85 }}>Contact</Link>
         </div>
       </div>
-      <div className="container" style={{ opacity: 0.7, fontSize: '0.85rem', marginTop: 16 }}>
-        &copy; {new Date().getFullYear()} ArabiKids. All rights reserved.
+      <div
+        className="container"
+        style={{ opacity: 0.7, fontSize: '0.85rem', marginTop: 16, display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: 8 }}
+      >
+        <span>&copy; {new Date().getFullYear()} ArabiKids. All rights reserved.</span>
+        <span>
+          Website by{' '}
+          <a href="https://techlabagency.online/" target="_blank" rel="noopener noreferrer" style={{ color: 'inherit' }}>
+            TechLab
+          </a>
+        </span>
       </div>
     </footer>
   );
