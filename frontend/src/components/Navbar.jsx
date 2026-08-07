@@ -4,12 +4,16 @@ import { useAuth } from '../context/AuthContext.jsx';
 import { useActiveChild } from '../context/ActiveChildContext.jsx';
 import { useLanguage } from '../context/LanguageContext.jsx';
 import HudMascot from './HudMascot.jsx';
+import { FLAG_ICONS } from './FlagIcons.jsx';
 import { isMuted, setMuted, playTap } from '../lib/sounds.js';
 
+// Short codes, not full names ("English"/"العربية"/"Bahasa Melayu") - a
+// compact trigger next to the mute button and hamburger, especially on
+// mobile where the full names crowded the header.
 const LANGUAGE_OPTIONS = [
-  { code: 'en', flag: '🇬🇧', label: 'English' },
-  { code: 'ar', flag: '🇸🇦', label: 'العربية' },
-  { code: 'ms', flag: '🇲🇾', label: 'Bahasa Melayu' },
+  { code: 'en', label: 'EN' },
+  { code: 'ar', label: 'AR' },
+  { code: 'ms', label: 'MS' },
 ];
 
 export default function Navbar() {
@@ -49,27 +53,34 @@ export default function Navbar() {
           Arabi<span style={{ color: 'var(--color-gold)' }}>Kids</span>
         </Link>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <select
-            aria-label="Language"
-            value={language}
-            onChange={(e) => setLanguage(e.target.value)}
-            style={{
-              background: 'none',
-              border: 'none',
-              cursor: 'pointer',
-              fontSize: '1rem',
-              padding: 4,
-              color: 'var(--color-blue)',
-              fontWeight: 700,
-            }}
-          >
-            {LANGUAGE_OPTIONS.map((opt) => (
-              <option key={opt.code} value={opt.code}>
-                {opt.flag} {opt.label}
-              </option>
-            ))}
-          </select>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+          <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+            {(() => {
+              const Flag = FLAG_ICONS[language];
+              return Flag ? <Flag size={18} /> : null;
+            })()}
+            <select
+              aria-label="Language"
+              value={language}
+              onChange={(e) => setLanguage(e.target.value)}
+              style={{
+                background: 'none',
+                border: 'none',
+                cursor: 'pointer',
+                fontSize: '0.9rem',
+                padding: '4px 2px',
+                color: 'var(--color-blue)',
+                fontWeight: 700,
+                maxWidth: 52,
+              }}
+            >
+              {LANGUAGE_OPTIONS.map((opt) => (
+                <option key={opt.code} value={opt.code}>
+                  {opt.label}
+                </option>
+              ))}
+            </select>
+          </span>
           <button
             type="button"
             aria-label={muted ? 'Unmute sounds' : 'Mute sounds'}

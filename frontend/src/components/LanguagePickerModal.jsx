@@ -1,10 +1,11 @@
 import { translations } from '../lib/i18n/translations.js';
 import HudMascot from './HudMascot.jsx';
+import { GBFlag, SAFlag, MYFlag } from './FlagIcons.jsx';
 
 const OPTIONS = [
-  { code: 'en', flag: '🇬🇧', labelKey: 'english' },
-  { code: 'ar', flag: '🇸🇦', labelKey: 'arabic' },
-  { code: 'ms', flag: '🇲🇾', labelKey: 'malay' },
+  { code: 'en', Flag: GBFlag, labelKey: 'english' },
+  { code: 'ar', Flag: SAFlag, labelKey: 'arabic' },
+  { code: 'ms', Flag: MYFlag, labelKey: 'malay' },
 ];
 
 // First-visit language picker - no "skip" option, per the product
@@ -50,7 +51,7 @@ export default function LanguagePickerModal({ onSelect }) {
               className="btn btn-outline btn-chunky"
               style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12, fontSize: '1.1rem' }}
             >
-              <span style={{ fontSize: '1.6rem' }}>{opt.flag}</span>
+              <opt.Flag size={28} />
               {copy[opt.labelKey]}
             </button>
           ))}

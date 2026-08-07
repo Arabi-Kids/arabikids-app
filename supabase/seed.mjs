@@ -226,7 +226,7 @@ export const LETTER_POSITIONS = {
   'ا': {
     initial: { word: 'اللّٰه', meaning: 'Allah', reference: 'used throughout the Quran', transliteration: 'Allah' },
     medial: { word: 'كِتَاب', meaning: 'book', reference: 'often refers to the Quran', transliteration: 'Kitab' },
-    final: { word: 'تَبَارَكَ', meaning: 'blessed is He', reference: 'Surah Al-Mulk 67:1', transliteration: 'Tabaraka' },
+    final: { word: 'هَٰذَا', meaning: 'this', reference: "Surah Al-An'am 6:155", transliteration: 'Hadha' },
   },
   'ب': {
     initial: { word: 'بِسْمِ', meaning: 'in the name of', reference: 'Surah Al-Fatihah 1:1', transliteration: 'Bismi' },
@@ -262,13 +262,13 @@ export const LETTER_POSITIONS = {
     final: { word: 'حَمْد', meaning: 'praise', reference: 'Surah Al-Fatihah 1:2', transliteration: 'Hamd' },
   },
   'ذ': {
-    final: { word: 'هَٰذِهِ', meaning: 'this (feminine)', reference: 'used throughout the Quran', transliteration: 'Hadhihi' },
+    final: { word: 'أَخَذَ', meaning: 'he took', reference: 'Surah Al-Baqarah 2:63', transliteration: 'Akhadha' },
   },
   'ر': {
     final: { word: 'ذِكْر', meaning: 'remembrance', reference: 'remembrance of Allah', transliteration: 'Dhikr' },
   },
   'ز': {
-    final: { word: 'إِنَّا نَحْنُ نَزَّلْنَا', meaning: 'indeed it is We who sent it down', reference: 'Surah Al-Hijr 15:9', transliteration: 'Inna nahnu nazzalna' },
+    final: { word: 'عَزِيز', meaning: 'Mighty / Exalted in Might', reference: 'a name of Allah', transliteration: 'Azeez' },
   },
   'س': {
     initial: { word: 'سَلَام', meaning: 'peace', reference: 'a name of Allah and Islamic greeting', transliteration: 'Salam' },
@@ -321,12 +321,12 @@ export const LETTER_POSITIONS = {
     final: { word: 'خَالِق', meaning: 'the Creator', reference: 'a name of Allah', transliteration: 'Khaliq' },
   },
   'ك': {
-    initial: { word: 'ذِكْر', meaning: 'remembrance', reference: 'remembrance of Allah', transliteration: 'Dhikr' },
+    initial: { word: 'كِتَاب', meaning: 'book', reference: 'often refers to the Quran', transliteration: 'Kitab' },
     medial: { word: 'شُكْر', meaning: 'gratitude', reference: 'being thankful to Allah', transliteration: 'Shukr' },
     final: { word: 'مَلِك', meaning: 'King / Sovereign', reference: 'Surah Al-Fatihah 1:4', transliteration: 'Malik' },
   },
   'ل': {
-    initial: { word: 'اللّٰه', meaning: 'Allah', reference: 'used throughout the Quran', transliteration: 'Allah' },
+    initial: { word: 'لِلَّهِ', meaning: 'to/for Allah', reference: 'Surah Al-Baqarah 2:284', transliteration: 'Lillahi' },
     medial: { word: 'اللّٰه', meaning: 'Allah', reference: 'used throughout the Quran', transliteration: 'Allah' },
     final: { word: 'لَيْل', meaning: 'night', reference: 'Surah Al-Layl 91:1', transliteration: 'Layl' },
   },
@@ -346,10 +346,10 @@ export const LETTER_POSITIONS = {
     final: { word: 'اللّٰه', meaning: 'Allah', reference: 'used throughout the Quran', transliteration: 'Allah' },
   },
   'و': {
-    final: { word: 'غَفُور', meaning: 'Most Forgiving', reference: 'a name of Allah', transliteration: 'Ghafoor' },
+    final: { word: 'هُوَ', meaning: 'he', reference: 'Surah Al-Ikhlas 112:1', transliteration: 'Huwa' },
   },
   'ي': {
-    initial: { word: 'دِين', meaning: 'religion / way of life', reference: 'Surah Al-Fatihah 1:4', transliteration: 'Deen' },
+    initial: { word: 'يَعْلَمُ', meaning: 'he knows', reference: 'Surah Al-Hadid 57:4', transliteration: "Ya'lamu" },
     medial: { word: 'عَالَمِين', meaning: 'all the worlds', reference: 'Surah Al-Fatihah 1:2', transliteration: 'Aalameen' },
     final: { word: 'نَبِيّ', meaning: 'Prophet', reference: 'used throughout the Quran for Allah’s messengers', transliteration: 'Nabi' },
   },
