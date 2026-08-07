@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useActiveChild } from '../context/ActiveChildContext.jsx';
+import { useLanguage } from '../context/LanguageContext.jsx';
 import { getLessonDetail, completeLessonForChild } from '../lib/db.js';
 import { badgeInfo } from '../lib/badges.js';
 import HudMascot from '../components/HudMascot.jsx';
@@ -10,11 +11,62 @@ import LetterPositions from '../components/LetterPositions.jsx';
 import PronunciationCheck from '../components/PronunciationCheck.jsx';
 import { speakSmart } from '../lib/speech.js';
 import { playReciterAudio } from '../lib/quranAudio.js';
+import { playTap, playCelebration } from '../lib/sounds.js';
+import { useCelebrate } from '../hooks/useCelebrate.js';
+import Confetti from '../components/Confetti.jsx';
+import { VOCAB_ICONS } from '../components/VocabIcons.jsx';
+
+// Renders the optional content.image reference picture (icon / color
+// swatch / number badge) - see supabase content.image shape in db.js's
+// getLessonDetail. Returns null when a lesson has no image, which is the
+// large majority (only concrete, picturable words get one - no people, no
+// depictions of Allah's names or sacred phrases).
+function ImageBadge({ image }) {
+  if (!image) return null;
+  const badgeStyle = {
+    width: 72,
+    height: 72,
+    borderRadius: '50%',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    margin: '0 auto 12px',
+  };
+  if (image.type === 'color') {
+    return <div style={{ ...badgeStyle, background: image.hex, border: '3px solid rgba(0,0,0,0.08)' }} />;
+  }
+  if (image.type === 'number') {
+    return (
+      <div style={{ ...badgeStyle, background: 'var(--color-sky)', color: 'var(--color-blue)', fontSize: '2rem', fontWeight: 900 }}>
+        {image.value}
+      </div>
+    );
+  }
+  if (image.type === 'icon') {
+    const Icon = VOCAB_ICONS[image.key];
+    if (!Icon) return null;
+    return (
+      <div style={{ ...badgeStyle, background: 'var(--color-sky)', color: 'var(--color-blue)' }}>
+        <Icon style={{ width: 40, height: 40 }} />
+      </div>
+    );
+  }
+  return null;
+}
+
+// A tap sound plus the existing speak-the-word behavior, in one call - used
+// by every tappable letter/word/example tile on this page so taps always
+// feel responsive even before the (sometimes slightly delayed) speech starts.
+function tapSpeak(text, opts) {
+  playTap();
+  speakSmart(text, opts);
+}
 
 export default function Lesson() {
   const { stageId, orderIndex } = useParams();
   const navigate = useNavigate();
   const { activeChild } = useActiveChild();
+  const { language } = useLanguage();
   const [lesson, setLesson] = useState(null);
   const [locked, setLocked] = useState(false);
   const [notFound, setNotFound] = useState(false);
@@ -24,6 +76,7 @@ export default function Lesson() {
   const [completed, setCompleted] = useState(false);
   const [newBadges, setNewBadges] = useState([]);
   const [playingFluencyCheck, setPlayingFluencyCheck] = useState(false);
+  const [isCheering, triggerCheer] = useCelebrate();
 
   // Chains every ayah's real reciter audio back-to-back via onEnd, so tapping
   // once plays the whole surah straight through - reuses the same per-ayah
@@ -49,7 +102,7 @@ export default function Lesson() {
     setLocked(false);
     setNotFound(false);
     setCompleted(false);
-    getLessonDetail(stageId, orderIndex)
+    getLessonDetail(stageId, orderIndex, language)
       .then((data) => {
         if (data.notFound) setNotFound(true);
         else if (data.locked) setLocked(true);
@@ -57,7 +110,7 @@ export default function Lesson() {
       })
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
-  }, [stageId, orderIndex]);
+  }, [stageId, orderIndex, language]);
 
   async function handleMarkComplete() {
     if (!activeChild) {
@@ -70,6 +123,8 @@ export default function Lesson() {
       const result = await completeLessonForChild({ childId: activeChild.id, lessonId: lesson.id });
       setNewBadges(result?.newBadges ?? []);
       setCompleted(true);
+      playCelebration();
+      triggerCheer();
     } catch (err) {
       setError(err.message);
     } finally {
@@ -123,9 +178,24 @@ export default function Lesson() {
       </h1>
       <p style={{ color: '#8ea0b6', marginTop: -8 }}>{lesson.estimatedMinutes} min · {lesson.lessonGoal}</p>
 
-      <div className="card" style={{ marginBottom: 20 }}>
+      <Confetti active={completed} />
+
+      <div className="card" style={{ marginBottom: 20, background: 'var(--color-sky)', boxShadow: 'none', textAlign: 'center' }}>
         <span className="badge badge-free">Concept</span>
-        <p style={{ fontSize: '1.1rem', marginTop: 12 }}>{content.concept}</p>
+        {/* Audio-first: a 3-year-old can't read this paragraph, so the primary
+            action is hearing it, not reading it - the text stays available
+            underneath for parents/older kids, just visually secondary. */}
+        <div>
+          <button
+            type="button"
+            className="btn btn-secondary btn-chunky"
+            style={{ margin: '14px 0 12px' }}
+            onClick={() => tapSpeak(content.concept, { rate: 0.85 })}
+          >
+            🔊 Listen
+          </button>
+        </div>
+        <p style={{ fontSize: '0.85rem', margin: 0, color: '#8394a3' }}>{content.concept}</p>
         {content.type === 'reading' && (
           <div style={{ marginTop: 12 }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12 }}>
@@ -147,20 +217,21 @@ export default function Lesson() {
                 key={i}
                 style={{
                   background: 'rgba(27,79,138,0.05)',
-                  border: '2px solid var(--color-blue)',
-                  borderRadius: 'var(--radius-md)',
-                  padding: '20px 12px',
+                  border: '3px solid var(--color-blue)',
+                  borderRadius: '20px',
+                  boxShadow: '0 4px 0 var(--color-blue-dark)',
+                  padding: '24px 12px',
                   textAlign: 'center',
                 }}
               >
                 <button
                   type="button"
-                  onClick={() => speakSmart(item.letter, { rate: 0.6 })}
+                  onClick={() => tapSpeak(item.letter, { rate: 0.6 })}
                   style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, width: '100%' }}
                 >
-                  <p className="arabic-text" dir="rtl" style={{ fontSize: '2.5rem', margin: '0 0 6px' }}>{item.letter}</p>
-                  <p style={{ margin: 0, fontWeight: 700, color: 'var(--color-blue)' }}>{item.name}</p>
-                  <p style={{ margin: '8px 0 0', fontSize: '0.75rem', color: '#8ea0b6' }}>🔊 Tap to hear</p>
+                  <p className="arabic-text" dir="rtl" style={{ fontSize: '3rem', margin: '0 0 6px' }}>{item.letter}</p>
+                  <p style={{ margin: 0, fontWeight: 800, color: 'var(--color-blue)', fontSize: '1.05rem' }}>{item.name}</p>
+                  <p style={{ margin: '8px 0 0', fontSize: '0.8rem', color: '#8ea0b6' }}>🔊 Tap to hear</p>
                 </button>
                 <LetterPositions letter={item.letter} positions={item.positions} />
                 <PronunciationCheck text={item.letter} compact />
@@ -172,14 +243,14 @@ export default function Lesson() {
 
       {content.letters?.some((l) => l.harakatSet || l.harakatNote) && (
         <div className="card" style={{ marginBottom: 20 }}>
-          <span className="badge badge-gold">Vowel Sounds</span>
+          <span className="badge badge-teal">Vowel Sounds</span>
           <p style={{ margin: '10px 0 16px', color: '#4b5a6a' }}>
             Every letter changes sound with its vowel mark - tap to hear "{content.letters.find((l) => l.harakatSet)?.name ?? ''} a / i / u".
           </p>
           {content.letters.filter((l) => l.harakatSet || l.harakatNote).map((l, li) => (
             <div key={li} style={{ marginBottom: li < content.letters.length - 1 ? 16 : 0 }}>
               <p style={{ margin: '0 0 8px', fontWeight: 700, color: 'var(--color-blue)' }}>{l.name}</p>
-              {l.harakatSet ? (
+              {l.harakatSet && (
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(90px, 1fr))', gap: 10 }}>
                   {['fatha', 'kasra', 'damma'].map((key) => {
                     const item = l.harakatSet[key];
@@ -196,7 +267,7 @@ export default function Lesson() {
                       >
                         <button
                           type="button"
-                          onClick={() => speakSmart(item.arabic, { rate: 0.6 })}
+                          onClick={() => tapSpeak(item.arabic, { rate: 0.6 })}
                           style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, width: '100%' }}
                         >
                           <p className="arabic-text" dir="rtl" style={{ fontSize: '1.8rem', margin: '0 0 4px' }}>{item.arabic}</p>
@@ -208,8 +279,9 @@ export default function Lesson() {
                     );
                   })}
                 </div>
-              ) : (
-                <p style={{ margin: 0, padding: '10px 12px', background: 'rgba(27,79,138,0.05)', borderRadius: 'var(--radius-md)', color: '#4b5a6a', fontSize: '0.9rem' }}>
+              )}
+              {l.harakatNote && (
+                <p style={{ margin: l.harakatSet ? '10px 0 0' : 0, padding: '10px 12px', background: 'rgba(27,79,138,0.05)', borderRadius: 'var(--radius-md)', color: '#4b5a6a', fontSize: '0.9rem' }}>
                   {l.harakatNote}
                 </p>
               )}
@@ -220,7 +292,7 @@ export default function Lesson() {
 
       {content.letters && (
         <div className="card" style={{ marginBottom: 20 }}>
-          <span className="badge badge-gold">Practice Writing</span>
+          <span className="badge badge-purple">Practice Writing</span>
           <p style={{ margin: '10px 0 16px', color: '#4b5a6a' }}>
             Trace each letter with your finger or mouse - try its Start, Middle and End shapes too.
           </p>
@@ -234,7 +306,7 @@ export default function Lesson() {
 
       {content.maddPair && (
         <div className="card" style={{ marginBottom: 20 }}>
-          <span className="badge badge-gold">Short vs Long</span>
+          <span className="badge badge-orange">Short vs Long</span>
           <p style={{ margin: '10px 0 16px', color: '#4b5a6a' }}>Tap each box to hear the difference in length.</p>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 16 }}>
             {['short', 'long'].map((key) => {
@@ -244,7 +316,7 @@ export default function Lesson() {
                 <button
                   key={key}
                   type="button"
-                  onClick={() => speakSmart(item.arabic, { rate: 0.6 })}
+                  onClick={() => tapSpeak(item.arabic, { rate: 0.6 })}
                   style={{
                     background: isLong ? 'rgba(200,150,12,0.08)' : 'rgba(27,79,138,0.05)',
                     border: `2px solid ${isLong ? 'var(--color-gold)' : 'var(--color-blue)'}`,
@@ -280,7 +352,7 @@ export default function Lesson() {
                     <button
                       key={key}
                       type="button"
-                      onClick={() => speakSmart(item.arabic, { rate: 0.6 })}
+                      onClick={() => tapSpeak(item.arabic, { rate: 0.6 })}
                       style={{
                         background: isLong ? 'rgba(200,150,12,0.08)' : 'rgba(27,79,138,0.05)',
                         border: `2px solid ${isLong ? 'var(--color-gold)' : 'var(--color-blue)'}`,
@@ -312,7 +384,7 @@ export default function Lesson() {
               <button
                 key={form.key}
                 type="button"
-                onClick={() => speakSmart(form.arabic, { rate: 0.6 })}
+                onClick={() => tapSpeak(form.arabic, { rate: 0.6 })}
                 style={{
                   background: 'rgba(27,79,138,0.05)',
                   border: '2px solid var(--color-blue)',
@@ -333,14 +405,14 @@ export default function Lesson() {
 
       {content.comparisonSet && (
         <div className="card" style={{ marginBottom: 20 }}>
-          <span className="badge badge-gold">Compare Both Sides</span>
+          <span className="badge badge-teal">Compare Both Sides</span>
           {content.comparisonSet.intro && <p style={{ margin: '10px 0 16px', color: '#4b5a6a' }}>{content.comparisonSet.intro}</p>}
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: 10 }}>
             {content.comparisonSet.items.map((item, i) => (
               <button
                 key={i}
                 type="button"
-                onClick={() => speakSmart(item.arabic, { rate: 0.6 })}
+                onClick={() => tapSpeak(item.arabic, { rate: 0.6 })}
                 style={{
                   background: i === 0 ? 'rgba(27,79,138,0.05)' : 'rgba(200,150,12,0.08)',
                   border: `2px solid ${i === 0 ? 'var(--color-blue)' : 'var(--color-gold)'}`,
@@ -371,7 +443,7 @@ export default function Lesson() {
               <p style={{ margin: '0 0 10px', color: '#4b5a6a' }}>{type.explanation}</p>
               <button
                 type="button"
-                onClick={() => speakSmart(type.example.arabic, { rate: 0.6 })}
+                onClick={() => tapSpeak(type.example.arabic, { rate: 0.6 })}
                 style={{
                   background: 'rgba(200,150,12,0.08)',
                   border: '2px solid var(--color-gold)',
@@ -399,7 +471,7 @@ export default function Lesson() {
           <p style={{ margin: '10px 0 16px', color: '#4b5a6a' }}>{content.tajweedRule.kidExplanation}</p>
           <button
             type="button"
-            onClick={() => speakSmart(content.tajweedRule.example.arabic, { rate: 0.6 })}
+            onClick={() => tapSpeak(content.tajweedRule.example.arabic, { rate: 0.6 })}
             style={{
               background: 'rgba(27,79,138,0.05)',
               border: '2px solid var(--color-blue)',
@@ -494,6 +566,7 @@ export default function Lesson() {
 
       <div className="card" style={{ marginBottom: 20, textAlign: 'center' }}>
         <span className="badge badge-free">Arabic Word</span>
+        <ImageBadge image={content.image} />
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12, margin: '16px 0 4px' }}>
           <p className="arabic-text" dir="rtl" style={{ fontSize: '2.5rem', margin: 0 }}>{lesson.arabicWord}</p>
           <SpeakButton text={lesson.arabicWord} size={22} />
@@ -551,15 +624,13 @@ export default function Lesson() {
       {error && <p className="error-text">{error}</p>}
 
       {!completed ? (
-        <button className="btn btn-primary" disabled={submitting} onClick={handleMarkComplete}>
+        <button className="btn btn-primary btn-chunky" disabled={submitting} onClick={handleMarkComplete}>
           {submitting ? 'Saving...' : 'Mark Complete'}
         </button>
       ) : (
         <div className="card" style={{ textAlign: 'center', background: 'rgba(26,122,74,0.08)' }}>
-          <h3 style={{ margin: '0 0 8px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
-            <HudMascot pose="celebrate" size={32} />
-            Lesson complete!
-          </h3>
+          <HudMascot pose="celebrate" size={72} className={isCheering ? 'mascot-cheer' : ''} style={{ margin: '0 auto 8px' }} />
+          <h3 style={{ margin: '0 0 8px' }}>Lesson complete!</h3>
           <p style={{ margin: 0 }}>
             {lesson.checkpointDue ? "Time for a quick checkpoint to review what you've learned." : 'Ready for the next lesson?'}
           </p>
@@ -572,7 +643,7 @@ export default function Lesson() {
               ))}
             </div>
           )}
-          <button className="btn btn-primary" style={{ marginTop: 16 }} onClick={handleContinue}>
+          <button className="btn btn-primary btn-chunky" style={{ marginTop: 16 }} onClick={handleContinue}>
             {lesson.checkpointDue ? 'Start Checkpoint →' : 'Next Lesson →'}
           </button>
         </div>

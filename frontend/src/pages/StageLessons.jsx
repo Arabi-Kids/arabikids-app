@@ -6,6 +6,11 @@ import { getCurriculum, listStageLessonsForChild, listMasteredStageIds } from '.
 import { StarSparkleIcon } from '../components/Icons.jsx';
 import HudMascot from '../components/HudMascot.jsx';
 
+// Same 4-color cycle as ArabicCurriculumHub's level sections, keyed off this
+// stage's own level (4 stages per level) so a lesson list visually matches
+// the color of the level it belongs to.
+const LEVEL_ACCENTS = ['var(--color-blue)', 'var(--color-teal)', 'var(--color-purple)', 'var(--color-orange)'];
+
 export default function StageLessons() {
   const { stageId } = useParams();
   const { isPaid } = useAuth();
@@ -101,11 +106,15 @@ export default function StageLessons() {
                   ? '/pricing'
                   : '#'
             }
-            className="card"
+            className="card card-kid"
             onClick={(e) => {
               if (lesson.locked && !lesson.paywalled) e.preventDefault();
             }}
-            style={{ display: 'block', opacity: lesson.locked ? 0.75 : 1 }}
+            style={{
+              '--card-accent': LEVEL_ACCENTS[Math.floor((stage.orderIndex - 1) / 4) % LEVEL_ACCENTS.length],
+              display: 'block',
+              opacity: lesson.locked ? 0.75 : 1,
+            }}
           >
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
               <span style={{ fontWeight: 800, color: 'var(--color-blue)' }}>Lesson {lesson.orderIndex}</span>

@@ -1,12 +1,13 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.jsx';
+import { useLanguage } from '../context/LanguageContext.jsx';
 import HudMascot from '../components/HudMascot.jsx';
 import Seo from '../components/Seo.jsx';
 
 const TIER_PRICING = {
-  standard: { monthly: '$9.99', annual: '$89.99', childLine: 'One child profile' },
-  family: { monthly: '$14.99', annual: '$134.99', childLine: 'Multiple child profiles (1.5x Standard price)' },
+  standard: { monthly: '$9.99', annual: '$89.99' },
+  family: { monthly: '$14.99', annual: '$134.99' },
 };
 
 // Stripe Payment Links (created directly in the Stripe Dashboard, one per
@@ -27,54 +28,49 @@ const PAYMENT_LINKS = {
   },
 };
 
-const FAQS = [
-  { q: 'Do I need a credit card to start?', a: 'No. The free plan gives you Stage 1 to try with no credit card required.' },
-  { q: 'Can I add more than one child?', a: 'Yes — switch to the Family plan above. It covers as many children as you like for 1.5x the Standard price, on either monthly or annual billing.' },
-  { q: 'Can I cancel anytime?', a: 'Yes. Monthly and annual plans can be cancelled anytime from your Account page, effective at the end of the current billing period.' },
-  { q: 'Is the content only for Arabic speakers?', a: 'No, ArabiKids is built specifically for Muslim children growing up outside the Arab world, with transliteration and translation throughout.' },
-  { q: 'What ages is this for?', a: 'ArabiKids covers ages 3-17 in one continuous curriculum — your child starts at whichever of the 16 stages fits them best.' },
-];
-
 export default function Pricing() {
   const { user } = useAuth();
+  const { t } = useLanguage();
   const navigate = useNavigate();
   const [tier, setTier] = useState('standard');
   const [loadingPlan, setLoadingPlan] = useState(null);
   const [error, setError] = useState('');
 
+  const copy = t('pricing');
   const pricing = TIER_PRICING[tier];
+  const childLine = copy.childLine[tier];
   const plans = [
     {
       id: 'free',
-      name: 'Free',
+      name: copy.planNames.free,
       price: '$0',
       period: '',
-      perks: ['Stage 1 free to try', 'No credit card required', 'Full access to intro content'],
+      perks: copy.freePerks,
     },
     {
       id: 'monthly',
-      name: 'Monthly',
+      name: copy.planNames.monthly,
       price: pricing.monthly,
-      period: '/ month',
-      perks: ['All 16 stages unlocked (~150 lessons)', pricing.childLine, 'Progress tracking', 'Cancel anytime'],
+      period: `/ ${copy.planNames.monthly.toLowerCase()}`,
+      perks: [copy.monthlyPerks[0], childLine, ...copy.monthlyPerks.slice(1)],
     },
     {
       id: 'annual',
-      name: 'Annual',
+      name: copy.planNames.annual,
       price: pricing.annual,
-      period: '/ year',
+      period: `/ ${copy.planNames.annual.toLowerCase()}`,
       highlight: true,
-      perks: ['Everything in Monthly', 'Save over 25% vs monthly', 'Priority support', 'Best for full-year learning'],
+      perks: copy.annualPerks,
     },
   ];
 
   const comparisonRows = [
-    ['Free stage to try', '✓', '✓', '✓'],
-    ['Full 16-stage curriculum', '—', '✓', '✓'],
-    ['Child profiles', '1', tier === 'family' ? 'Multiple' : '1', tier === 'family' ? 'Multiple' : '1'],
-    ['Progress tracking', '✓', '✓', '✓'],
-    ['Quranic connection on every lesson', '✓', '✓', '✓'],
-    ['Price', '$0', `${pricing.monthly}/mo`, `${pricing.annual}/yr`],
+    [copy.comparisonRows[0], '✓', '✓', '✓'],
+    [copy.comparisonRows[1], '—', '✓', '✓'],
+    [copy.comparisonRows[2], '1', tier === 'family' ? '2+' : '1', tier === 'family' ? '2+' : '1'],
+    [copy.comparisonRows[3], '✓', '✓', '✓'],
+    [copy.comparisonRows[4], '✓', '✓', '✓'],
+    [copy.comparisonRows[5], '$0', `${pricing.monthly}/mo`, `${pricing.annual}/yr`],
   ];
 
   function handleChoose(planId) {
@@ -108,10 +104,8 @@ export default function Pricing() {
     />
     <div className="container" style={{ padding: '60px 0 24px', textAlign: 'center' }}>
       <HudMascot pose="mark" size={64} style={{ marginBottom: 12 }} />
-      <h1 className="page-title">Simple, Family-Friendly Pricing</h1>
-      <p className="page-subtitle">
-        Start free. Upgrade only when you're ready to unlock the full 16-stage curriculum.
-      </p>
+      <h1 className="page-title">{copy.title}</h1>
+      <p className="page-subtitle">{copy.subtitle}</p>
       {error && <p className="error-text">{error}</p>}
 
       <div
@@ -120,8 +114,8 @@ export default function Pricing() {
         style={{ display: 'inline-flex', background: 'var(--color-sky)', borderRadius: 999, padding: 4, gap: 4, marginBottom: 8 }}
       >
         {[
-          { id: 'standard', label: '1 child' },
-          { id: 'family', label: '2+ children (Family)' },
+          { id: 'standard', label: copy.childToggle.one },
+          { id: 'family', label: copy.childToggle.family },
         ].map((option) => (
           <button
             key={option.id}
@@ -148,8 +142,8 @@ export default function Pricing() {
             }}
           >
             {plan.highlight && (
-              <span className="badge badge-locked" style={{ position: 'absolute', top: -14, left: '50%', transform: 'translateX(-50%)' }}>
-                Best Value
+              <span className="badge badge-locked" style={{ position: 'absolute', top: -14, insetInlineStart: '50%', transform: 'translateX(-50%)' }}>
+                {copy.bestValue}
               </span>
             )}
             <h2 style={{ color: 'var(--color-blue)', margin: '8px 0' }}>{plan.name}</h2>
@@ -157,7 +151,7 @@ export default function Pricing() {
               {plan.price}
               <span style={{ fontSize: '1rem', color: '#6b7a8a', fontWeight: 700 }}> {plan.period}</span>
             </div>
-            <ul style={{ listStyle: 'none', padding: 0, margin: '24px 0', textAlign: 'left' }}>
+            <ul style={{ listStyle: 'none', padding: 0, margin: '24px 0', textAlign: 'start' }}>
               {plan.perks.map((perk) => (
                 <li key={perk} style={{ padding: '6px 0', color: '#4b5a6a' }}>
                   ✓ {perk}
@@ -165,12 +159,12 @@ export default function Pricing() {
               ))}
             </ul>
             <button
-              className={plan.id === 'free' ? 'btn btn-outline' : 'btn btn-primary'}
+              className={plan.id === 'free' ? 'btn btn-outline btn-chunky' : 'btn btn-primary btn-chunky'}
               style={{ width: '100%' }}
               onClick={() => handleChoose(plan.id)}
               disabled={loadingPlan === plan.id}
             >
-              {loadingPlan === plan.id ? 'Redirecting...' : plan.id === 'free' ? 'Start Free' : `Choose ${plan.name}`}
+              {loadingPlan === plan.id ? copy.redirecting : plan.id === 'free' ? copy.startFree : copy.choosePlan.replace('{name}', plan.name)}
             </button>
           </div>
         ))}
@@ -179,11 +173,11 @@ export default function Pricing() {
 
     <section className="section-sky" style={{ padding: '56px 0' }}>
       <div className="container">
-        <h2 className="page-title" style={{ textAlign: 'center' }}>Compare Plans</h2>
+        <h2 className="page-title" style={{ textAlign: 'center' }}>{copy.comparisonTitle}</h2>
         <div style={{ maxWidth: 720, margin: '0 auto', overflowX: 'auto' }}>
           <table className="table" style={{ background: '#fff', borderRadius: 'var(--radius-md)' }}>
             <thead>
-              <tr><th></th><th>Free</th><th>Monthly</th><th>Annual</th></tr>
+              <tr><th></th><th>{copy.planNames.free}</th><th>{copy.planNames.monthly}</th><th>{copy.planNames.annual}</th></tr>
             </thead>
             <tbody>
               {comparisonRows.map((row) => (
@@ -195,15 +189,15 @@ export default function Pricing() {
           </table>
         </div>
         <p style={{ textAlign: 'center', color: '#8ea0b6', marginTop: 16 }}>
-          Prices shown reflect the {tier === 'family' ? 'Family' : 'Standard'} plan selected above.
+          {copy.priceNote.replace('{tier}', tier === 'family' ? copy.tierNames.family : copy.tierNames.standard)}
         </p>
       </div>
     </section>
 
     <div className="container" style={{ padding: '56px 0' }}>
-      <h2 className="page-title" style={{ textAlign: 'center' }}>Frequently Asked Questions</h2>
+      <h2 className="page-title" style={{ textAlign: 'center' }}>{copy.faqTitle}</h2>
       <div style={{ maxWidth: 640, margin: '0 auto 40px' }}>
-        {FAQS.map((f) => (
+        {copy.faqs.map((f) => (
           <details key={f.q} className="faq-item">
             <summary>{f.q}</summary>
             <p>{f.a}</p>
@@ -212,8 +206,8 @@ export default function Pricing() {
       </div>
 
       <div style={{ textAlign: 'center' }}>
-        <button className="btn btn-primary" onClick={() => navigate('/signup')}>
-          Get Started Free
+        <button className="btn btn-primary btn-chunky" onClick={() => navigate('/signup')}>
+          {copy.getStartedFree}
         </button>
       </div>
     </div>

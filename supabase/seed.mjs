@@ -485,7 +485,21 @@ function maddPairFor(letter) {
 // letter, introduced right in Stage 1's letter-pair lessons rather than only
 // as Stage 2-3's separate dedicated harakat lessons - so a kid meets the
 // full "ba be boo" sound set for a letter as soon as they meet the letter.
+// Bare alif has no consonant sound of its own, so it can't carry fatha/
+// kasra/damma directly the way every other letter does - but children still
+// need to see/hear an "alif a/i/u" the same way they do for every other
+// letter, so this shows the three vowels on alif's hamza seat (أَ إِ أُ),
+// which is exactly how Noorani Qaida-style primers introduce it. The
+// harakatNote below explains that this is the hamza seat, not bare alif.
+const HARAKAT_SET_OVERRIDE = {
+  'ا': {
+    fatha: { arabic: 'أَ', transliteration: 'a', label: "Fatha (alif's hamza seat)" },
+    kasra: { arabic: 'إِ', transliteration: 'i', label: "Kasra (alif's hamza seat)" },
+    damma: { arabic: 'أُ', transliteration: 'u', label: "Damma (alif's hamza seat)" },
+  },
+};
 function harakatSetFor(letter) {
+  if (HARAKAT_SET_OVERRIDE[letter]) return HARAKAT_SET_OVERRIDE[letter];
   const roman = LETTER_ROMAN[letter];
   if (!roman) return null;
   return {
@@ -495,13 +509,11 @@ function harakatSetFor(letter) {
   };
 }
 
-// Shown instead of a blank/missing Vowel Sounds section for the one letter
-// with no harakatSet (alif has no consonant sound of its own, so fatha/
-// kasra/damma don't apply to it the way they do to every other letter) - a
-// beginner meeting Arabic for the first time should never see a letter
-// silently skipped without explanation.
+// Shown alongside alif's harakatSet above (from HARAKAT_SET_OVERRIDE) so a
+// beginner meeting Arabic for the first time understands WHY alif's tiles
+// look different (a hamza seat) instead of just seeing them silently.
 const HARAKAT_NOTE_BY_LETTER = {
-  'ا': "Alif doesn't take fatha/kasra/damma like other letters - on its own it's silent. Say \"بَ\" (ba), then add alif: \"بَا\" (baa) - hear how the \"a\" stretches into a long \"aaa\" (like in \"father\")? That's alif's job: it stretches a short vowel into a long one. Two more letters do the same job for the other vowels - ي stretches \"i\" into a long \"eee\", and و stretches \"u\" into a long \"ouu\". You'll meet all three properly as madd in Stage 5.",
+  'ا': "The three tiles above (أَ, إِ, أُ) show alif's vowel sounds using its hamza seat - bare alif on its own can't take fatha/kasra/damma directly, it's silent. Say \"بَ\" (ba), then add alif: \"بَا\" (baa) - hear how the \"a\" stretches into a long \"aaa\" (like in \"father\")? That's alif's other job: stretching a short vowel into a long one. Two more letters do the same job for the other vowels - ي stretches \"i\" into a long \"eee\", and و stretches \"u\" into a long \"ouu\". You'll meet all three properly as madd in Stage 5.",
 };
 function harakatNoteFor(letter) {
   return HARAKAT_NOTE_BY_LETTER[letter] || null;

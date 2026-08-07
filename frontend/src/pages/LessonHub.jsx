@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.jsx';
 import { useActiveChild } from '../context/ActiveChildContext.jsx';
+import { useLanguage } from '../context/LanguageContext.jsx';
 import { getCurriculum, getChildProgressSummary } from '../lib/db.js';
 import { badgeInfo } from '../lib/badges.js';
 import { PILLARS } from '../lib/pillars.js';
@@ -14,6 +15,8 @@ import Seo from '../components/Seo.jsx';
 export default function LessonHub() {
   const { user } = useAuth();
   const { activeChild } = useActiveChild();
+  const { t } = useLanguage();
+  const copy = t('lessonsHub');
   const [currentStage, setCurrentStage] = useState(null);
   const [progress, setProgress] = useState(null);
 
@@ -44,8 +47,8 @@ export default function LessonHub() {
         <ZaydMascot pose="hero" size={56} className="mascot-bounce" style={{ animationDelay: '0.2s' }} />
         <AmalMascot pose="hero" size={56} className="mascot-bounce" style={{ animationDelay: '0.4s' }} />
       </div>
-      <h1 className="page-title" style={{ textAlign: 'center' }}>Lessons Hub</h1>
-      <p className="page-subtitle" style={{ textAlign: 'center' }}>Everything ArabiKids teaches, organised into tracks.</p>
+      <h1 className="page-title" style={{ textAlign: 'center' }}>{copy.title}</h1>
+      <p className="page-subtitle" style={{ textAlign: 'center' }}>{copy.subtitle}</p>
 
       {user && activeChild && currentStage && (
         <div className="card" style={{ marginBottom: 24, display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'wrap' }}>
@@ -63,8 +66,8 @@ export default function LessonHub() {
             )}
             <PushNotificationPrompt childId={activeChild.id} />
           </div>
-          <Link to={`/lessons/stage/${currentStage.id}`} className="btn btn-primary">
-            Continue Learning →
+          <Link to={`/lessons/stage/${currentStage.id}`} className="btn btn-primary btn-chunky">
+            {copy.continueLearning} →
           </Link>
         </div>
       )}
@@ -73,25 +76,26 @@ export default function LessonHub() {
         {PILLARS.map((pillar) => {
           const isLive = pillar.status === 'live';
           const isArabicQuran = pillar.key === 'arabic-quran';
+          const pillarCopy = copy.pillars[pillar.key] ?? pillar;
           return (
             <Link
               key={pillar.key}
               to={isLive ? pillar.path : `/lessons/coming-soon/${pillar.key}`}
-              className="card"
-              style={{ display: 'block', padding: 24 }}
+              className="card card-kid"
+              style={{ '--card-accent': pillar.accent, display: 'block' }}
             >
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 }}>
-                <span style={{ fontSize: '2rem' }}>{pillar.icon}</span>
+                <span style={{ fontSize: '3rem' }}>{pillar.icon}</span>
                 {isLive ? (
-                  <span className="badge badge-free">Live</span>
+                  <span className="badge badge-free">{copy.live}</span>
                 ) : (
-                  <span className="badge badge-locked">Coming Soon</span>
+                  <span className="badge badge-locked">{copy.comingSoon}</span>
                 )}
               </div>
-              <p style={{ margin: '0 0 6px', fontWeight: 800, color: 'var(--color-blue)', fontSize: '1.1rem' }}>{pillar.name}</p>
+              <p style={{ margin: '0 0 6px', fontWeight: 800, color: 'var(--color-blue)', fontSize: '1.1rem' }}>{pillarCopy.name}</p>
               {isArabicQuran && currentStage ? (
                 <>
-                  <p style={{ margin: '0 0 8px', color: '#6b7a8a' }}>Stage {currentStage.orderIndex} of 16</p>
+                  <p style={{ margin: '0 0 8px', color: '#6b7a8a' }}>{copy.stageOf.replace('{n}', currentStage.orderIndex)}</p>
                   <div style={{ background: 'rgba(27,79,138,0.1)', borderRadius: 999, height: 6, overflow: 'hidden' }}>
                     <div
                       style={{
@@ -104,7 +108,7 @@ export default function LessonHub() {
                   </div>
                 </>
               ) : (
-                <p style={{ margin: 0, color: '#6b7a8a' }}>{pillar.tagline}</p>
+                <p style={{ margin: 0, color: '#6b7a8a' }}>{pillarCopy.tagline}</p>
               )}
             </Link>
           );

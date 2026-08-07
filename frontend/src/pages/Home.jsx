@@ -2,42 +2,30 @@ import { Link } from 'react-router-dom';
 import HeroAnimation from '../components/HeroAnimation.jsx';
 import { BookIcon, PathIcon, TargetIcon, DeviceIcon, StarSparkleIcon } from '../components/Icons.jsx';
 import Seo from '../components/Seo.jsx';
+import { useLanguage } from '../context/LanguageContext.jsx';
 
-const TRUST_STRIP = [
-  ['16', 'Stages, One Journey'],
-  ['~150', 'Lessons'],
-  ['Ages 3-17', 'Beginner to Advanced'],
-  ['Malaysia & Global', 'Muslim Families Everywhere'],
+// Arabic-script demo snippets stay identical across languages (per the
+// language-plan: only explanatory prose is translated, not the Arabic
+// content being demonstrated) - name/desc come from the translation
+// dictionary at render time, zipped with this by index.
+const LEVEL_SAMPLES = [
+  'Letter ب (baa) → بِسْمِ → Surah Al-Fatihah 1:1',
+  'كِتَاب (book) → often refers to the Quran',
+  'رَبِّ الْعَالَمِينَ → "Lord of the worlds" → Al-Fatihah 1:2',
+  'إِيَّاكَ نَعْبُدُ → "You alone we worship" → Al-Fatihah 1:5',
 ];
 
-const FEATURES = [
-  { Icon: BookIcon, title: 'Quran-Connected', text: 'Every letter and word links directly to a Quranic verse or name of Allah.' },
-  { Icon: PathIcon, title: 'One Continuous Path', text: 'From first letters to fluent reading — no separate tracks, just the right stage for your child.' },
-  { Icon: TargetIcon, title: 'Interactive', text: 'Every stage ends in a checkpoint review, not passive video watching.' },
-  { Icon: DeviceIcon, title: 'Any Device', text: 'Works on phone, tablet or laptop, so kids can learn wherever you are.' },
-  { Icon: StarSparkleIcon, title: 'Review Hub', text: 'Once a stage is mastered, revisit it anytime — rewatch the recap, browse vocabulary, read, trace, practice, and play, all for free reinforcement.' },
-];
-
-const LEVELS = [
-  { name: 'Beginner', desc: 'Letters & Sounds', sample: 'Letter ب (baa) → بِسْمِ → Surah Al-Fatihah 1:1' },
-  { name: 'Elementary', desc: 'Words Take Shape', sample: 'كِتَاب (book) → often refers to the Quran' },
-  { name: 'Intermediate', desc: 'Grammar Foundations', sample: 'رَبِّ الْعَالَمِينَ → "Lord of the worlds" → Al-Fatihah 1:2' },
-  { name: 'Advanced', desc: 'Verbs, Sentences & Application', sample: 'إِيَّاكَ نَعْبُدُ → "You alone we worship" → Al-Fatihah 1:5' },
-];
-
-const STEPS = [
-  { num: 1, title: 'Add Your Child', text: 'Create a free parent account and add a profile for each child — every child gets their own stage and progress.' },
-  { num: 2, title: 'Learn Arabic & Quran Together', text: 'Every lesson teaches a concept, an Arabic word, and its Quranic connection — never separately.' },
-  { num: 3, title: 'Practice & Progress', text: 'Every few lessons, a quick checkpoint reviews what\'s been learned while parents track streaks and scores.' },
-];
-
-const TESTIMONIALS = [
-  { quote: 'My daughter now recognises words from Surah Al-Fatihah in her own reading. It finally clicked.', name: 'Parent, Beginner level' },
-  { quote: 'Finally a curriculum that doesn\'t treat Arabic and Quran as two separate subjects.', name: 'Parent, Intermediate level' },
-  { quote: 'Madinah Book 1 made simple and fun for my teenager. He asks to do lessons now.', name: 'Parent, Advanced level' },
-];
+const FEATURE_ICONS = [BookIcon, PathIcon, TargetIcon, DeviceIcon, StarSparkleIcon];
+const FEATURE_ACCENTS = ['var(--color-blue)', 'var(--color-teal)', 'var(--color-gold)', 'var(--color-orange)', 'var(--color-purple)'];
 
 export default function Home() {
+  const { t } = useLanguage();
+  const levels = t('home.levels');
+  const features = t('home.features');
+  const steps = t('home.steps');
+  const testimonials = t('home.testimonials');
+  const trustStrip = t('home.trustStrip');
+
   return (
     <div>
       <Seo
@@ -49,24 +37,22 @@ export default function Home() {
         <div className="hero-star-field" aria-hidden="true"></div>
         <div className="container hero-grid">
           <div className="hero-copy">
-            <span className="hero-kicker">Stage 1 free · no card needed</span>
+            <span className="hero-kicker">{t('home.heroKicker')}</span>
             <h1 className="hero-h1">
-              Teaching the language
+              {t('home.heroLine1')}
               <br />
-              of the <span className="hero-h1-accent">Qur&apos;an</span>,
+              {t('home.heroLine2Pre') ? `${t('home.heroLine2Pre')} ` : ''}
+              <span className="hero-h1-accent">{t('home.heroLine2Accent')}</span>
               <br />
-              one kid at a time.
+              {t('home.heroLine3')}
             </h1>
-            <p className="hero-sub">
-              ArabiKids teaches Arabic and Quran together, never separately, so every child
-              understands what they recite.
-            </p>
+            <p className="hero-sub">{t('home.heroSub')}</p>
             <div className="hero-ctas">
-              <Link to="/signup" className="btn btn-primary">
-                Start Free Trial
+              <Link to="/signup" className="btn btn-primary btn-chunky">
+                {t('home.startTrial')}
               </Link>
-              <Link to="/how-it-works" className="btn btn-outline">
-                See How It Works
+              <Link to="/how-it-works" className="btn btn-outline btn-chunky">
+                {t('home.seeHow')}
               </Link>
             </div>
           </div>
@@ -89,7 +75,7 @@ export default function Home() {
           className="container"
           style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: 16, textAlign: 'center' }}
         >
-          {TRUST_STRIP.map(([stat, label]) => (
+          {trustStrip.map(([stat, label]) => (
             <div key={label}>
               <div style={{ color: 'var(--color-gold-light)', fontWeight: 900, fontSize: '1.2rem' }}>{stat}</div>
               <div style={{ color: '#dbe4ee', fontSize: '0.85rem', fontWeight: 700 }}>{label}</div>
@@ -100,19 +86,18 @@ export default function Home() {
 
       <section className="container" style={{ padding: '60px 0' }}>
         <h2 className="page-title" style={{ textAlign: 'center' }}>
-          Four Levels, One Journey
+          {t('home.levelsTitle')}
         </h2>
         <p className="page-subtitle" style={{ textAlign: 'center' }}>
-          Every child starts at the stage that fits them, then moves through the same continuous path —
-          no separate tracks to choose between.
+          {t('home.levelsSubtitle')}
         </p>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 20 }}>
-          {LEVELS.map((level) => (
+          {levels.map((level, i) => (
             <div key={level.name} className="card">
               <span className="badge badge-free" style={{ marginBottom: 12 }}>{level.desc}</span>
               <h3 style={{ color: 'var(--color-blue)', margin: '4px 0 8px' }}>{level.name}</h3>
               <p className="arabic-text" dir="rtl" style={{ color: '#8ea0b6', fontWeight: 700, margin: 0, fontSize: '0.9rem' }}>
-                {level.sample}
+                {LEVEL_SAMPLES[i]}
               </p>
             </div>
           ))}
@@ -122,30 +107,34 @@ export default function Home() {
       <section style={{ background: '#fff', padding: '60px 0' }}>
         <div className="container">
           <h2 className="page-title" style={{ textAlign: 'center' }}>
-            Why Families Choose ArabiKids
+            {t('home.featuresTitle')}
           </h2>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 24 }}>
-            {FEATURES.map((f) => (
-              <div key={f.title} className="card" style={{ textAlign: 'center' }}>
-                <div
-                  style={{
-                    width: 52,
-                    height: 52,
-                    borderRadius: '50%',
-                    background: 'var(--color-sky)',
-                    color: 'var(--color-blue)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    margin: '0 auto 14px',
-                  }}
-                >
-                  <f.Icon style={{ width: 26, height: 26 }} />
+            {features.map((f, i) => {
+              const Icon = FEATURE_ICONS[i];
+              const accent = FEATURE_ACCENTS[i];
+              return (
+                <div key={f.title} className="card card-kid" style={{ '--card-accent': accent, textAlign: 'center' }}>
+                  <div
+                    style={{
+                      width: 52,
+                      height: 52,
+                      borderRadius: '50%',
+                      background: 'var(--color-sky)',
+                      color: accent,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      margin: '0 auto 14px',
+                    }}
+                  >
+                    <Icon style={{ width: 26, height: 26 }} />
+                  </div>
+                  <h3 style={{ color: 'var(--color-blue)', margin: '0 0 8px' }}>{f.title}</h3>
+                  <p style={{ color: '#5a6a7a', margin: 0 }}>{f.text}</p>
                 </div>
-                <h3 style={{ color: 'var(--color-blue)', margin: '0 0 8px' }}>{f.title}</h3>
-                <p style={{ color: '#5a6a7a', margin: 0 }}>{f.text}</p>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       </section>
@@ -153,16 +142,15 @@ export default function Home() {
       <section style={{ background: 'var(--color-sky)', padding: '60px 0' }}>
         <div className="container">
           <h2 className="page-title" style={{ textAlign: 'center' }}>
-            See the Review Hub in Action
+            {t('home.reviewHubTitle')}
           </h2>
           <p className="page-subtitle" style={{ textAlign: 'center' }}>
-            Once a stage is mastered, your child unlocks a free reinforcement space — here&apos;s a taste
-            of two of the six activities inside.
+            {t('home.reviewHubSubtitle')}
           </p>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 24 }}>
             <div className="card">
-              <span className="badge badge-gold" style={{ marginBottom: 12 }}>🎬 Watch &amp; Learn</span>
-              <h3 style={{ color: 'var(--color-blue)', margin: '4px 0 10px' }}>Rewatch the stage recap, anytime</h3>
+              <span className="badge badge-gold" style={{ marginBottom: 12 }}>{t('home.watchTag')}</span>
+              <h3 style={{ color: 'var(--color-blue)', margin: '4px 0 10px' }}>{t('home.watchTitle')}</h3>
               <div
                 style={{
                   position: 'relative',
@@ -193,18 +181,16 @@ export default function Home() {
                 <span
                   className="arabic-text"
                   dir="rtl"
-                  style={{ position: 'absolute', bottom: 10, left: 14, color: 'var(--color-gold-light)', fontWeight: 700 }}
+                  style={{ position: 'absolute', bottom: 10, insetInlineStart: 14, color: 'var(--color-gold-light)', fontWeight: 700 }}
                 >
                   بِسْمِ اللَّٰهِ
                 </span>
               </div>
-              <p style={{ color: '#5a6a7a', margin: 0 }}>
-                The full recap video plus every lesson&apos;s vocabulary, free to browse again.
-              </p>
+              <p style={{ color: '#5a6a7a', margin: 0 }}>{t('home.watchDesc')}</p>
             </div>
             <div className="card">
-              <span className="badge badge-gold" style={{ marginBottom: 12 }}>🎮 Play</span>
-              <h3 style={{ color: 'var(--color-blue)', margin: '4px 0 10px' }}>Match the word to its meaning</h3>
+              <span className="badge badge-gold" style={{ marginBottom: 12 }}>{t('home.playTag')}</span>
+              <h3 style={{ color: 'var(--color-blue)', margin: '4px 0 10px' }}>{t('home.playTitle')}</h3>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 12 }}>
                 <div
                   className="arabic-text"
@@ -261,9 +247,7 @@ export default function Home() {
                   House
                 </div>
               </div>
-              <p style={{ color: '#5a6a7a', margin: 0 }}>
-                A quick matching game pulled straight from the stage&apos;s own vocabulary — no pass or fail, just stars.
-              </p>
+              <p style={{ color: '#5a6a7a', margin: 0 }}>{t('home.playDesc')}</p>
             </div>
           </div>
         </div>
@@ -271,11 +255,11 @@ export default function Home() {
 
       <section className="container" style={{ padding: '60px 0' }}>
         <h2 className="page-title" style={{ textAlign: 'center' }}>
-          How It Works
+          {t('home.howTitle')}
         </h2>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 24 }}>
-          {STEPS.map((s) => (
-            <div key={s.num} className="card" style={{ textAlign: 'center' }}>
+          {steps.map((s, i) => (
+            <div key={s.title} className="card" style={{ textAlign: 'center' }}>
               <div
                 style={{
                   width: 48,
@@ -290,7 +274,7 @@ export default function Home() {
                   margin: '0 auto 16px',
                 }}
               >
-                {s.num}
+                {i + 1}
               </div>
               <h3 style={{ color: 'var(--color-blue)', margin: '0 0 8px' }}>{s.title}</h3>
               <p style={{ color: '#5a6a7a', margin: 0 }}>{s.text}</p>
@@ -302,13 +286,13 @@ export default function Home() {
       <section style={{ background: '#fff', padding: '60px 0' }}>
         <div className="container">
           <h2 className="page-title" style={{ textAlign: 'center' }}>
-            What Parents Say
+            {t('home.testimonialsTitle')}
           </h2>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 24 }}>
-            {TESTIMONIALS.map((t, i) => (
+            {testimonials.map((tm, i) => (
               <div key={i} className="card">
-                <p style={{ color: '#4b5a6a', fontStyle: 'italic', marginTop: 0 }}>&ldquo;{t.quote}&rdquo;</p>
-                <p style={{ color: 'var(--color-blue)', fontWeight: 800, margin: 0 }}>{t.name}</p>
+                <p style={{ color: '#4b5a6a', fontStyle: 'italic', marginTop: 0 }}>&ldquo;{tm.quote}&rdquo;</p>
+                <p style={{ color: 'var(--color-blue)', fontWeight: 800, margin: 0 }}>{tm.name}</p>
               </div>
             ))}
           </div>
@@ -318,13 +302,13 @@ export default function Home() {
       <section style={{ background: 'var(--color-green)', color: '#fff', padding: '60px 0' }}>
         <div className="container" style={{ textAlign: 'center' }}>
           <h2 style={{ fontSize: '2rem', fontWeight: 900, marginBottom: 12 }}>
-            Give your child the gift of understanding the Quran
+            {t('home.ctaTitle')}
           </h2>
           <p style={{ maxWidth: 600, margin: '0 auto 28px', opacity: 0.9 }}>
-            Stage 1 is free for every child, no credit card needed.
+            {t('home.ctaSub')}
           </p>
-          <Link to="/signup" className="btn" style={{ background: 'var(--color-gold)', color: '#fff' }}>
-            Start Free Trial
+          <Link to="/signup" className="btn btn-chunky" style={{ background: 'var(--color-gold)', color: '#fff', boxShadow: '0 5px 0 #8a6708' }}>
+            {t('home.startTrial')}
           </Link>
         </div>
       </section>

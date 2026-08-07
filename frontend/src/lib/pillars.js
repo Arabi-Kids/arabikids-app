@@ -9,6 +9,7 @@ export const PILLARS = [
     icon: '📖',
     status: 'live',
     path: '/lessons/curriculum',
+    accent: 'var(--color-blue)',
   },
   {
     key: 'practical-life',
@@ -21,17 +22,19 @@ export const PILLARS = [
       'Salah (prayer) — movements and Arabic recitation with proper pronunciation',
       'Du’as for daily life — before/after eating, entering/leaving the house, and more',
     ],
+    accent: 'var(--color-teal)',
   },
   {
     key: 'character-stories',
     name: 'Character & Stories',
     tagline: 'The Prophet’s life and the stories of the Prophets, made for kids.',
-    icon: '📜',
+    icon: '📿',
     status: 'coming-soon',
     items: [
       'Seerah for kids — age-appropriate stories from the Prophet’s life, tied to manners and character',
       'Stories of the Prophets — narrative learning that reinforces Arabic vocabulary and values',
     ],
+    accent: 'var(--color-purple)',
   },
   {
     key: 'knowledge-extras',
@@ -44,6 +47,7 @@ export const PILLARS = [
       'Islamic calendar awareness — Ramadan, Eid, Hijri months and seasonal content',
       'Asma-ul-Husna (99 Names) — a standalone mini-track',
     ],
+    accent: 'var(--color-orange)',
   },
 ];
 

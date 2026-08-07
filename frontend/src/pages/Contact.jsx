@@ -2,8 +2,11 @@ import { useState } from 'react';
 import { submitContactMessage } from '../lib/db.js';
 import HudMascot from '../components/HudMascot.jsx';
 import Seo from '../components/Seo.jsx';
+import { useLanguage } from '../context/LanguageContext.jsx';
 
 export default function Contact() {
+  const { t } = useLanguage();
+  const copy = t('contact');
   const [form, setForm] = useState({ name: '', email: '', message: '' });
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState('');
@@ -31,26 +34,24 @@ export default function Contact() {
         path="/contact"
       />
       <HudMascot pose="mark" size={64} style={{ display: 'block', margin: '0 auto 12px' }} />
-      <h1 className="page-title" style={{ textAlign: 'center' }}>Contact Us</h1>
-      <p className="page-subtitle" style={{ textAlign: 'center' }}>
-        Questions, feedback, or partnership ideas? We'd love to hear from you.
-      </p>
+      <h1 className="page-title" style={{ textAlign: 'center' }}>{copy.title}</h1>
+      <p className="page-subtitle" style={{ textAlign: 'center' }}>{copy.subtitle}</p>
 
       <div className="card auth-card" style={{ margin: '0 auto' }}>
         {submitted ? (
           <div style={{ textAlign: 'center' }}>
-            <h3 style={{ color: 'var(--color-green)' }}>Message sent!</h3>
-            <p style={{ color: '#4b5a6a' }}>Thanks for reaching out — we'll reply as soon as we can.</p>
+            <h3 style={{ color: 'var(--color-green)' }}>{copy.sentTitle}</h3>
+            <p style={{ color: '#4b5a6a' }}>{copy.sentBody}</p>
           </div>
         ) : (
           <form onSubmit={handleSubmit}>
             {error && <p className="error-text">{error}</p>}
             <div className="form-group">
-              <label htmlFor="name">Name</label>
+              <label htmlFor="name">{copy.nameLabel}</label>
               <input id="name" required value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
             </div>
             <div className="form-group">
-              <label htmlFor="email">Email</label>
+              <label htmlFor="email">{copy.emailLabel}</label>
               <input
                 id="email"
                 type="email"
@@ -60,7 +61,7 @@ export default function Contact() {
               />
             </div>
             <div className="form-group">
-              <label htmlFor="message">Message</label>
+              <label htmlFor="message">{copy.messageLabel}</label>
               <textarea
                 id="message"
                 required
@@ -71,14 +72,14 @@ export default function Contact() {
               />
             </div>
             <button type="submit" className="btn btn-primary" style={{ width: '100%' }} disabled={submitting}>
-              {submitting ? 'Sending...' : 'Send Message'}
+              {submitting ? copy.sending : copy.send}
             </button>
           </form>
         )}
       </div>
 
       <p style={{ textAlign: 'center', marginTop: 32, color: '#6b7a8a' }}>
-        Or email us directly at{' '}
+        {copy.orEmail}{' '}
         <a href="mailto:hello@arabikids.online" style={{ color: 'var(--color-blue)', fontWeight: 700 }}>
           hello@arabikids.online
         </a>

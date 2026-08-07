@@ -2,14 +2,12 @@ import HudMascot from '../components/HudMascot.jsx';
 import ZaydMascot from '../components/ZaydMascot.jsx';
 import AmalMascot from '../components/AmalMascot.jsx';
 import Seo from '../components/Seo.jsx';
-
-const TEAM = [
-  { name: 'Founder & Curriculum Lead', role: 'Arabic & Islamic Studies' },
-  { name: 'Product & Engineering', role: 'Platform & App' },
-  { name: 'Illustration & Design', role: 'Brand & Visuals' },
-];
+import { useLanguage } from '../context/LanguageContext.jsx';
 
 export default function About() {
+  const { t } = useLanguage();
+  const copy = t('about');
+
   return (
     <div className="container" style={{ padding: '60px 0' }}>
       <Seo
@@ -17,7 +15,7 @@ export default function About() {
         description="ArabiKids was built to help Muslim children growing up outside the Arab world understand the Arabic and Qur'an they recite."
         path="/about"
       />
-      <h1 className="page-title" style={{ textAlign: 'center' }}>About ArabiKids</h1>
+      <h1 className="page-title" style={{ textAlign: 'center' }}>{copy.title}</h1>
 
       <div style={{ display: 'flex', justifyContent: 'center', gap: 8, margin: '0 0 32px' }}>
         <HudMascot pose="hero" size={90} className="mascot-bounce" style={{ animationDelay: '0s' }} />
@@ -26,40 +24,29 @@ export default function About() {
       </div>
 
       <div className="card" style={{ maxWidth: 720, margin: '0 auto 24px' }}>
-        <h3 style={{ color: 'var(--color-blue)', marginTop: 0 }}>Our Story</h3>
-        <p style={{ color: '#4b5a6a' }}>
-          ArabiKids was born from a simple frustration — Muslim children growing up outside the Arab
-          world recite the Quran without understanding a single word. We built ArabiKids to change that.
-        </p>
+        <h3 style={{ color: 'var(--color-blue)', marginTop: 0 }}>{copy.storyTitle}</h3>
+        <p style={{ color: '#4b5a6a' }}>{copy.storyText}</p>
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 20, maxWidth: 720, margin: '0 auto 24px' }}>
         <div className="card">
-          <h3 style={{ color: 'var(--color-blue)', marginTop: 0 }}>Our Mission</h3>
-          <p style={{ color: '#4b5a6a', margin: 0 }}>
-            To make Arabic accessible, joyful, and meaningful for every Muslim child — wherever they
-            grow up.
-          </p>
+          <h3 style={{ color: 'var(--color-blue)', marginTop: 0 }}>{copy.missionTitle}</h3>
+          <p style={{ color: '#4b5a6a', margin: 0 }}>{copy.missionText}</p>
         </div>
         <div className="card">
-          <h3 style={{ color: 'var(--color-blue)', marginTop: 0 }}>Our Vision</h3>
-          <p style={{ color: '#4b5a6a', margin: 0 }}>
-            A generation of Muslim children who don't just recite the Quran — they understand it.
-          </p>
+          <h3 style={{ color: 'var(--color-blue)', marginTop: 0 }}>{copy.visionTitle}</h3>
+          <p style={{ color: '#4b5a6a', margin: 0 }}>{copy.visionText}</p>
         </div>
       </div>
 
       <div className="card" style={{ maxWidth: 720, margin: '0 auto 40px', background: 'var(--color-blue)', color: '#fff' }}>
-        <h3 style={{ marginTop: 0 }}>What Makes Us Different</h3>
-        <p style={{ margin: 0, opacity: 0.95 }}>
-          We don't teach Arabic and Quran separately. Every lesson connects language directly to the
-          Book of Allah.
-        </p>
+        <h3 style={{ marginTop: 0 }}>{copy.differentTitle}</h3>
+        <p style={{ margin: 0, opacity: 0.95 }}>{copy.differentText}</p>
       </div>
 
-      <h2 className="page-title" style={{ textAlign: 'center' }}>Our Team</h2>
+      <h2 className="page-title" style={{ textAlign: 'center' }}>{copy.teamTitle}</h2>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 20, maxWidth: 720, margin: '0 auto' }}>
-        {TEAM.map((member) => (
+        {copy.team.map((member) => (
           <div key={member.name} className="card" style={{ textAlign: 'center' }}>
             <div
               style={{

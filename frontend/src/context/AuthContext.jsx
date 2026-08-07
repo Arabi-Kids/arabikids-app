@@ -86,6 +86,14 @@ export function AuthProvider({ children }) {
         supabase.from('users').update({ signup_source: attribution }).eq('id', data.user.id).then(() => {}, () => {});
       }
 
+      // Carry over whatever language the guest picked before signing up -
+      // same best-effort, non-blocking pattern as attribution above. See
+      // LanguageContext.jsx, which reads this same localStorage key.
+      const guestLanguage = localStorage.getItem('ak_language');
+      if (guestLanguage && ['en', 'ar', 'ms'].includes(guestLanguage)) {
+        supabase.from('users').update({ language: guestLanguage }).eq('id', data.user.id).then(() => {}, () => {});
+      }
+
       setUser(mapUserRow(profileRow));
       return { needsEmailConfirmation: false, user: mapUserRow(profileRow) };
     },

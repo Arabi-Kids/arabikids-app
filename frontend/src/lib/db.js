@@ -18,7 +18,13 @@ export function mapUserRow(row) {
     subscriptionTier: row.subscription_tier,
     stripeCustomerId: row.stripe_customer_id,
     currentPeriodEnd: row.current_period_end,
+    language: row.language,
   };
+}
+
+export async function updateUserLanguage(userId, language) {
+  const { error } = await supabase.from('users').update({ language }).eq('id', userId);
+  if (error) throw new Error(error.message);
 }
 
 function mapChildRow(row) {
@@ -239,7 +245,7 @@ export function checkpointOrderForLesson(orderIndex, lessonCount) {
 /** Single lesson's content. RLS silently returns zero rows for a lesson the
  * session isn't entitled to (no session-specific error), so we disambiguate
  * "doesn't exist" vs "locked" against the public metadata list. */
-export async function getLessonDetail(stageId, orderIndex) {
+export async function getLessonDetail(stageId, orderIndex, language = 'en') {
   const orderNum = Number(orderIndex);
 
   const [{ data: lessonRow, error: lessonError }, { data: meta, error: metaError }] = await Promise.all([
@@ -254,16 +260,29 @@ export async function getLessonDetail(stageId, orderIndex) {
   if (!lessonRow) return { locked: true };
 
   const lessonCount = meta.length;
+
+  // content_ar/content_ms are optional per-lesson translated blobs (see
+  // supabase/add_language_preference.sql) - fall back to the English
+  // content/title/etc for any lesson not yet translated, so rolling out
+  // translation stage-by-stage never breaks an untranslated lesson.
+  const localizedColumn = language === 'ar' ? 'content_ar' : language === 'ms' ? 'content_ms' : null;
+  const localized = localizedColumn ? lessonRow[localizedColumn] : null;
+
   return {
     lesson: {
       id: lessonRow.id,
       stageId: lessonRow.stage_id,
       orderIndex: lessonRow.order_index,
-      title: lessonRow.title,
-      lessonGoal: lessonRow.lesson_goal,
+      title: localized?.title ?? lessonRow.title,
+      lessonGoal: localized?.lessonGoal ?? lessonRow.lesson_goal,
       arabicWord: lessonRow.arabic_word,
-      arabicWordMeaning: lessonRow.arabic_word_meaning,
-      content: lessonRow.content,
+      arabicWordMeaning: localized?.arabicWordMeaning ?? lessonRow.arabic_word_meaning,
+      // `image` is language-independent (a picture of a book is a picture
+      // of a book in any language) and only ever set on the canonical
+      // English content, so it's merged in regardless of which language
+      // blob supplies everything else - otherwise it would silently
+      // disappear for ar/ms readers since those are separate JSON blobs.
+      content: { ...(localized?.content ?? lessonRow.content), image: lessonRow.content?.image },
       estimatedMinutes: lessonRow.estimated_minutes,
       hasNext: orderNum < lessonCount,
       checkpointDue: isCheckpointDue(orderNum, lessonCount),

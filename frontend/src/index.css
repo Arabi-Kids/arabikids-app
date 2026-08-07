@@ -8,6 +8,13 @@
   --color-sky: #e7eff9;
   --color-bg: #fbf9f3;
   --color-text: #1f2a37;
+  /* Extra playful accents (kid-facing card variety - see .card-kid) */
+  --color-purple: #7c5cbf;
+  --color-purple-dark: #5b3f92;
+  --color-orange: #e8823c;
+  --color-orange-dark: #b8611f;
+  --color-teal: #1a9e8a;
+  --color-teal-dark: #10685a;
   --font-display: 'Baloo 2', 'Nunito', system-ui, sans-serif;
   --radius-lg: 20px;
   --radius-md: 12px;
@@ -63,10 +70,60 @@ button {
   50% { transform: translateY(-6px); }
 }
 
+/* Short one-shot "hop and wiggle" reaction (opt-in via className), triggered
+   for ~800ms by hooks/useCelebrate.js alongside a lib/sounds.js sound -
+   distinct from .mascot-bounce's continuous idle loop. */
+.mascot-cheer {
+  display: inline-block;
+  animation: mascotCheer 0.7s ease-in-out;
+}
+
+@keyframes mascotCheer {
+  0% { transform: translateY(0) rotate(0deg) scale(1); }
+  20% { transform: translateY(-14px) rotate(-8deg) scale(1.08); }
+  40% { transform: translateY(0) rotate(8deg) scale(1.05); }
+  60% { transform: translateY(-8px) rotate(-5deg) scale(1.06); }
+  80% { transform: translateY(0) rotate(3deg) scale(1.02); }
+  100% { transform: translateY(0) rotate(0deg) scale(1); }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .mascot-bounce {
     animation: none;
   }
+
+  .mascot-cheer {
+    animation: none;
+  }
+
+  .confetti-piece {
+    animation: none;
+    display: none;
+  }
+}
+
+/* Full-viewport celebration burst - see components/Confetti.jsx */
+.confetti-burst {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+  z-index: 9999;
+}
+
+.confetti-piece {
+  position: absolute;
+  top: -20px;
+  width: 10px;
+  height: 10px;
+  animation-name: confettiFall;
+  animation-timing-function: ease-in;
+  animation-fill-mode: forwards;
+}
+
+@keyframes confettiFall {
+  0% { transform: translateY(0) rotate(0deg); opacity: 1; }
+  100% { transform: translateY(100vh) rotate(360deg); opacity: 0; }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -111,11 +168,54 @@ button {
   border: 2px solid var(--color-blue);
 }
 
+/* Chunky "physical button" press effect - a solid bottom-offset shadow
+   (the button's own "lip") that flattens on :active, so it looks pressable
+   the way most kids' apps render their primary buttons. Stack with an
+   existing .btn-* color class, e.g. class="btn btn-primary btn-chunky". */
+.btn-chunky {
+  min-height: 56px;
+  padding: 16px 32px;
+  font-size: 1.1rem;
+  border-radius: 999px;
+  transition: transform 0.1s ease, box-shadow 0.1s ease;
+}
+
+.btn-chunky.btn-primary { box-shadow: 0 5px 0 #8a6708; }
+.btn-chunky.btn-secondary { box-shadow: 0 5px 0 var(--color-blue-dark); }
+.btn-chunky.btn-outline { box-shadow: 0 5px 0 var(--color-blue); }
+
+.btn-chunky:active {
+  transform: translateY(5px);
+  box-shadow: 0 0 0 transparent;
+}
+
+/* Extra-large variant for the most toddler-facing taps (lesson tiles, Mark
+   Complete) - regular .btn-chunky (56px) stays for parent-facing pages
+   (Pricing, Home) where finger-sized-for-a-3-year-old isn't the constraint. */
+.btn-chunky-lg {
+  min-height: 64px;
+  padding: 18px 36px;
+  font-size: 1.2rem;
+}
+
 .card {
   background: #fff;
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-soft);
   padding: 24px;
+}
+
+/* Rounder, toy-like card, fully tinted (not just a stripe) in its accent
+   color so it reads as that color at a glance - important for pre-readers
+   who scan by color, not text. Set the accent per-instance with the CSS
+   var, e.g. style={{ '--card-accent': 'var(--color-teal)' }} className="card
+   card-kid". Falls back to a plain white card in browsers without
+   color-mix() support (safe degrade, not broken). */
+.card-kid {
+  background: color-mix(in srgb, var(--card-accent, var(--color-blue)) 10%, white);
+  border: 3px solid var(--card-accent, var(--color-blue));
+  border-radius: 28px;
+  padding: 28px 24px;
 }
 
 .badge {
@@ -143,6 +243,21 @@ button {
   color: #fff;
 }
 
+.badge-teal {
+  background: var(--color-teal);
+  color: #fff;
+}
+
+.badge-purple {
+  background: var(--color-purple);
+  color: #fff;
+}
+
+.badge-orange {
+  background: var(--color-orange);
+  color: #fff;
+}
+
 .page-title {
   font-family: var(--font-display);
   font-size: 2.25rem;
@@ -160,7 +275,7 @@ button {
 
 .form-group {
   margin-bottom: 18px;
-  text-align: left;
+  text-align: start;
 }
 
 .form-group label {
@@ -204,7 +319,7 @@ button {
 
 .table th,
 .table td {
-  text-align: left;
+  text-align: start;
   padding: 12px 14px;
   border-bottom: 1px solid #ecebe2;
 }
@@ -706,12 +821,12 @@ button {
   .navbar-links a,
   .navbar-links button {
     padding: 10px 4px;
-    text-align: left;
+    text-align: start;
     width: 100%;
   }
 
   .page-title {
-    font-size: 1.7rem;
+    font-size: 1.85rem;
   }
 
   .stat-grid {

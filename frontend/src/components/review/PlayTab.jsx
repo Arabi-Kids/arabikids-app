@@ -1,6 +1,9 @@
 import { useEffect, useState, useCallback } from 'react';
 import { getStageVocabulary, logReviewActivity } from '../../lib/db.js';
 import HudMascot from '../HudMascot.jsx';
+import Confetti from '../Confetti.jsx';
+import { playTap, playSuccess } from '../../lib/sounds.js';
+import { useCelebrate } from '../../hooks/useCelebrate.js';
 
 const GAME_SIZE = 6;
 
@@ -27,6 +30,7 @@ export default function PlayTab({ stageId, childId }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [logged, setLogged] = useState(false);
+  const [isCheering, triggerCheer] = useCelebrate();
 
   const startRound = useCallback((words) => {
     const chosen = shuffle(words.filter((w) => w.arabic.length <= 30)).slice(0, GAME_SIZE);
@@ -58,10 +62,13 @@ export default function PlayTab({ stageId, childId }) {
     const score = Math.max(50, 100 - mistakes * 10);
     logReviewActivity(childId, stageId, 'play', score).catch(() => {});
     setLogged(true);
-  }, [complete, logged, mistakes, childId, stageId]);
+    playSuccess();
+    triggerCheer();
+  }, [complete, logged, mistakes, childId, stageId, triggerCheer]);
 
   function handleArabicTap(lessonId) {
     if (matchedIds.includes(lessonId)) return;
+    playTap();
     setSelectedId(lessonId);
     setWrongId(null);
   }
@@ -89,9 +96,10 @@ export default function PlayTab({ stageId, childId }) {
     <div>
       <p style={{ color: '#8ea0b6', marginTop: 0 }}>Tap a word, then tap its meaning to match them.</p>
 
+      <Confetti active={complete} />
       {complete && (
         <div className="card" style={{ textAlign: 'center', background: 'rgba(200,150,12,0.08)', marginBottom: 16 }}>
-          <HudMascot pose="celebrate" size={64} style={{ margin: '0 auto 8px' }} />
+          <HudMascot pose="celebrate" size={64} className={isCheering ? 'mascot-cheer' : ''} style={{ margin: '0 auto 8px' }} />
           <h3 style={{ margin: '0 0 4px' }}>All Matched!</h3>
           <p style={{ margin: '0 0 12px', fontSize: '1.4rem' }}>{'⭐'.repeat(stars)}</p>
           <button className="btn btn-primary" onClick={() => startRound(pool)}>Play Again</button>

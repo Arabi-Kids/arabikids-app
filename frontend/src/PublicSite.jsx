@@ -1,5 +1,6 @@
 import { Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext.jsx';
+import { LanguageProvider } from './context/LanguageContext.jsx';
 import { ActiveChildProvider } from './context/ActiveChildContext.jsx';
 import Navbar from './components/Navbar.jsx';
 import Footer from './components/Footer.jsx';
@@ -38,6 +39,7 @@ import NotFound from './pages/NotFound.jsx';
 export default function PublicSite() {
   return (
     <AuthProvider>
+      <LanguageProvider>
       <ActiveChildProvider>
         <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
           <Navbar />
@@ -160,6 +162,7 @@ export default function PublicSite() {
           <SessionPacingReminder />
         </div>
       </ActiveChildProvider>
+      </LanguageProvider>
     </AuthProvider>
   );
 }
