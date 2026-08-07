@@ -1,9 +1,11 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { functionsApi } from '../lib/functions.js';
+import { useLanguage } from '../context/LanguageContext.jsx';
 import HudMascot from '../components/HudMascot.jsx';
 
 export default function ForgotPassword() {
+  const { t } = useLanguage();
   const [email, setEmail] = useState('');
   const [error, setError] = useState('');
   const [submitting, setSubmitting] = useState(false);
@@ -28,9 +30,9 @@ export default function ForgotPassword() {
       <div className="container">
         <div className="card auth-card" style={{ textAlign: 'center' }}>
           <HudMascot pose="mark" size={56} style={{ margin: '0 auto 12px' }} />
-          <h1 className="page-title">Check Your Email</h1>
+          <h1 className="page-title">{t('forgotPassword.checkEmailTitle')}</h1>
           <p className="page-subtitle" style={{ marginBottom: 0 }}>
-            If an account exists for <strong>{email}</strong>, a password reset link is on its way.
+            {t('forgotPassword.checkEmailBody', { email })}
           </p>
         </div>
       </div>
@@ -42,23 +44,23 @@ export default function ForgotPassword() {
       <div className="card auth-card">
         <HudMascot pose="mark" size={56} style={{ margin: '0 auto 12px', display: 'block' }} />
         <h1 className="page-title" style={{ textAlign: 'center' }}>
-          Forgot Password
+          {t('forgotPassword.title')}
         </h1>
         <p className="page-subtitle" style={{ textAlign: 'center' }}>
-          Enter your email and we'll send you a link to reset it.
+          {t('forgotPassword.subtitle')}
         </p>
         {error && <p className="error-text">{error}</p>}
         <form onSubmit={handleSubmit}>
           <div className="form-group">
-            <label htmlFor="email">Email</label>
+            <label htmlFor="email">{t('forgotPassword.email')}</label>
             <input id="email" type="email" required value={email} onChange={(e) => setEmail(e.target.value)} />
           </div>
           <button type="submit" className="btn btn-primary" style={{ width: '100%' }} disabled={submitting}>
-            {submitting ? 'Sending...' : 'Send Reset Link'}
+            {submitting ? t('forgotPassword.sending') : t('forgotPassword.sendLink')}
           </button>
         </form>
         <p style={{ textAlign: 'center', marginTop: 20 }}>
-          <Link to="/login" style={{ color: 'var(--color-blue)', fontWeight: 700 }}>Back to log in</Link>
+          <Link to="/login" style={{ color: 'var(--color-blue)', fontWeight: 700 }}>{t('forgotPassword.backToLogin')}</Link>
         </p>
       </div>
     </div>

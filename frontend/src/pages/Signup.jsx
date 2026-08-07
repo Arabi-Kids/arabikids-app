@@ -1,12 +1,14 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.jsx';
+import { useLanguage } from '../context/LanguageContext.jsx';
 import { functionsApi } from '../lib/functions.js';
 import HudMascot from '../components/HudMascot.jsx';
 import Seo from '../components/Seo.jsx';
 
 export default function Signup() {
   const { register } = useAuth();
+  const { t } = useLanguage();
   const navigate = useNavigate();
   const [form, setForm] = useState({
     name: '',
@@ -28,11 +30,11 @@ export default function Signup() {
     setError('');
 
     if (form.password !== form.confirmPassword) {
-      setError('Passwords do not match.');
+      setError(t('signup.errorPasswordMismatch'));
       return;
     }
     if (!form.acceptTerms) {
-      setError('Please accept the Terms of Use to continue.');
+      setError(t('signup.errorAcceptTerms'));
       return;
     }
 
@@ -58,10 +60,9 @@ export default function Signup() {
       <div className="container">
         <div className="card auth-card" style={{ textAlign: 'center' }}>
           <HudMascot pose="celebrate" size={64} style={{ margin: '0 auto 12px' }} />
-          <h1 className="page-title">Check Your Email</h1>
+          <h1 className="page-title">{t('signup.checkEmailTitle')}</h1>
           <p className="page-subtitle" style={{ marginBottom: 0 }}>
-            We've sent a confirmation link to <strong>{form.email}</strong>. Click it to activate your account, then log in to add
-            your child's profile and start their first free lesson.
+            {t('signup.checkEmailBody', { email: form.email })}
           </p>
         </div>
       </div>
@@ -78,19 +79,19 @@ export default function Signup() {
       <div className="card auth-card">
         <HudMascot pose="mark" size={56} style={{ margin: '0 auto 12px', display: 'block' }} />
         <h1 className="page-title" style={{ textAlign: 'center' }}>
-          Create Your Account
+          {t('signup.title')}
         </h1>
         <p className="page-subtitle" style={{ textAlign: 'center' }}>
-          Start with Stage 1 free — no credit card needed.
+          {t('signup.subtitle')}
         </p>
         {error && <p className="error-text">{error}</p>}
         <form onSubmit={handleSubmit}>
           <div className="form-group">
-            <label htmlFor="name">Parent Name</label>
+            <label htmlFor="name">{t('signup.parentName')}</label>
             <input id="name" required value={form.name} onChange={(e) => update('name', e.target.value)} />
           </div>
           <div className="form-group">
-            <label htmlFor="email">Email</label>
+            <label htmlFor="email">{t('signup.email')}</label>
             <input
               id="email"
               type="email"
@@ -100,7 +101,7 @@ export default function Signup() {
             />
           </div>
           <div className="form-group">
-            <label htmlFor="password">Password</label>
+            <label htmlFor="password">{t('signup.password')}</label>
             <input
               id="password"
               type="password"
@@ -111,7 +112,7 @@ export default function Signup() {
             />
           </div>
           <div className="form-group">
-            <label htmlFor="confirmPassword">Confirm Password</label>
+            <label htmlFor="confirmPassword">{t('signup.confirmPassword')}</label>
             <input
               id="confirmPassword"
               type="password"
@@ -130,23 +131,23 @@ export default function Signup() {
               onChange={(e) => update('acceptTerms', e.target.checked)}
             />
             <label htmlFor="acceptTerms" style={{ marginBottom: 0, fontWeight: 400 }}>
-              I agree to the{' '}
+              {t('signup.agreeToPrefix')}{' '}
               <Link to="/terms" style={{ color: 'var(--color-blue)', fontWeight: 700 }}>
-                Terms of Use
+                {t('signup.termsOfUse')}
               </Link>{' '}
-              and{' '}
+              {t('signup.and')}{' '}
               <Link to="/privacy" style={{ color: 'var(--color-blue)', fontWeight: 700 }}>
-                Privacy Policy
+                {t('signup.privacyPolicy')}
               </Link>
               .
             </label>
           </div>
           <button type="submit" className="btn btn-primary" style={{ width: '100%' }} disabled={submitting}>
-            {submitting ? 'Creating account...' : 'Sign Up'}
+            {submitting ? t('signup.creating') : t('signup.signUp')}
           </button>
         </form>
         <p style={{ textAlign: 'center', marginTop: 20 }}>
-          Already have an account? <Link to="/login" style={{ color: 'var(--color-blue)', fontWeight: 700 }}>Log in</Link>
+          {t('signup.haveAccount')} <Link to="/login" style={{ color: 'var(--color-blue)', fontWeight: 700 }}>{t('signup.logIn')}</Link>
         </p>
       </div>
     </div>

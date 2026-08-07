@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useActiveChild } from '../context/ActiveChildContext.jsx';
+import { useLanguage } from '../context/LanguageContext.jsx';
 import { getChildProgressSummary } from '../lib/db.js';
 import { BADGE_CATALOG } from '../lib/badges.js';
 import HudMascot from '../components/HudMascot.jsx';
@@ -10,6 +11,7 @@ const TOTAL_STAGES = 16;
 
 export default function Progress() {
   const { activeChild, childProfiles, loading: childrenLoading } = useActiveChild();
+  const { t } = useLanguage();
   const [data, setData] = useState(null);
   const [error, setError] = useState('');
 
@@ -18,14 +20,14 @@ export default function Progress() {
     getChildProgressSummary(activeChild.id).then(setData).catch((err) => setError(err.message));
   }, [activeChild]);
 
-  if (childrenLoading) return <div className="container" style={{ padding: 60 }}>Loading...</div>;
+  if (childrenLoading) return <div className="container" style={{ padding: 60 }}>{t('progress.loading')}</div>;
 
   if (childProfiles.length === 0) {
     return (
       <div className="container" style={{ padding: 60, textAlign: 'center' }}>
         <HudMascot pose="mark" size={72} style={{ margin: '0 auto 12px' }} />
-        <h1 className="page-title">No Child Yet</h1>
-        <Link to="/add-child" className="btn btn-primary">Add a Child</Link>
+        <h1 className="page-title">{t('progress.noChildTitle')}</h1>
+        <Link to="/add-child" className="btn btn-primary">{t('progress.addChild')}</Link>
       </div>
     );
   }
@@ -34,8 +36,8 @@ export default function Progress() {
 
   return (
     <div className="container" style={{ padding: '48px 0' }}>
-      <h1 className="page-title">{activeChild?.name}'s Progress</h1>
-      <p className="page-subtitle">Track completed lessons, stages, streak, and recent activity.</p>
+      <h1 className="page-title">{t('progress.title', { name: activeChild?.name })}</h1>
+      <p className="page-subtitle">{t('progress.subtitle')}</p>
 
       {error && <p className="error-text">{error}</p>}
 
@@ -44,33 +46,33 @@ export default function Progress() {
           <div className="stat-grid">
             <div className="stat-card">
               <div className="stat-value">{data.totalLessonsCompleted}</div>
-              <div className="stat-label">Lessons Completed</div>
+              <div className="stat-label">{t('progress.lessonsCompleted')}</div>
             </div>
             <div className="stat-card">
               <div className="stat-value">{data.stagesCompleted} / {TOTAL_STAGES}</div>
-              <div className="stat-label">Stages Completed</div>
+              <div className="stat-label">{t('progress.stagesCompleted')}</div>
             </div>
             <div className="stat-card">
               <div className="stat-value">🔥 {data.streak}</div>
-              <div className="stat-label">Day Streak</div>
+              <div className="stat-label">{t('progress.dayStreak')}</div>
             </div>
             <div className="stat-card">
               <div className="stat-value">🔥 {data.longestStreak}</div>
-              <div className="stat-label">Longest Streak</div>
+              <div className="stat-label">{t('progress.longestStreak')}</div>
             </div>
           </div>
 
           <div className="card" style={{ marginBottom: 32 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
-              <span style={{ fontWeight: 700, color: 'var(--color-blue)' }}>Curriculum progress</span>
-              <span style={{ fontWeight: 700 }}>{data.stagesCompleted} / {TOTAL_STAGES} stages</span>
+              <span style={{ fontWeight: 700, color: 'var(--color-blue)' }}>{t('progress.curriculumProgress')}</span>
+              <span style={{ fontWeight: 700 }}>{t('progress.stagesOf', { completed: data.stagesCompleted, total: TOTAL_STAGES })}</span>
             </div>
             <div style={{ background: '#ecebe2', borderRadius: 999, height: 14, overflow: 'hidden' }}>
               <div style={{ width: `${pct}%`, height: '100%', background: 'var(--color-gold)', borderRadius: 999 }} />
             </div>
           </div>
 
-          <h3 style={{ color: 'var(--color-blue)' }}>Badges</h3>
+          <h3 style={{ color: 'var(--color-blue)' }}>{t('progress.badges')}</h3>
           <div
             style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: 12, marginBottom: 32 }}
           >
@@ -85,20 +87,20 @@ export default function Progress() {
                   <StarSparkleIcon
                     style={{ width: 28, height: 28, color: earned ? 'var(--color-gold)' : '#8ea0b6', margin: '0 auto 8px' }}
                   />
-                  <p style={{ margin: 0, fontWeight: 700, fontSize: '0.9rem', color: 'var(--color-blue)' }}>{badge.name}</p>
-                  <p style={{ margin: '4px 0 0', fontSize: '0.78rem', color: '#8ea0b6' }}>{badge.description}</p>
+                  <p style={{ margin: 0, fontWeight: 700, fontSize: '0.9rem', color: 'var(--color-blue)' }}>{t(`badges.${badge.code}.name`)}</p>
+                  <p style={{ margin: '4px 0 0', fontSize: '0.78rem', color: '#8ea0b6' }}>{t(`badges.${badge.code}.description`)}</p>
                 </div>
               );
             })}
           </div>
 
-          <h3 style={{ color: 'var(--color-blue)' }}>Recently Completed Lessons</h3>
+          <h3 style={{ color: 'var(--color-blue)' }}>{t('progress.recentLessons')}</h3>
           <div style={{ overflowX: 'auto' }}>
             <table className="table">
               <thead>
                 <tr>
-                  <th>Stage</th>
-                  <th>Lesson</th>
+                  <th>{t('progress.stageColumn')}</th>
+                  <th>{t('progress.lessonColumn')}</th>
                 </tr>
               </thead>
               <tbody>
@@ -111,7 +113,7 @@ export default function Progress() {
                 {data.recent.length === 0 && (
                   <tr>
                     <td colSpan={2} style={{ textAlign: 'center', color: '#6b7a8a' }}>
-                      No lessons completed yet. Head to the Lesson Hub to get started!
+                      {t('progress.noLessonsYet')}
                     </td>
                   </tr>
                 )}

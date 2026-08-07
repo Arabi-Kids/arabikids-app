@@ -2,19 +2,16 @@ import { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.jsx';
 import { useActiveChild } from '../context/ActiveChildContext.jsx';
+import { useLanguage } from '../context/LanguageContext.jsx';
 import HudMascot from '../components/HudMascot.jsx';
 import { fireConversion } from '../lib/ads.js';
-
-const STEPS = [
-  { num: 1, title: 'Add your child', text: 'Each child gets their own stage, streak, and progress.' },
-  { num: 2, title: 'Start Stage 1, free', text: 'No credit card needed to try the first stage.' },
-  { num: 3, title: 'Unlock everything', text: 'Subscribe anytime to unlock the full 16-stage curriculum.' },
-];
 
 export default function ThankYou() {
   const { user } = useAuth();
   const { childProfiles, loading } = useActiveChild();
+  const { t } = useLanguage();
   const hasChild = childProfiles.length > 0;
+  const steps = t('thankYou.steps');
 
   useEffect(() => {
     // Guard against double-counting the same signup if this page gets
@@ -27,12 +24,12 @@ export default function ThankYou() {
   return (
     <div className="container" style={{ padding: '70px 0', textAlign: 'center' }}>
       <HudMascot pose="celebrate" size={100} style={{ margin: '0 auto 12px' }} />
-      <h1 className="page-title">Welcome to ArabiKids{user?.name ? `, ${user.name}` : ''}!</h1>
-      <p className="page-subtitle">Your account is ready. Here's what happens next.</p>
+      <h1 className="page-title">{t('thankYou.welcome', { name: user?.name ? `, ${user.name}` : '' })}</h1>
+      <p className="page-subtitle">{t('thankYou.ready')}</p>
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 20, maxWidth: 760, margin: '0 auto 40px' }}>
-        {STEPS.map((step) => (
-          <div key={step.num} className="card">
+        {steps.map((step, i) => (
+          <div key={i} className="card">
             <div
               style={{
                 width: 40,
@@ -47,7 +44,7 @@ export default function ThankYou() {
                 margin: '0 auto 12px',
               }}
             >
-              {step.num}
+              {i + 1}
             </div>
             <p style={{ fontWeight: 800, color: 'var(--color-blue)' }}>{step.title}</p>
             <p style={{ color: '#5a6a7a', margin: 0 }}>{step.text}</p>
@@ -57,7 +54,7 @@ export default function ThankYou() {
 
       {!loading && (
         <Link to={hasChild ? '/lessons' : '/add-child'} className="btn btn-primary">
-          {hasChild ? 'Go to Lesson Hub' : 'Add Your First Child'}
+          {hasChild ? t('thankYou.goToHub') : t('thankYou.addFirstChild')}
         </Link>
       )}
     </div>

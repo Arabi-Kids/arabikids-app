@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.jsx';
 import { useActiveChild } from '../context/ActiveChildContext.jsx';
+import { useLanguage } from '../context/LanguageContext.jsx';
 import {
   getCurriculum,
   createChildProfile,
@@ -16,6 +17,7 @@ import HudMascot from '../components/HudMascot.jsx';
 export default function AddChild() {
   const { user } = useAuth();
   const { childProfiles, setActiveChildId, refreshChildren } = useActiveChild();
+  const { t } = useLanguage();
   const navigate = useNavigate();
 
   const [levels, setLevels] = useState([]);
@@ -114,25 +116,25 @@ export default function AddChild() {
       <div className="card auth-card" style={{ maxWidth: 480 }}>
         <HudMascot pose="mark" size={56} style={{ margin: '0 auto 12px', display: 'block' }} />
         <h1 className="page-title" style={{ textAlign: 'center' }}>
-          {childProfiles.length === 0 ? 'Add Your First Child' : 'Add a Child'}
+          {childProfiles.length === 0 ? t('addChild.titleFirst') : t('addChild.titleAdditional')}
         </h1>
         <p className="page-subtitle" style={{ textAlign: 'center' }}>
-          Each child gets their own progress, streak, and starting stage.
+          {t('addChild.subtitle')}
         </p>
         {error && <p className="error-text">{error}</p>}
 
         {step === 'details' && (
           <form onSubmit={goToChoose}>
             <div className="form-group">
-              <label htmlFor="childName">Child's Name</label>
+              <label htmlFor="childName">{t('addChild.childName')}</label>
               <input id="childName" required value={name} onChange={(e) => setName(e.target.value)} />
             </div>
             <div className="form-group">
-              <label htmlFor="dob">Date of Birth</label>
+              <label htmlFor="dob">{t('addChild.dateOfBirth')}</label>
               <input id="dob" type="date" value={dateOfBirth} onChange={(e) => setDateOfBirth(e.target.value)} />
             </div>
             <button type="submit" className="btn btn-primary" style={{ width: '100%' }} disabled={!name}>
-              Continue
+              {t('addChild.continue')}
             </button>
           </form>
         )}
@@ -140,8 +142,7 @@ export default function AddChild() {
         {step === 'choose' && (
           <div style={{ textAlign: 'center' }}>
             <p style={{ color: '#4b5a6a' }}>
-              Does {name} already know some Arabic letters or words? A quick 4-5 question quiz can place them
-              further along instead of starting from the very first letter.
+              {t('addChild.quizIntro', { name })}
             </p>
             <button
               className="btn btn-primary"
@@ -149,14 +150,14 @@ export default function AddChild() {
               onClick={startTest}
               disabled={eligibleStages.length <= 1}
             >
-              Take the Placement Quiz
+              {t('addChild.takeQuiz')}
             </button>
             <button className="btn btn-outline" style={{ width: '100%' }} onClick={skipTest}>
-              Skip — Start at Stage 1
+              {t('addChild.skipQuiz')}
             </button>
             {eligibleStages.length <= 1 && (
               <p style={{ color: '#8ea0b6', fontSize: '0.85rem', marginTop: 10 }}>
-                Based on {name}'s age, Stage 1 is the best starting point — the quiz isn't needed yet.
+                {t('addChild.quizNotNeeded', { name })}
               </p>
             )}
           </div>
@@ -165,7 +166,7 @@ export default function AddChild() {
         {step === 'test' && currentStep && !currentStep.done && (
           <div>
             <p style={{ color: '#8ea0b6', fontSize: '0.85rem', textAlign: 'center', marginTop: -8 }}>
-              Question {answers.length + 1} of up to 5
+              {t('addChild.questionProgress', { current: answers.length + 1 })}
             </p>
             <p style={{ fontWeight: 700, color: 'var(--color-blue-dark)', textAlign: 'center', margin: '12px 0 20px' }}>
               {currentStep.question.instruction}
@@ -190,19 +191,17 @@ export default function AddChild() {
           <div style={{ textAlign: 'center' }}>
             <HudMascot pose="celebrate" size={72} style={{ margin: '0 auto 12px' }} />
             <p style={{ color: '#4b5a6a' }}>
-              {placedOrderIndex != null ? (
-                <>We recommend starting {name} at:</>
-              ) : (
-                <>{name} will start at:</>
-              )}
+              {placedOrderIndex != null
+                ? t('addChild.recommendStart', { name })
+                : t('addChild.willStart', { name })}
             </p>
             <p style={{ fontWeight: 800, fontSize: '1.2rem', color: 'var(--color-blue)', margin: '4px 0 20px' }}>
-              Stage {placedStage?.orderIndex}: {placedStage?.name}
+              {t('addChild.stageLabel', { n: placedStage?.orderIndex, name: placedStage?.name })}
             </p>
 
             {manualOverride && (
               <div className="form-group" style={{ textAlign: 'left' }}>
-                <label htmlFor="startStage">Pick a different stage</label>
+                <label htmlFor="startStage">{t('addChild.pickDifferentStage')}</label>
                 <select
                   id="startStage"
                   value={selectedStageId ?? ''}
@@ -214,7 +213,7 @@ export default function AddChild() {
                         .filter((s) => eligibleStages.some((e) => e.id === s.id))
                         .map((stage) => (
                           <option key={stage.id} value={stage.id}>
-                            Stage {stage.orderIndex}: {stage.name}
+                            {t('addChild.stageLabel', { n: stage.orderIndex, name: stage.name })}
                           </option>
                         ))}
                     </optgroup>
@@ -224,11 +223,11 @@ export default function AddChild() {
             )}
 
             <button className="btn btn-primary" style={{ width: '100%', marginBottom: 12 }} onClick={handleFinalSubmit} disabled={submitting}>
-              {submitting ? 'Adding...' : `Start Learning at Stage ${placedStage?.orderIndex ?? ''}`}
+              {submitting ? t('addChild.adding') : t('addChild.startLearning', { n: placedStage?.orderIndex ?? '' })}
             </button>
             {!manualOverride && (
               <button className="btn btn-outline" style={{ width: '100%' }} onClick={() => setManualOverride(true)}>
-                Choose a Different Stage Instead
+                {t('addChild.chooseDifferent')}
               </button>
             )}
           </div>

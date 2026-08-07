@@ -1,10 +1,12 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase.js';
+import { useLanguage } from '../context/LanguageContext.jsx';
 import HudMascot from '../components/HudMascot.jsx';
 
 export default function ResetPassword() {
   const navigate = useNavigate();
+  const { t } = useLanguage();
   const [ready, setReady] = useState(false);
   const [invalid, setInvalid] = useState(false);
   const [password, setPassword] = useState('');
@@ -49,11 +51,11 @@ export default function ResetPassword() {
     e.preventDefault();
     setError('');
     if (password.length < 8) {
-      setError('Password must be at least 8 characters.');
+      setError(t('resetPassword.errorLength'));
       return;
     }
     if (password !== confirmPassword) {
-      setError('Passwords do not match.');
+      setError(t('resetPassword.errorMismatch'));
       return;
     }
     setSubmitting(true);
@@ -73,10 +75,10 @@ export default function ResetPassword() {
       <div className="container">
         <div className="card auth-card" style={{ textAlign: 'center' }}>
           <HudMascot pose="celebrate" size={64} style={{ margin: '0 auto 12px' }} />
-          <h1 className="page-title">Password Updated</h1>
-          <p className="page-subtitle" style={{ marginBottom: 20 }}>Your password has been changed successfully.</p>
+          <h1 className="page-title">{t('resetPassword.updatedTitle')}</h1>
+          <p className="page-subtitle" style={{ marginBottom: 20 }}>{t('resetPassword.updatedBody')}</p>
           <button className="btn btn-primary" onClick={() => navigate('/lessons')}>
-            Continue to ArabiKids
+            {t('resetPassword.continueBtn')}
           </button>
         </div>
       </div>
@@ -88,12 +90,12 @@ export default function ResetPassword() {
       <div className="container">
         <div className="card auth-card" style={{ textAlign: 'center' }}>
           <HudMascot pose="lost" size={64} style={{ margin: '0 auto 12px' }} />
-          <h1 className="page-title">Link Expired</h1>
+          <h1 className="page-title">{t('resetPassword.expiredTitle')}</h1>
           <p className="page-subtitle" style={{ marginBottom: 20 }}>
-            This password reset link is invalid or has expired. Please request a new one.
+            {t('resetPassword.expiredBody')}
           </p>
           <button className="btn btn-primary" onClick={() => navigate('/forgot-password')}>
-            Request New Link
+            {t('resetPassword.requestNewLink')}
           </button>
         </div>
       </div>
@@ -101,7 +103,7 @@ export default function ResetPassword() {
   }
 
   if (!ready) {
-    return <div className="container" style={{ padding: 60, textAlign: 'center' }}>Verifying your link...</div>;
+    return <div className="container" style={{ padding: 60, textAlign: 'center' }}>{t('resetPassword.verifying')}</div>;
   }
 
   return (
@@ -109,16 +111,16 @@ export default function ResetPassword() {
       <div className="card auth-card">
         <HudMascot pose="mark" size={56} style={{ margin: '0 auto 12px', display: 'block' }} />
         <h1 className="page-title" style={{ textAlign: 'center' }}>
-          Set a New Password
+          {t('resetPassword.title')}
         </h1>
         {error && <p className="error-text">{error}</p>}
         <form onSubmit={handleSubmit}>
           <div className="form-group">
-            <label htmlFor="password">New Password</label>
+            <label htmlFor="password">{t('resetPassword.newPassword')}</label>
             <input id="password" type="password" required minLength={8} value={password} onChange={(e) => setPassword(e.target.value)} />
           </div>
           <div className="form-group">
-            <label htmlFor="confirmPassword">Confirm New Password</label>
+            <label htmlFor="confirmPassword">{t('resetPassword.confirmNewPassword')}</label>
             <input
               id="confirmPassword"
               type="password"
@@ -129,7 +131,7 @@ export default function ResetPassword() {
             />
           </div>
           <button type="submit" className="btn btn-primary" style={{ width: '100%' }} disabled={submitting}>
-            {submitting ? 'Updating...' : 'Update Password'}
+            {submitting ? t('resetPassword.updating') : t('resetPassword.updatePassword')}
           </button>
         </form>
       </div>

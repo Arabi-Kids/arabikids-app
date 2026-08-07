@@ -1,11 +1,13 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.jsx';
+import { useLanguage } from '../context/LanguageContext.jsx';
 import HudMascot from '../components/HudMascot.jsx';
 import Seo from '../components/Seo.jsx';
 
 export default function Login() {
   const { login } = useAuth();
+  const { t } = useLanguage();
   const navigate = useNavigate();
   const [form, setForm] = useState({ email: '', password: '' });
   const [error, setError] = useState('');
@@ -31,15 +33,15 @@ export default function Login() {
       <div className="card auth-card">
         <HudMascot pose="mark" size={56} style={{ margin: '0 auto 12px', display: 'block' }} />
         <h1 className="page-title" style={{ textAlign: 'center' }}>
-          Welcome Back
+          {t('login.title')}
         </h1>
         <p className="page-subtitle" style={{ textAlign: 'center' }}>
-          Log in to continue your Arabic journey.
+          {t('login.subtitle')}
         </p>
         {error && <p className="error-text">{error}</p>}
         <form onSubmit={handleSubmit}>
           <div className="form-group">
-            <label htmlFor="email">Email</label>
+            <label htmlFor="email">{t('login.email')}</label>
             <input
               id="email"
               type="email"
@@ -49,7 +51,7 @@ export default function Login() {
             />
           </div>
           <div className="form-group">
-            <label htmlFor="password">Password</label>
+            <label htmlFor="password">{t('login.password')}</label>
             <input
               id="password"
               type="password"
@@ -59,14 +61,14 @@ export default function Login() {
             />
           </div>
           <button type="submit" className="btn btn-primary" style={{ width: '100%' }} disabled={submitting}>
-            {submitting ? 'Logging in...' : 'Log In'}
+            {submitting ? t('login.loggingIn') : t('login.logIn')}
           </button>
         </form>
         <p style={{ textAlign: 'center', marginTop: 20 }}>
-          <Link to="/forgot-password" style={{ color: 'var(--color-blue)', fontWeight: 700 }}>Forgot password?</Link>
+          <Link to="/forgot-password" style={{ color: 'var(--color-blue)', fontWeight: 700 }}>{t('login.forgotPassword')}</Link>
         </p>
         <p style={{ textAlign: 'center', marginTop: 8 }}>
-          Don&apos;t have an account? <Link to="/signup" style={{ color: 'var(--color-blue)', fontWeight: 700 }}>Sign up</Link>
+          {t('login.noAccount')} <Link to="/signup" style={{ color: 'var(--color-blue)', fontWeight: 700 }}>{t('login.signUp')}</Link>
         </p>
       </div>
     </div>

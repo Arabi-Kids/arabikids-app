@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
+import { useLanguage } from '../context/LanguageContext.jsx';
 import HudMascot from '../components/HudMascot.jsx';
 import Seo from '../components/Seo.jsx';
 import { fireConversion } from '../lib/ads.js';
@@ -12,35 +13,19 @@ import { fireConversion } from '../lib/ads.js';
 // someone on automatically; 'failed' is linked from Account.jsx's past_due
 // banner (a real signal from stripe-webhook.js), and 'canceled' is a general
 // fallback for anyone who navigates here without completing checkout.
-const STATUS_CONTENT = {
-  success: {
-    pose: 'celebrate',
-    title: "You're All Set!",
-    subtitle: 'Your subscription is active - the full 16-stage curriculum is unlocked.',
-    ctaTo: '/lessons',
-    ctaLabel: 'Go to Lesson Hub',
-  },
-  failed: {
-    pose: 'lost',
-    title: "Payment Didn't Go Through",
-    subtitle: "We couldn't process your payment. Your card may have been declined, or the payment method needs updating.",
-    ctaTo: '/account',
-    ctaLabel: 'Update Payment Method',
-  },
-  canceled: {
-    pose: 'lost',
-    title: 'Checkout Canceled',
-    subtitle: "No worries - you can pick up right where you left off whenever you're ready.",
-    ctaTo: '/pricing',
-    ctaLabel: 'Back to Pricing',
-  },
+const STATUS_META = {
+  success: { pose: 'celebrate', ctaTo: '/lessons' },
+  failed: { pose: 'lost', ctaTo: '/account' },
+  canceled: { pose: 'lost', ctaTo: '/pricing' },
 };
 
 export default function CheckoutStatus() {
   const [params] = useSearchParams();
+  const { t } = useLanguage();
   const requested = params.get('status');
-  const status = STATUS_CONTENT[requested] ? requested : 'canceled';
-  const content = STATUS_CONTENT[status];
+  const status = STATUS_META[requested] ? requested : 'canceled';
+  const meta = STATUS_META[status];
+  const content = { ...meta, ...t(`checkoutStatus.${status}`) };
 
   useEffect(() => {
     if (status === 'success') fireConversion('purchase');
@@ -58,7 +43,7 @@ export default function CheckoutStatus() {
       {status !== 'success' && (
         <p style={{ marginTop: 24 }}>
           <a href="mailto:hello@arabikids.online" style={{ color: 'var(--color-blue)', fontWeight: 700 }}>
-            Need help? Contact us
+            {t('checkoutStatus.needHelp')}
           </a>
         </p>
       )}
