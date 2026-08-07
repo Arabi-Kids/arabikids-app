@@ -224,6 +224,8 @@ const LETTER_QURAN_REF = {
 // this table ever needs regenerating.
 export const LETTER_POSITIONS = {
   'ا': {
+    initial: { word: 'اللّٰه', meaning: 'Allah', reference: 'used throughout the Quran', transliteration: 'Allah' },
+    medial: { word: 'كِتَاب', meaning: 'book', reference: 'often refers to the Quran', transliteration: 'Kitab' },
     final: { word: 'تَبَارَكَ', meaning: 'blessed is He', reference: 'Surah Al-Mulk 67:1', transliteration: 'Tabaraka' },
   },
   'ب': {
@@ -499,7 +501,7 @@ function harakatSetFor(letter) {
 // beginner meeting Arabic for the first time should never see a letter
 // silently skipped without explanation.
 const HARAKAT_NOTE_BY_LETTER = {
-  'ا': "Alif doesn't take fatha/kasra/damma the way other letters do - on its own it's silent. Instead, it stretches the vowel sound of the letter BEFORE it into a long \"aaa\" (like in \"father\"). You'll meet this properly as madd in Stage 5.",
+  'ا': "Alif doesn't take fatha/kasra/damma like other letters - on its own it's silent. Say \"بَ\" (ba), then add alif: \"بَا\" (baa) - hear how the \"a\" stretches into a long \"aaa\" (like in \"father\")? That's alif's job: it stretches a short vowel into a long one. Two more letters do the same job for the other vowels - ي stretches \"i\" into a long \"eee\", and و stretches \"u\" into a long \"ouu\". You'll meet all three properly as madd in Stage 5.",
 };
 function harakatNoteFor(letter) {
   return HARAKAT_NOTE_BY_LETTER[letter] || null;
