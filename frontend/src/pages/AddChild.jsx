@@ -17,7 +17,7 @@ import HudMascot from '../components/HudMascot.jsx';
 export default function AddChild() {
   const { user } = useAuth();
   const { childProfiles, setActiveChildId, refreshChildren } = useActiveChild();
-  const { t } = useLanguage();
+  const { language, t } = useLanguage();
   const navigate = useNavigate();
 
   const [levels, setLevels] = useState([]);
@@ -36,14 +36,14 @@ export default function AddChild() {
   const [manualOverride, setManualOverride] = useState(false);
 
   useEffect(() => {
-    Promise.all([getCurriculum(), getPlacementQuestions()])
+    Promise.all([getCurriculum(), getPlacementQuestions(language)])
       .then(([{ levels: lv, stages: st }, questions]) => {
         setLevels(lv);
         setStages(st);
         setPlacementQuestions(questions);
       })
       .catch((err) => setError(err.message));
-  }, []);
+  }, [language]);
 
   const age = ageFromDob(dateOfBirth);
   const maxStageId = age != null ? computeMaxStageForAge(age, stages) : stages[0]?.id ?? null;

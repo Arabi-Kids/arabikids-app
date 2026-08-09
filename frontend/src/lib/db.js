@@ -129,20 +129,33 @@ export function nextPlacementStep(questions, maxOrderIndex, answeredSoFar) {
   return { done: false, question };
 }
 
-export async function getPlacementQuestions() {
+/** correct_index (not text) is what identifies the right answer, since the
+ * displayed option strings are localized - matching by text against the
+ * English correct_answer would break once the child is shown translated
+ * options. Instruction/options fall back to English per-field when a
+ * translation is missing, same pattern as lesson content. */
+export async function getPlacementQuestions(language = 'en') {
   const { data, error } = await supabase
     .from('placement_questions')
-    .select('id, stage_id, instruction, options, correct_answer, stages!inner(order_index)')
+    .select(
+      'id, stage_id, instruction, instruction_ar, instruction_ms, options, options_ar, options_ms, correct_index, stages!inner(order_index)'
+    )
     .order('id');
   if (error) throw new Error(error.message);
-  return data.map((q) => ({
-    id: q.id,
-    stageId: q.stage_id,
-    stageOrderIndex: q.stages.order_index,
-    instruction: q.instruction,
-    options: q.options,
-    correctAnswer: q.correct_answer,
-  }));
+  return data.map((q) => {
+    const instruction =
+      (language === 'ar' ? q.instruction_ar : language === 'ms' ? q.instruction_ms : null) ?? q.instruction;
+    const options =
+      (language === 'ar' ? q.options_ar : language === 'ms' ? q.options_ms : null) ?? q.options;
+    return {
+      id: q.id,
+      stageId: q.stage_id,
+      stageOrderIndex: q.stages.order_index,
+      instruction,
+      options,
+      correctAnswer: options[q.correct_index],
+    };
+  });
 }
 
 export async function submitPlacementResult({ childId, rawAnswers, placedStageId }) {
