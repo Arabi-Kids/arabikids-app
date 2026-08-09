@@ -39,6 +39,7 @@ export default function StageLessons() {
             childId: activeChild.id,
             isPaidUser: isPaid(),
             stageUnlocked,
+            language,
           }),
           listMasteredStageIds(activeChild.id),
         ]);

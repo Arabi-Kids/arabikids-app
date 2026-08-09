@@ -216,7 +216,7 @@ export async function getCurriculum(language = 'en') {
  * progress on each. `stageUnlocked` (whether the child has progressed far
  * enough to be in this stage at all) is computed by the caller from
  * current_stage_id ordering and combined with the payment paywall here. */
-export async function listStageLessonsForChild(stageId, { childId, isPaidUser, stageUnlocked }) {
+export async function listStageLessonsForChild(stageId, { childId, isPaidUser, stageUnlocked, language = 'en' }) {
   const { data: meta, error: metaError } = await supabase.rpc('list_stage_lessons', { p_stage_id: stageId });
   if (metaError) throw new Error(metaError.message);
 
@@ -233,11 +233,12 @@ export async function listStageLessonsForChild(stageId, { childId, isPaidUser, s
   return meta.map((lesson) => {
     const progress = progressByLessonId.get(lesson.id);
     const paywalled = !lesson.is_free && !isPaidUser;
+    const title = (language === 'ar' ? lesson.title_ar : language === 'ms' ? lesson.title_ms : null) ?? lesson.title;
     return {
       id: lesson.id,
       stageId: lesson.stage_id,
       orderIndex: lesson.order_index,
-      title: lesson.title,
+      title,
       arabicWord: lesson.arabic_word,
       isFree: lesson.is_free,
       estimatedMinutes: lesson.estimated_minutes,
