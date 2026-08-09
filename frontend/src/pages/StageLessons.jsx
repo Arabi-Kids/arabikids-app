@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.jsx';
 import { useActiveChild } from '../context/ActiveChildContext.jsx';
+import { useLanguage } from '../context/LanguageContext.jsx';
 import { getCurriculum, listStageLessonsForChild, listMasteredStageIds } from '../lib/db.js';
 import { StarSparkleIcon } from '../components/Icons.jsx';
 import HudMascot from '../components/HudMascot.jsx';
@@ -15,6 +16,7 @@ export default function StageLessons() {
   const { stageId } = useParams();
   const { isPaid } = useAuth();
   const { activeChild } = useActiveChild();
+  const { language } = useLanguage();
   const [stage, setStage] = useState(null);
   const [lessons, setLessons] = useState([]);
   const [mastered, setMastered] = useState(false);
@@ -25,7 +27,7 @@ export default function StageLessons() {
     if (!activeChild) return;
     setLoading(true);
     setError('');
-    getCurriculum()
+    getCurriculum(language)
       .then(async ({ stages }) => {
         const stageRow = stages.find((s) => s.id === Number(stageId));
         setStage(stageRow);
@@ -45,7 +47,7 @@ export default function StageLessons() {
       })
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
-  }, [stageId, activeChild, isPaid]);
+  }, [stageId, activeChild, isPaid, language]);
 
   if (loading) return <div className="container" style={{ padding: 60 }}>Loading...</div>;
   if (!stage) {

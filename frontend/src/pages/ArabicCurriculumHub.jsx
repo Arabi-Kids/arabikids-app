@@ -28,7 +28,7 @@ export default function ArabicCurriculumHub() {
   const navigate = useNavigate();
   const { user, isPaid } = useAuth();
   const { activeChild, childProfiles, loading: childrenLoading } = useActiveChild();
-  const { t } = useLanguage();
+  const { language, t } = useLanguage();
   const copy = t('curriculum');
   const [levels, setLevels] = useState([]);
   const [masteredStageIds, setMasteredStageIds] = useState([]);
@@ -42,11 +42,11 @@ export default function ArabicCurriculumHub() {
   // of the curriculum. Only fetch a specific child's mastered stages once
   // one is actually selected.
   useEffect(() => {
-    getCurriculum()
+    getCurriculum(language)
       .then(({ levels: lv }) => setLevels(lv))
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
-  }, []);
+  }, [language]);
 
   useEffect(() => {
     if (!activeChild) return;

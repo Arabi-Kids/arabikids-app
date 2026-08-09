@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useActiveChild } from '../context/ActiveChildContext.jsx';
+import { useLanguage } from '../context/LanguageContext.jsx';
 import { getCurriculum, getStageCheckpoint, getRecapGroup, getCheckpointProgress } from '../lib/db.js';
 import HudMascot from '../components/HudMascot.jsx';
 import LessonRecapCard from '../components/LessonRecapCard.jsx';
@@ -10,6 +11,7 @@ import LessonRecapCard from '../components/LessonRecapCard.jsx';
 export default function StageRecap() {
   const { stageId, checkpointOrder } = useParams();
   const { activeChild } = useActiveChild();
+  const { language } = useLanguage();
   const [stage, setStage] = useState(null);
   const [recapGroup, setRecapGroup] = useState(null);
   const [passed, setPassed] = useState(false);
@@ -21,7 +23,7 @@ export default function StageRecap() {
     setLoading(true);
     setError('');
     Promise.all([
-      getCurriculum(),
+      getCurriculum(language),
       getStageCheckpoint(Number(stageId), Number(checkpointOrder)),
       getRecapGroup(Number(stageId), Number(checkpointOrder)),
     ])
@@ -35,7 +37,7 @@ export default function StageRecap() {
       })
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
-  }, [stageId, checkpointOrder, activeChild]);
+  }, [stageId, checkpointOrder, activeChild, language]);
 
   if (loading) return <div className="container" style={{ padding: 60 }}>Loading recap...</div>;
   if (error) return <div className="container" style={{ padding: 60 }}><p className="error-text">{error}</p></div>;

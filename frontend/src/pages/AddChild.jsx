@@ -36,7 +36,7 @@ export default function AddChild() {
   const [manualOverride, setManualOverride] = useState(false);
 
   useEffect(() => {
-    Promise.all([getCurriculum(), getPlacementQuestions(language)])
+    Promise.all([getCurriculum(language), getPlacementQuestions(language)])
       .then(([{ levels: lv, stages: st }, questions]) => {
         setLevels(lv);
         setStages(st);

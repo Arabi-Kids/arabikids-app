@@ -15,7 +15,7 @@ import Seo from '../components/Seo.jsx';
 export default function LessonHub() {
   const { user } = useAuth();
   const { activeChild } = useActiveChild();
-  const { t } = useLanguage();
+  const { language, t } = useLanguage();
   const copy = t('lessonsHub');
   const [currentStage, setCurrentStage] = useState(null);
   const [progress, setProgress] = useState(null);
@@ -26,14 +26,14 @@ export default function LessonHub() {
       setProgress(null);
       return;
     }
-    Promise.all([getCurriculum(), getChildProgressSummary(activeChild.id)])
+    Promise.all([getCurriculum(language), getChildProgressSummary(activeChild.id)])
       .then(([{ levels }, summary]) => {
         const stage = levels.flatMap((l) => l.stages).find((s) => s.id === activeChild.currentStageId);
         setCurrentStage(stage ?? null);
         setProgress(summary);
       })
       .catch(() => {});
-  }, [activeChild]);
+  }, [activeChild, language]);
 
   return (
     <div className="container" style={{ padding: '48px 0' }}>

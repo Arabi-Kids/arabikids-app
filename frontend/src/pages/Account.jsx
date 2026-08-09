@@ -16,7 +16,7 @@ const STRIPE_PORTAL_LINK = 'https://billing.stripe.com/p/login/28EaEZ2WJ2Ix2EacT
 export default function Account() {
   const { user, isPaid, changePassword } = useAuth();
   const { childProfiles, refreshChildren } = useActiveChild();
-  const { t } = useLanguage();
+  const { language, t } = useLanguage();
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
   const [loading, setLoading] = useState(false);
@@ -30,12 +30,12 @@ export default function Account() {
   const [notifications, setNotifications] = useState([]);
 
   useEffect(() => {
-    getCurriculum()
+    getCurriculum(language)
       .then(({ stages }) => {
         setStagesById(Object.fromEntries(stages.map((s) => [s.id, s])));
       })
       .catch(() => {});
-  }, []);
+  }, [language]);
 
   useEffect(() => {
     getNotifications().then(setNotifications).catch(() => {});

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useActiveChild } from '../context/ActiveChildContext.jsx';
+import { useLanguage } from '../context/LanguageContext.jsx';
 import { getCurriculum, getStageVideoStatus, completeStageVideoForChild } from '../lib/db.js';
 import HudMascot from '../components/HudMascot.jsx';
 import StageRecapAnimation from '../components/StageRecapAnimation.jsx';
@@ -9,6 +10,7 @@ export default function StageVideo() {
   const { stageId } = useParams();
   const navigate = useNavigate();
   const { activeChild, refreshChildren } = useActiveChild();
+  const { language } = useLanguage();
   const [stage, setStage] = useState(null);
   const [nextStage, setNextStage] = useState(null);
   const [status, setStatus] = useState(null);
@@ -20,7 +22,7 @@ export default function StageVideo() {
     if (!activeChild) return;
     setLoading(true);
     setError('');
-    Promise.all([getCurriculum(), getStageVideoStatus(activeChild.id, Number(stageId))])
+    Promise.all([getCurriculum(language), getStageVideoStatus(activeChild.id, Number(stageId))])
       .then(([{ stages }, videoStatus]) => {
         const stageRow = stages.find((s) => s.id === Number(stageId));
         setStage(stageRow);
@@ -29,7 +31,7 @@ export default function StageVideo() {
       })
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
-  }, [stageId, activeChild]);
+  }, [stageId, activeChild, language]);
 
   async function handleContinue() {
     setContinuing(true);

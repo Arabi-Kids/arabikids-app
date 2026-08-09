@@ -170,7 +170,11 @@ export async function submitPlacementResult({ childId, rawAnswers, placedStageId
 // the map itself.
 // ---------------------------------------------------------------------------
 
-export async function getCurriculum() {
+/** language defaults to 'en' for the (many) callers that don't yet pass it
+ * through - name/description/intro fields fall back to their English
+ * column per-field when a translation is missing, same pattern as lesson
+ * content. */
+export async function getCurriculum(language = 'en') {
   const [{ data: levels, error: levelsError }, { data: stages, error: stagesError }] = await Promise.all([
     supabase.from('levels').select('*').order('order_index'),
     supabase.from('stages').select('*').order('order_index'),
@@ -178,23 +182,25 @@ export async function getCurriculum() {
   if (levelsError) throw new Error(levelsError.message);
   if (stagesError) throw new Error(stagesError.message);
 
+  const pick = (row, base) => (language === 'ar' ? row[`${base}_ar`] : language === 'ms' ? row[`${base}_ms`] : null) ?? row[base];
+
   const mappedStages = stages.map((s) => ({
     id: s.id,
     levelId: s.level_id,
-    name: s.name,
+    name: pick(s, 'name'),
     orderIndex: s.order_index,
     videoUrl: s.video_url,
     minPlacementAge: s.min_placement_age,
     isFree: s.is_free,
-    introKids: s.intro_kids,
-    introParents: s.intro_parents,
+    introKids: pick(s, 'intro_kids'),
+    introParents: pick(s, 'intro_parents'),
   }));
 
   const mappedLevels = levels.map((level) => ({
     id: level.id,
-    name: level.name,
+    name: pick(level, 'name'),
     orderIndex: level.order_index,
-    description: level.description,
+    description: pick(level, 'description'),
     stages: mappedStages.filter((s) => s.levelId === level.id),
   }));
 

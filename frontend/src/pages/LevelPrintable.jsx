@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useActiveChild } from '../context/ActiveChildContext.jsx';
+import { useLanguage } from '../context/LanguageContext.jsx';
 import { getCurriculum, getLevelPrintableData, listMasteredStageIds } from '../lib/db.js';
 import { SHAPES } from '../components/LetterPositions.jsx';
 import { speakSmart } from '../lib/speech.js';
@@ -19,6 +20,7 @@ const POSITION_LABELS = { isolated: 'Alone', initial: 'Start', medial: 'Middle',
 export default function LevelPrintable() {
   const { levelId } = useParams();
   const { activeChild } = useActiveChild();
+  const { language } = useLanguage();
   const [level, setLevel] = useState(null);
   const [unlocked, setUnlocked] = useState(false);
   const [data, setData] = useState(null);
@@ -29,7 +31,7 @@ export default function LevelPrintable() {
     if (!activeChild) return;
     setLoading(true);
     setError('');
-    Promise.all([getCurriculum(), listMasteredStageIds(activeChild.id)])
+    Promise.all([getCurriculum(language), listMasteredStageIds(activeChild.id)])
       .then(async ([{ levels }, masteredIds]) => {
         const levelRow = levels.find((l) => l.id === Number(levelId));
         setLevel(levelRow);
@@ -42,7 +44,7 @@ export default function LevelPrintable() {
       })
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
-  }, [levelId, activeChild]);
+  }, [levelId, activeChild, language]);
 
   if (loading) return <div className="container" style={{ padding: 60 }}>Loading...</div>;
   if (error) return <div className="container" style={{ padding: 60 }}><p className="error-text">{error}</p></div>;

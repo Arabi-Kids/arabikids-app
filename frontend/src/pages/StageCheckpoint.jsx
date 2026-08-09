@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useActiveChild } from '../context/ActiveChildContext.jsx';
+import { useLanguage } from '../context/LanguageContext.jsx';
 import { getCurriculum, getStageCheckpoint, completeCheckpointForChild, getRecapGroup } from '../lib/db.js';
 import ExerciseCard from '../components/ExerciseCard.jsx';
 import HudMascot from '../components/HudMascot.jsx';
@@ -11,6 +12,7 @@ export default function StageCheckpoint() {
   const { stageId, checkpointOrder } = useParams();
   const navigate = useNavigate();
   const { activeChild } = useActiveChild();
+  const { language } = useLanguage();
   const [stage, setStage] = useState(null);
   const [checkpoint, setCheckpoint] = useState(null);
   const [answers, setAnswers] = useState({});
@@ -32,7 +34,7 @@ export default function StageCheckpoint() {
     setError('');
     setResults(null);
     setAnswers({});
-    Promise.all([getCurriculum(), getStageCheckpoint(Number(stageId), Number(checkpointOrder))])
+    Promise.all([getCurriculum(language), getStageCheckpoint(Number(stageId), Number(checkpointOrder))])
       .then(([{ stages }, cp]) => {
         const stageRow = stages.find((s) => s.id === Number(stageId));
         setStage(stageRow);
@@ -40,7 +42,7 @@ export default function StageCheckpoint() {
       })
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
-  }, [stageId, checkpointOrder]);
+  }, [stageId, checkpointOrder, language]);
 
   function selectAnswer(questionId, option) {
     if (results) return;

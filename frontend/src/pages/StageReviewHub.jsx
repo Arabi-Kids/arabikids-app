@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useActiveChild } from '../context/ActiveChildContext.jsx';
+import { useLanguage } from '../context/LanguageContext.jsx';
 import { getCurriculum, getStageVideoStatus, logReviewActivity } from '../lib/db.js';
 import HudMascot from '../components/HudMascot.jsx';
 import WatchTab from '../components/review/WatchTab.jsx';
@@ -26,6 +27,7 @@ const TABS = [
 export default function StageReviewHub() {
   const { stageId } = useParams();
   const { activeChild } = useActiveChild();
+  const { language } = useLanguage();
   const [stage, setStage] = useState(null);
   const [mastered, setMastered] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -36,14 +38,14 @@ export default function StageReviewHub() {
     if (!activeChild) return;
     setLoading(true);
     setError('');
-    Promise.all([getCurriculum(), getStageVideoStatus(activeChild.id, Number(stageId))])
+    Promise.all([getCurriculum(language), getStageVideoStatus(activeChild.id, Number(stageId))])
       .then(([{ stages }, videoStatus]) => {
         setStage(stages.find((s) => s.id === Number(stageId)));
         setMastered(videoStatus.mastered);
       })
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
-  }, [stageId, activeChild]);
+  }, [stageId, activeChild, language]);
 
   useEffect(() => {
     if (!activeChild || !mastered) return;
