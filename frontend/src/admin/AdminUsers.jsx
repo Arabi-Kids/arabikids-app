@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { listUsers, updateUserSubscriptionStatus } from '../lib/adminDb.js';
 
 /** Best-effort human label for signup_source (see
@@ -83,7 +84,7 @@ export default function AdminUsers() {
       <div className="admin-card">
         <table className="admin-table">
           <thead>
-            <tr><th>Name</th><th>Email</th><th>Children</th><th>Tier</th><th>Status</th><th>Registered</th><th>Source</th><th>Manual Override</th></tr>
+            <tr><th>Name</th><th>Email</th><th>Children</th><th>Tier</th><th>Status</th><th>Registered</th><th>Source</th><th>Manual Override</th><th>Actions</th></tr>
           </thead>
           <tbody>
             {users.map((u) => (
@@ -111,10 +112,18 @@ export default function AdminUsers() {
                     <option value="canceled">Canceled</option>
                   </select>
                 </td>
+                <td>
+                  <Link
+                    to={`/admin/notifications?userId=${u.id}&name=${encodeURIComponent(u.name)}&email=${encodeURIComponent(u.email)}`}
+                    style={{ color: 'var(--admin-accent)', fontWeight: 700, whiteSpace: 'nowrap' }}
+                  >
+                    Notify
+                  </Link>
+                </td>
               </tr>
             ))}
             {users.length === 0 && (
-              <tr><td colSpan={8} style={{ textAlign: 'center', color: 'var(--admin-muted)' }}>No users found.</td></tr>
+              <tr><td colSpan={9} style={{ textAlign: 'center', color: 'var(--admin-muted)' }}>No users found.</td></tr>
             )}
           </tbody>
         </table>

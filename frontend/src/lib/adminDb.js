@@ -37,6 +37,8 @@ export async function getDashboardStats() {
     return sum + (u.subscription_tier === 'family' ? base * FAMILY_MULTIPLIER : base);
   }, 0);
 
+  const newSignupsToday = users.filter((u) => new Date(u.created_at) >= startOfToday).length;
+
   return {
     totalUsers: users.length,
     totalChildren: totalChildren ?? 0,
@@ -45,6 +47,7 @@ export async function getDashboardStats() {
     mrrUsd,
     totalLessons: totalLessons ?? 0,
     lessonsCompletedToday: lessonsCompletedToday ?? 0,
+    newSignupsToday,
     recentSignups: users.slice(0, 10),
   };
 }
@@ -177,8 +180,15 @@ export async function listAdminNotifications() {
  * portal's own session (supabaseAdmin, distinct storage key from the public
  * app's client) - the first admin action in this codebase that needs a
  * server-side effect (sending push with a private VAPID key) rather than a
- * direct Supabase call under is_admin() RLS. */
-export async function sendAdminNotification({ title, body, url, sendEmail }) {
+ * direct Supabase call under is_admin() RLS.
+ *
+ * `userId` targets one specific client; `filters` (`{status, dateFrom,
+ * dateTo}`) targets a segment; passing neither broadcasts to everyone
+ * (today's original behavior). `recipientLabel` is a human-readable
+ * description of the resolved audience, stored as-is for the send-history
+ * list - purely cosmetic, the actual audience is always re-resolved
+ * server-side. */
+export async function sendAdminNotification({ title, body, url, sendPush, sendEmail, userId, filters, recipientLabel }) {
   const {
     data: { session },
   } = await supabaseAdmin.auth.getSession();
@@ -187,7 +197,16 @@ export async function sendAdminNotification({ title, body, url, sendEmail }) {
   const res = await fetch('/api/send-admin-notification', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session.access_token}` },
-    body: JSON.stringify({ title, body, url: url || undefined, sendEmail: !!sendEmail }),
+    body: JSON.stringify({
+      title,
+      body,
+      url: url || undefined,
+      sendPush: sendPush !== false,
+      sendEmail: !!sendEmail,
+      userId: userId || undefined,
+      filters: filters || undefined,
+      recipientLabel: recipientLabel || undefined,
+    }),
   });
   const data = await res.json().catch(() => ({}));
   if (!res.ok) throw new Error(data.message || 'Failed to send notification.');

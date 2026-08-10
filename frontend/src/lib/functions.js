@@ -28,4 +28,5 @@ export const functionsApi = {
   requestPasswordReset: (email) => callFunction('/request-password-reset', { email }),
   notifyPillarInterest: (email, pillarName) => callFunction('/notify-pillar-interest', { email, pillarName }),
   sendWelcomeEmail: (name, email) => callFunction('/send-welcome-email', { name, email }),
+  notifyAdminSignup: (name, email) => callFunction('/notify-admin-signup', { name, email }),
 };
