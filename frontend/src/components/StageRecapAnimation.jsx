@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { getLevelPrintableData } from '../lib/db.js';
 import { speakSmart } from '../lib/speech.js';
+import { useLanguage } from '../context/LanguageContext.jsx';
 import HudMascot from './HudMascot.jsx';
 
 // Stands in for a produced recap video (see StageVideo.jsx) until one
@@ -40,16 +41,17 @@ function buildSlides(stageName, data) {
 }
 
 export default function StageRecapAnimation({ stageId, stageName }) {
+  const { language, t } = useLanguage();
   const [data, setData] = useState(null);
   const [error, setError] = useState('');
   const [index, setIndex] = useState(0);
   const [playing, setPlaying] = useState(true);
 
   useEffect(() => {
-    getLevelPrintableData(undefined, [stageId])
+    getLevelPrintableData(undefined, [stageId], language)
       .then(setData)
       .catch((err) => setError(err.message));
-  }, [stageId]);
+  }, [stageId, language]);
 
   const slides = useMemo(() => (data ? buildSlides(stageName, data) : []), [data, stageName]);
   const slide = slides[index];
@@ -78,7 +80,7 @@ export default function StageRecapAnimation({ stageId, stageName }) {
   }, [index, playing, slides.length]);
 
   if (error) return <p className="error-text">{error}</p>;
-  if (!data || !slide) return <p style={{ color: '#8ea0b6' }}>Loading recap...</p>;
+  if (!data || !slide) return <p style={{ color: '#8ea0b6' }}>{t('stageRecapAnimation.loading')}</p>;
 
   const atEnd = index === slides.length - 1;
   const progress = slides.length > 1 ? index / (slides.length - 1) : 1;
@@ -93,7 +95,7 @@ export default function StageRecapAnimation({ stageId, stageName }) {
         {slide.kind === 'intro' && (
           <>
             <HudMascot pose="hero" size={90} className="mascot-bounce" />
-            <p className="stage-recap-anim-badge">Stage Recap</p>
+            <p className="stage-recap-anim-badge">{t('stageRecapAnimation.stageRecap')}</p>
             <h3 className="stage-recap-anim-title">{stageName}</h3>
           </>
         )}
@@ -132,18 +134,18 @@ export default function StageRecapAnimation({ stageId, stageName }) {
         {slide.kind === 'outro' && (
           <>
             <HudMascot pose="celebrate" size={90} className="mascot-bounce" />
-            <h3 className="stage-recap-anim-title">Great job!</h3>
-            <p className="stage-recap-anim-label">You reviewed everything in {slide.stageName}.</p>
+            <h3 className="stage-recap-anim-title">{t('stageRecapAnimation.greatJob')}</h3>
+            <p className="stage-recap-anim-label">{t('stageRecapAnimation.reviewedEverything', { stageName: slide.stageName })}</p>
           </>
         )}
       </div>
 
       <div className="stage-recap-anim-controls">
         <button type="button" className="btn btn-outline" onClick={() => setIndex((i) => Math.max(i - 1, 0))} disabled={index === 0}>
-          ← Back
+          {t('stageRecapAnimation.back')}
         </button>
         <button type="button" className="btn btn-outline" onClick={() => setPlaying((p) => !p)}>
-          {playing ? '⏸ Pause' : '▶ Play'}
+          {playing ? t('stageRecapAnimation.pause') : t('stageRecapAnimation.play')}
         </button>
         <button
           type="button"
@@ -151,7 +153,7 @@ export default function StageRecapAnimation({ stageId, stageName }) {
           onClick={() => setIndex((i) => Math.min(i + 1, slides.length - 1))}
           disabled={atEnd}
         >
-          Next →
+          {t('stageRecapAnimation.next')}
         </button>
       </div>
     </div>

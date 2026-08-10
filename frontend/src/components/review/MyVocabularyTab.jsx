@@ -1,10 +1,13 @@
 import { useEffect, useState } from 'react';
 import { getStageVocabulary, getFavoriteWordIds, toggleFavoriteWord } from '../../lib/db.js';
+import { useLanguage } from '../../context/LanguageContext.jsx';
 import SpeakButton from '../SpeakButton.jsx';
 
 // Pure browse/reference mode - no quiz, no scoring, just a personal word
 // bank of everything taught in this stage, with an optional favorite star.
 export default function MyVocabularyTab({ stageId, childId }) {
+  const { language, t } = useLanguage();
+  const copy = t('reviewTabs.vocabulary');
   const [words, setWords] = useState([]);
   const [favoriteIds, setFavoriteIds] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -14,14 +17,14 @@ export default function MyVocabularyTab({ stageId, childId }) {
   useEffect(() => {
     setLoading(true);
     setError('');
-    Promise.all([getStageVocabulary(stageId), getFavoriteWordIds(childId, stageId)])
+    Promise.all([getStageVocabulary(stageId, language), getFavoriteWordIds(childId, stageId)])
       .then(([vocab, favIds]) => {
         setWords(vocab);
         setFavoriteIds(favIds);
       })
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
-  }, [stageId, childId]);
+  }, [stageId, childId, language]);
 
   async function handleToggleFavorite(lessonId) {
     const isFav = favoriteIds.includes(lessonId);
@@ -33,7 +36,7 @@ export default function MyVocabularyTab({ stageId, childId }) {
     }
   }
 
-  if (loading) return <p>Loading vocabulary...</p>;
+  if (loading) return <p>{copy.loading}</p>;
   if (error) return <p className="error-text">{error}</p>;
 
   const visibleWords = showFavoritesOnly ? words.filter((w) => favoriteIds.includes(w.lessonId)) : words;
@@ -41,14 +44,14 @@ export default function MyVocabularyTab({ stageId, childId }) {
   return (
     <div>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-        <p style={{ margin: 0, color: '#8ea0b6' }}>{words.length} words learned in this stage</p>
+        <p style={{ margin: 0, color: '#8ea0b6' }}>{copy.wordsLearned.replace('{n}', words.length)}</p>
         <button type="button" className="btn btn-outline" onClick={() => setShowFavoritesOnly((v) => !v)}>
-          {showFavoritesOnly ? 'Show All' : '⭐ Favorites Only'}
+          {showFavoritesOnly ? copy.showAll : copy.favoritesOnly}
         </button>
       </div>
 
       {visibleWords.length === 0 ? (
-        <p style={{ color: '#8ea0b6' }}>{showFavoritesOnly ? 'No favorites yet - tap the star on a word to save it here.' : 'No vocabulary found for this stage.'}</p>
+        <p style={{ color: '#8ea0b6' }}>{showFavoritesOnly ? copy.noFavorites : copy.noVocabulary}</p>
       ) : (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: 14 }}>
           {visibleWords.map((word) => (
@@ -56,7 +59,7 @@ export default function MyVocabularyTab({ stageId, childId }) {
               <button
                 type="button"
                 onClick={() => handleToggleFavorite(word.lessonId)}
-                aria-label={favoriteIds.includes(word.lessonId) ? 'Remove favorite' : 'Add favorite'}
+                aria-label={favoriteIds.includes(word.lessonId) ? copy.removeFavorite : copy.addFavorite}
                 style={{
                   position: 'absolute',
                   top: 6,

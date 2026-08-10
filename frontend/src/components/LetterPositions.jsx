@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { speakSmart } from '../lib/speech.js';
+import { useLanguage } from '../context/LanguageContext.jsx';
 import PronunciationCheck from './PronunciationCheck.jsx';
 
 // Forces the browser's own Arabic shaping engine to render the letter in a
@@ -14,20 +15,20 @@ export const SHAPES = {
   medial: (letter) => ZWJ + letter + ZWJ,
   final: (letter) => ZWJ + letter,
 };
-const LABELS = { initial: 'Start', medial: 'Middle', final: 'End' };
-
 export default function LetterPositions({ letter, positions }) {
   const [active, setActive] = useState(null);
+  const { t } = useLanguage();
   if (!positions) return null;
 
   const order = ['initial', 'medial', 'final'].filter((pos) => positions[pos]);
   if (order.length === 0) return null;
 
   const activeInfo = active ? positions[active] : null;
+  const LABELS = t('common.letterForms');
 
   return (
     <div style={{ marginTop: 12 }}>
-      <p style={{ margin: '0 0 6px', fontSize: '0.8rem', color: '#8ea0b6' }}>Shapes in a word:</p>
+      <p style={{ margin: '0 0 6px', fontSize: '0.8rem', color: '#8ea0b6' }}>{t('common.shapesInWord')}</p>
       <div style={{ display: 'flex', gap: 8, justifyContent: 'center', flexWrap: 'wrap' }}>
         {order.map((pos) => (
           <button

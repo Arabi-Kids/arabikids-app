@@ -12,7 +12,7 @@ export default function StageCheckpoint() {
   const { stageId, checkpointOrder } = useParams();
   const navigate = useNavigate();
   const { activeChild } = useActiveChild();
-  const { language } = useLanguage();
+  const { language, t } = useLanguage();
   const [stage, setStage] = useState(null);
   const [checkpoint, setCheckpoint] = useState(null);
   const [answers, setAnswers] = useState({});
@@ -24,17 +24,17 @@ export default function StageCheckpoint() {
 
   useEffect(() => {
     if (!results?.passed) return;
-    getRecapGroup(Number(stageId), Number(checkpointOrder))
+    getRecapGroup(Number(stageId), Number(checkpointOrder), language)
       .then(setRecapGroup)
       .catch(() => {});
-  }, [results, stageId, checkpointOrder]);
+  }, [results, stageId, checkpointOrder, language]);
 
   useEffect(() => {
     setLoading(true);
     setError('');
     setResults(null);
     setAnswers({});
-    Promise.all([getCurriculum(language), getStageCheckpoint(Number(stageId), Number(checkpointOrder))])
+    Promise.all([getCurriculum(language), getStageCheckpoint(Number(stageId), Number(checkpointOrder), language)])
       .then(([{ stages }, cp]) => {
         const stageRow = stages.find((s) => s.id === Number(stageId));
         setStage(stageRow);
@@ -63,14 +63,14 @@ export default function StageCheckpoint() {
     }
   }
 
-  if (loading) return <div className="container" style={{ padding: 60 }}>Loading checkpoint...</div>;
+  if (loading) return <div className="container" style={{ padding: 60 }}>{t('stageCheckpoint.loading')}</div>;
 
   if (!checkpoint || !stage) {
     return (
       <div className="container" style={{ padding: 60, textAlign: 'center' }}>
-        <h1 className="page-title">Checkpoint locked</h1>
-        <p className="page-subtitle">Subscribe to unlock this stage's checkpoint.</p>
-        <Link to="/pricing" className="btn btn-primary">View Pricing</Link>
+        <h1 className="page-title">{t('stageCheckpoint.checkpointLocked')}</h1>
+        <p className="page-subtitle">{t('stageCheckpoint.subscribeUnlock')}</p>
+        <Link to="/pricing" className="btn btn-primary">{t('stageCheckpoint.viewPricing')}</Link>
       </div>
     );
   }
@@ -80,13 +80,13 @@ export default function StageCheckpoint() {
   return (
     <div className="container" style={{ padding: '48px 0', maxWidth: 720 }}>
       <Link to={`/lessons/stage/${stageId}`} style={{ color: 'var(--color-blue)', fontWeight: 700 }}>
-        ← Back to stage
+        {t('stageCheckpoint.backToStage')}
       </Link>
       <h1 className="page-title" style={{ marginTop: 12 }}>
-        {checkpoint.isMastery ? 'Stage Mastery Checkpoint' : 'Checkpoint'}
+        {checkpoint.isMastery ? t('stageCheckpoint.masteryTitle') : t('stageCheckpoint.checkpointTitle')}
       </h1>
       <p style={{ color: '#8ea0b6', marginTop: -8 }}>
-        Stage {stage.orderIndex}: {stage.name}
+        {t('stageCheckpoint.stageLabel', { n: stage.orderIndex, name: stage.name })}
       </p>
 
       {checkpoint.questions.map((q, i) => (
@@ -104,45 +104,45 @@ export default function StageCheckpoint() {
 
       {!results ? (
         <button className="btn btn-primary" disabled={!allAnswered || submitting} onClick={handleSubmit}>
-          {submitting ? 'Checking...' : 'Submit Checkpoint'}
+          {submitting ? t('stageCheckpoint.checking') : t('stageCheckpoint.submitCheckpoint')}
         </button>
       ) : (
         <div className="card" style={{ textAlign: 'center', background: results.passed ? 'rgba(26,122,74,0.08)' : 'rgba(200,150,12,0.08)' }}>
-          <h3 style={{ margin: '0 0 8px' }}>Score: {results.score}%</h3>
+          <h3 style={{ margin: '0 0 8px' }}>{t('stageCheckpoint.scoreLabel', { n: results.score })}</h3>
           {results.passed && recapGroup && <LessonRecapCard recapGroup={recapGroup} />}
           {checkpoint.isMastery ? (
             results.passed ? (
               <>
                 <HudMascot pose="celebrate" size={72} style={{ margin: '0 auto 8px' }} />
-                <p style={{ margin: 0 }}>Stage complete! Watch the recap before moving on.</p>
+                <p style={{ margin: 0 }}>{t('stageCheckpoint.stageCompleteMsg')}</p>
                 {results.newBadges?.length > 0 && (
                   <div style={{ margin: '12px 0 0' }}>
                     {results.newBadges.map((code) => (
                       <span key={code} className="badge badge-gold" style={{ margin: '0 4px' }}>
-                        New Badge: {badgeInfo(code).name}
+                        {t('stageCheckpoint.newBadge', { name: badgeInfo(code).name })}
                       </span>
                     ))}
                   </div>
                 )}
                 <div style={{ display: 'flex', gap: 12, justifyContent: 'center', marginTop: 16, flexWrap: 'wrap' }}>
                   <button className="btn btn-primary" onClick={() => navigate(`/lessons/stage/${stageId}/video`)}>
-                    Watch Stage Recap →
+                    {t('stageCheckpoint.watchRecap')}
                   </button>
                 </div>
               </>
             ) : (
               <>
-                <p style={{ margin: 0 }}>Keep practicing to reach 70% and unlock the next stage.</p>
+                <p style={{ margin: 0 }}>{t('stageCheckpoint.keepPracticing')}</p>
                 <Link to={`/lessons/stage/${stageId}`} className="btn btn-outline" style={{ marginTop: 16 }}>
-                  Review This Stage
+                  {t('stageCheckpoint.reviewStage')}
                 </Link>
               </>
             )
           ) : (
             <>
-              <p style={{ margin: 0 }}>{results.passed ? 'Great job so far!' : 'Keep going — you can review anytime.'}</p>
+              <p style={{ margin: 0 }}>{results.passed ? t('stageCheckpoint.greatJob') : t('stageCheckpoint.keepGoing')}</p>
               <Link to={`/lessons/stage/${stageId}`} className="btn btn-primary" style={{ marginTop: 16 }}>
-                Continue Stage
+                {t('stageCheckpoint.continueStage')}
               </Link>
             </>
           )}

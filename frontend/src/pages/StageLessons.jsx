@@ -16,7 +16,7 @@ export default function StageLessons() {
   const { stageId } = useParams();
   const { isPaid } = useAuth();
   const { activeChild } = useActiveChild();
-  const { language } = useLanguage();
+  const { language, t } = useLanguage();
   const [stage, setStage] = useState(null);
   const [lessons, setLessons] = useState([]);
   const [mastered, setMastered] = useState(false);
@@ -50,12 +50,12 @@ export default function StageLessons() {
       .finally(() => setLoading(false));
   }, [stageId, activeChild, isPaid, language]);
 
-  if (loading) return <div className="container" style={{ padding: 60 }}>Loading...</div>;
+  if (loading) return <div className="container" style={{ padding: 60 }}>{t('stageLessons.loading')}</div>;
   if (!stage) {
     return (
       <div className="container" style={{ padding: 60, textAlign: 'center' }}>
-        <h1 className="page-title">Stage not found</h1>
-        <Link to="/lessons/curriculum" className="btn btn-primary">Back to Curriculum</Link>
+        <h1 className="page-title">{t('stageLessons.stageNotFound')}</h1>
+        <Link to="/lessons/curriculum" className="btn btn-primary">{t('stageLessons.backToCurriculum')}</Link>
       </div>
     );
   }
@@ -63,12 +63,12 @@ export default function StageLessons() {
   return (
     <div className="container" style={{ padding: '48px 0' }}>
       <Link to="/lessons/curriculum" style={{ color: 'var(--color-blue)', fontWeight: 700 }}>
-        ← Back to Curriculum
+        {t('stageLessons.backToCurriculumTop')}
       </Link>
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 12 }}>
         <HudMascot pose="mark" size={40} />
         <h1 className="page-title" style={{ margin: 0 }}>
-          Stage {stage.orderIndex}: {stage.name}
+          {t('stageLessons.stageLabel', { n: stage.orderIndex, name: stage.name })}
         </h1>
       </div>
       {stage.introKids && <p style={{ margin: '6px 0 20px', color: '#4b5a6a', fontSize: '1.05rem' }}>{stage.introKids}</p>}
@@ -78,7 +78,7 @@ export default function StageLessons() {
         className={mastered ? 'badge badge-gold' : 'badge badge-locked'}
         style={{ textDecoration: 'none', display: 'inline-block', marginBottom: 20 }}
       >
-        {mastered ? '🔄 Review This Stage' : '🔒 Review Hub'}
+        {mastered ? t('stageLessons.reviewThisStage') : t('stageLessons.reviewHub')}
       </Link>
 
       {error && <p className="error-text">{error}</p>}
@@ -92,7 +92,7 @@ export default function StageLessons() {
               className="badge badge-gold"
               style={{ textDecoration: 'none' }}
             >
-              📋 Recap {checkpointOrder}
+              {t('stageLessons.recapLabel', { n: checkpointOrder })}
             </Link>
           ))}
         </div>
@@ -120,19 +120,19 @@ export default function StageLessons() {
             }}
           >
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-              <span style={{ fontWeight: 800, color: 'var(--color-blue)' }}>Lesson {lesson.orderIndex}</span>
+              <span style={{ fontWeight: 800, color: 'var(--color-blue)' }}>{t('stageLessons.lessonLabel', { n: lesson.orderIndex })}</span>
               {lesson.locked ? (
-                <span className="badge badge-locked">🔒 {lesson.paywalled ? 'Subscribe' : 'Locked'}</span>
+                <span className="badge badge-locked">🔒 {lesson.paywalled ? t('stageLessons.subscribe') : t('stageLessons.locked')}</span>
               ) : lesson.completed ? (
                 <span className="badge badge-gold" style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
-                  <StarSparkleIcon style={{ width: 12, height: 12 }} /> Done
+                  <StarSparkleIcon style={{ width: 12, height: 12 }} /> {t('stageLessons.done')}
                 </span>
               ) : lesson.isFree ? (
-                <span className="badge badge-free">Free</span>
+                <span className="badge badge-free">{t('stageLessons.free')}</span>
               ) : null}
             </div>
             <p style={{ margin: 0, fontWeight: 700 }}>{lesson.title}</p>
-            <p style={{ margin: '6px 0 0', color: '#8ea0b6', fontSize: '0.85rem' }}>{lesson.estimatedMinutes} min</p>
+            <p style={{ margin: '6px 0 0', color: '#8ea0b6', fontSize: '0.85rem' }}>{lesson.estimatedMinutes} {t('stageLessons.minutes')}</p>
           </Link>
         ))}
       </div>

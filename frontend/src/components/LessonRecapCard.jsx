@@ -1,4 +1,5 @@
 import { speakSmart } from '../lib/speech.js';
+import { useLanguage } from '../context/LanguageContext.jsx';
 import HudMascot from './HudMascot.jsx';
 
 // Pure presentational "mind map" recap - a simple visual summary of what was
@@ -6,13 +7,14 @@ import HudMascot from './HudMascot.jsx';
 // already fetched by the caller (StageCheckpoint.jsx / StageRecap.jsx),
 // doesn't fetch anything itself.
 export default function LessonRecapCard({ recapGroup }) {
+  const { t } = useLanguage();
   if (!recapGroup) return null;
 
   return (
     <div className="card" style={{ marginBottom: 20, background: 'rgba(27,79,138,0.04)' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
         <HudMascot pose="mark" size={40} />
-        <span className="badge badge-gold">What You Learned</span>
+        <span className="badge badge-gold">{t('lessonRecapCard.whatYouLearned')}</span>
       </div>
       <p style={{ margin: '0 0 16px', color: '#4b5a6a', fontSize: '1.05rem' }}>{recapGroup.summary}</p>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 12 }}>

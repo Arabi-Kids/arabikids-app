@@ -1,20 +1,23 @@
 import HudMascot from './HudMascot.jsx';
+import { useLanguage } from '../context/LanguageContext.jsx';
 
 // Spec: "show, not just tell, how the platform works" - a lightweight CSS
 // crossfade loop through the actual learning steps (letter -> word ->
 // Qur'an meaning), no external video needed for v1. `videoUrl` is a slot
 // for a produced explainer video later - when set, it replaces this
 // animation outright rather than needing a separate hero variant built.
-const STEPS = [
-  { badge: '1. Learn a Letter', arabic: 'ب', sub: 'baa' },
-  { badge: '2. See it in a Word', arabic: 'بِسْمِ', sub: '"Bismi"' },
-  { badge: '3. Connect it to the Qur’an', arabic: 'بِسْمِ اللَّهِ', sub: 'in the name of Allah — Al-Fatihah 1:1' },
-];
-
 export default function HeroAnimation({ videoUrl = null }) {
+  const { t } = useLanguage();
+  const copy = t('heroAnimation');
+  const STEPS = [
+    { badge: copy.step1Badge, arabic: 'ب', sub: copy.step1Sub },
+    { badge: copy.step2Badge, arabic: 'بِسْمِ', sub: copy.step2Sub },
+    { badge: copy.step3Badge, arabic: 'بِسْمِ اللَّهِ', sub: copy.step3Sub },
+  ];
+
   if (videoUrl) {
     return (
-      <video className="hero-animation-video" src={videoUrl} autoPlay muted loop playsInline aria-label="How ArabiKids works" />
+      <video className="hero-animation-video" src={videoUrl} autoPlay muted loop playsInline aria-label={copy.videoAria} />
     );
   }
 

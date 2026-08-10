@@ -1,16 +1,18 @@
 import { useState } from 'react';
 import { speakSmart } from '../lib/speech.js';
 import { SpeakerIcon } from './Icons.jsx';
+import { useLanguage } from '../context/LanguageContext.jsx';
 
 export default function SpeakButton({ text, size = 20, rate, style }) {
   const [playing, setPlaying] = useState(false);
+  const { t } = useLanguage();
 
   if (!text) return null;
 
   return (
     <button
       type="button"
-      aria-label={`Listen to ${text}`}
+      aria-label={t('common.listenTo', { text })}
       onClick={() => speakSmart(text, { rate, onStart: () => setPlaying(true), onEnd: () => setPlaying(false) })}
       style={{
         display: 'inline-flex',

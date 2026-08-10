@@ -60,7 +60,7 @@ export default function Navbar() {
               return Flag ? <Flag size={18} /> : null;
             })()}
             <select
-              aria-label="Language"
+              aria-label={t('nav.languageAria')}
               value={language}
               onChange={(e) => setLanguage(e.target.value)}
               style={{
@@ -83,7 +83,7 @@ export default function Navbar() {
           </span>
           <button
             type="button"
-            aria-label={muted ? 'Unmute sounds' : 'Mute sounds'}
+            aria-label={muted ? t('nav.unmuteSounds') : t('nav.muteSounds')}
             onClick={toggleSound}
             style={{
               background: 'none',
@@ -99,7 +99,7 @@ export default function Navbar() {
           </button>
           <button
             className="navbar-toggle"
-            aria-label={menuOpen ? 'Close menu' : 'Open menu'}
+            aria-label={menuOpen ? t('nav.closeMenu') : t('nav.openMenu')}
             aria-expanded={menuOpen}
             onClick={() => setMenuOpen((o) => !o)}
           >
@@ -116,7 +116,7 @@ export default function Navbar() {
           {user && <Link to="/progress" onClick={closeMenu}>{t('nav.progress')}</Link>}
           {user && childProfiles.length > 1 && (
             <select
-              aria-label="Active child"
+              aria-label={t('nav.activeChildAria')}
               value={activeChildId ?? ''}
               onChange={(e) => setActiveChildId(e.target.value)}
               style={{ padding: '6px 10px', borderRadius: 8, border: '2px solid #e0dccd' }}

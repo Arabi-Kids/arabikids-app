@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useActiveChild } from '../context/ActiveChildContext.jsx';
+import { useLanguage } from '../context/LanguageContext.jsx';
 import HudMascot from './HudMascot.jsx';
 
 const REMINDER_MINUTES = 30;
@@ -13,6 +14,7 @@ const CHECK_INTERVAL_MS = 30_000;
 // regardless of which page they're on within the app.
 export default function SessionPacingReminder() {
   const { activeChildId, activeChild } = useActiveChild();
+  const { t } = useLanguage();
   const navigate = useNavigate();
   const [visible, setVisible] = useState(false);
   const nextThresholdRef = useRef(REMINDER_MINUTES);
@@ -65,14 +67,14 @@ export default function SessionPacingReminder() {
       <div className="card" style={{ maxWidth: 380, textAlign: 'center' }}>
         <HudMascot pose="mark" size={72} style={{ margin: '0 auto 12px' }} />
         <h2 style={{ fontFamily: 'var(--font-display)', color: 'var(--color-blue)', margin: '0 0 8px', fontSize: '1.4rem' }}>
-          Time for a stretch?
+          {t('sessionPacing.title')}
         </h2>
         <p style={{ color: '#4b5a6a', marginBottom: 20 }}>
-          {activeChild?.name ?? 'Your child'} has been learning for a while — a short break helps it stick.
+          {t('sessionPacing.message', { name: activeChild?.name ?? t('sessionPacing.yourChild') })}
         </p>
         <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
           <button className="btn btn-outline" onClick={() => bumpThreshold(SNOOZE_MINUTES)}>
-            5 More Minutes
+            {t('sessionPacing.fiveMoreMinutes')}
           </button>
           <button
             className="btn btn-primary"
@@ -81,7 +83,7 @@ export default function SessionPacingReminder() {
               navigate('/progress');
             }}
           >
-            Take a Break
+            {t('sessionPacing.takeBreak')}
           </button>
         </div>
       </div>

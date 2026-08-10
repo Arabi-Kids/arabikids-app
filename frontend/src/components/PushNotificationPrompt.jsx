@@ -1,18 +1,20 @@
 import { useState } from 'react';
 import { isPushSupported, getPushPermission, enablePushForChild } from '../lib/push.js';
+import { useLanguage } from '../context/LanguageContext.jsx';
 
 // Small opt-in for the daily streak-reminder push notification (see
 // netlify/functions/send-streak-reminders.js). Browsers require a user
 // gesture to request Notification permission, so this can't be automatic -
 // shown inline wherever a child's streak is already visible.
 export default function PushNotificationPrompt({ childId }) {
+  const { t } = useLanguage();
   const [status, setStatus] = useState('idle'); // idle | requesting | enabled | error
   const [error, setError] = useState('');
 
   if (!isPushSupported() || getPushPermission() === 'denied') return null;
   if (getPushPermission() === 'granted' && status === 'idle') return null;
   if (status === 'enabled') {
-    return <p style={{ margin: '4px 0 0', color: 'var(--color-green)', fontSize: '0.85rem' }}>🔔 Streak reminders on</p>;
+    return <p style={{ margin: '4px 0 0', color: 'var(--color-green)', fontSize: '0.85rem' }}>{t('pushNotification.remindersOn')}</p>;
   }
 
   async function handleEnable() {
@@ -36,7 +38,7 @@ export default function PushNotificationPrompt({ childId }) {
         onClick={handleEnable}
         disabled={status === 'requesting'}
       >
-        {status === 'requesting' ? 'Enabling...' : '🔔 Remind me to keep my streak'}
+        {status === 'requesting' ? t('pushNotification.enabling') : t('pushNotification.remindMe')}
       </button>
       {error && <p className="error-text" style={{ margin: '4px 0 0', fontSize: '0.8rem' }}>{error}</p>}
     </div>

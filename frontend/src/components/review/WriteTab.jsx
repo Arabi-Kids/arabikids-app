@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { getStageVocabulary } from '../../lib/db.js';
+import { useLanguage } from '../../context/LanguageContext.jsx';
 import LetterTraceCanvas from '../LetterTraceCanvas.jsx';
 import SpeakButton from '../SpeakButton.jsx';
 
@@ -10,6 +11,8 @@ import SpeakButton from '../SpeakButton.jsx';
 // (LetterTraceCanvas's new optional width/fontScale props). Unlimited
 // attempts, no gating.
 export default function WriteTab({ stageId }) {
+  const { language, t } = useLanguage();
+  const copy = t('reviewTabs.write');
   const [words, setWords] = useState([]);
   const [activeIndex, setActiveIndex] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -18,7 +21,7 @@ export default function WriteTab({ stageId }) {
   useEffect(() => {
     setLoading(true);
     setError('');
-    getStageVocabulary(stageId)
+    getStageVocabulary(stageId, language)
       .then((vocab) => {
         // Handwriting practice makes sense for single words/short phrases,
         // not a whole multi-word ayah (some Surah Corner/fluency-check
@@ -29,11 +32,11 @@ export default function WriteTab({ stageId }) {
       })
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
-  }, [stageId]);
+  }, [stageId, language]);
 
-  if (loading) return <p>Loading words to trace...</p>;
+  if (loading) return <p>{copy.loading}</p>;
   if (error) return <p className="error-text">{error}</p>;
-  if (words.length === 0) return <p style={{ color: '#8ea0b6' }}>No vocabulary found for this stage.</p>;
+  if (words.length === 0) return <p style={{ color: '#8ea0b6' }}>{copy.noVocabulary}</p>;
 
   const activeWord = words[activeIndex];
 

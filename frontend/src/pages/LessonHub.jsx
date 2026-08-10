@@ -55,13 +55,16 @@ export default function LessonHub() {
           <HudMascot pose="mark" size={56} className="mascot-bounce" />
           <div style={{ flex: 1, minWidth: 200 }}>
             <p style={{ margin: '0 0 4px', fontWeight: 800, color: 'var(--color-blue)' }}>
-              {activeChild.name} is on Stage {currentStage.orderIndex}: {currentStage.name}
+              {t('lessonsHub.childOnStage', { name: activeChild.name, n: currentStage.orderIndex, stageName: currentStage.name })}
             </p>
             {progress && (
               <p style={{ margin: 0, color: '#6b7a8a', fontSize: '0.9rem' }}>
-                {progress.streak > 0 && <>🔥 {progress.streak}-day streak · </>}
-                {progress.badges.length} badge{progress.badges.length === 1 ? '' : 's'} earned
-                {progress.badges.length > 0 && <> ({badgeInfo(progress.badges[0]).name}{progress.badges.length > 1 ? ' and more' : ''})</>}
+                {progress.streak > 0 && t('lessonsHub.streakDays', { n: progress.streak })}
+                {t('lessonsHub.badgesEarned', { n: progress.badges.length, plural: progress.badges.length === 1 ? '' : 's' })}
+                {progress.badges.length > 0 && t('lessonsHub.badgeAndMore', {
+                  name: badgeInfo(progress.badges[0]).name,
+                  more: progress.badges.length > 1 ? t('lessonsHub.andMore') : '',
+                })}
               </p>
             )}
             <PushNotificationPrompt childId={activeChild.id} />

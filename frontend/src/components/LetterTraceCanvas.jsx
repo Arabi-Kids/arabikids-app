@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import { SHAPES } from './LetterPositions.jsx';
+import { useLanguage } from '../context/LanguageContext.jsx';
 
 const SIZE = 160;
-const FORM_LABELS = { isolated: 'Alone', initial: 'Start', medial: 'Middle', final: 'End' };
 
 function drawGuide(ctx, width, guideFont) {
   ctx.clearRect(0, 0, width, SIZE);
@@ -22,6 +22,8 @@ export default function LetterTraceCanvas({ letter, positions, width = SIZE, fon
   const drawing = useRef(false);
   const last = useRef(null);
   const [form, setForm] = useState('isolated');
+  const { t } = useLanguage();
+  const FORM_LABELS = t('common.letterForms');
   const guideFont = `700 ${SIZE * fontScale}px Amiri, serif`;
 
   // Only offer positions this letter actually takes (e.g. alif only has
@@ -138,7 +140,7 @@ export default function LetterTraceCanvas({ letter, positions, width = SIZE, fon
           textDecoration: 'underline',
         }}
       >
-        Clear
+        {t('common.clear')}
       </button>
     </div>
   );

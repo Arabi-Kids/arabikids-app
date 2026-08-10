@@ -55,7 +55,7 @@ export default function ArabicCurriculumHub() {
       .catch((err) => setError(err.message));
   }, [activeChild]);
 
-  if (loading) return <div className="container" style={{ padding: 60 }}>Loading...</div>;
+  if (loading) return <div className="container" style={{ padding: 60 }}>{copy.loading}</div>;
 
   const header = (
     <>
@@ -110,7 +110,7 @@ export default function ArabicCurriculumHub() {
                 {stages.map((stage) => (
                   <Link key={stage.id} to="/login" className="card card-kid" style={{ '--card-accent': levelAccent, display: 'block', opacity: 0.75 }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-                      <span style={{ fontWeight: 800, color: 'var(--color-blue)' }}>Stage {stage.orderIndex}</span>
+                      <span style={{ fontWeight: 800, color: 'var(--color-blue)' }}>{copy.stageLabel.replace('{n}', stage.orderIndex)}</span>
                       <span className="badge badge-locked">{copy.signIn}</span>
                     </div>
                     <p style={{ margin: 0, fontWeight: 700 }}>{stage.name}</p>
@@ -124,7 +124,7 @@ export default function ArabicCurriculumHub() {
     );
   }
 
-  if (childrenLoading) return <div className="container" style={{ padding: 60 }}>Loading...</div>;
+  if (childrenLoading) return <div className="container" style={{ padding: 60 }}>{copy.loading}</div>;
 
   if (childProfiles.length === 0) {
     return (
@@ -177,7 +177,7 @@ export default function ArabicCurriculumHub() {
                   style={{ '--card-accent': levelAccent, display: 'block', opacity: state === 'locked' ? 0.6 : 1, cursor: state === 'locked' ? 'default' : 'pointer' }}
                 >
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-                    <span style={{ fontWeight: 800, color: 'var(--color-blue)' }}>Stage {stage.orderIndex}</span>
+                    <span style={{ fontWeight: 800, color: 'var(--color-blue)' }}>{copy.stageLabel.replace('{n}', stage.orderIndex)}</span>
                     {state === 'locked' && <span className="badge badge-locked">{copy.locked}</span>}
                     {state === 'locked-payment' && <span className="badge badge-locked">{copy.subscribe}</span>}
                     {state === 'active' && isCurrent && <span className="badge badge-free">{copy.inProgress}</span>}

@@ -66,7 +66,7 @@ export default function Lesson() {
   const { stageId, orderIndex } = useParams();
   const navigate = useNavigate();
   const { activeChild } = useActiveChild();
-  const { language } = useLanguage();
+  const { language, t } = useLanguage();
   const [lesson, setLesson] = useState(null);
   const [locked, setLocked] = useState(false);
   const [notFound, setNotFound] = useState(false);
@@ -140,13 +140,13 @@ export default function Lesson() {
     }
   }
 
-  if (loading) return <div className="container" style={{ padding: 60 }}>Loading lesson...</div>;
+  if (loading) return <div className="container" style={{ padding: 60 }}>{t('lesson.loading')}</div>;
 
   if (notFound) {
     return (
       <div className="container" style={{ padding: 60, textAlign: 'center' }}>
-        <h1 className="page-title">Lesson not found</h1>
-        <Link to="/lessons/curriculum" className="btn btn-primary">Back to Curriculum</Link>
+        <h1 className="page-title">{t('lesson.notFoundTitle')}</h1>
+        <Link to="/lessons/curriculum" className="btn btn-primary">{t('lesson.backToCurriculum')}</Link>
       </div>
     );
   }
@@ -154,10 +154,10 @@ export default function Lesson() {
   if (locked) {
     return (
       <div className="container" style={{ padding: 60, textAlign: 'center' }}>
-        <h1 className="page-title">This lesson is locked</h1>
-        <p className="page-subtitle">Subscribe to unlock the full ArabiKids curriculum.</p>
+        <h1 className="page-title">{t('lesson.lockedTitle')}</h1>
+        <p className="page-subtitle">{t('lesson.lockedSubtitle')}</p>
         <Link to="/pricing" className="btn btn-primary">
-          View Pricing
+          {t('lesson.viewPricing')}
         </Link>
       </div>
     );
@@ -171,17 +171,17 @@ export default function Lesson() {
   return (
     <div className="container" style={{ padding: '48px 0', maxWidth: 720 }}>
       <Link to={`/lessons/stage/${stageId}`} style={{ color: 'var(--color-blue)', fontWeight: 700 }}>
-        ← Back to stage
+        {t('lesson.backToStage')}
       </Link>
       <h1 className="page-title" style={{ marginTop: 12 }}>
-        Lesson {lesson.orderIndex}: {lesson.title}
+        {t('lesson.lessonLabel', { n: lesson.orderIndex, title: lesson.title })}
       </h1>
-      <p style={{ color: '#8ea0b6', marginTop: -8 }}>{lesson.estimatedMinutes} min · {lesson.lessonGoal}</p>
+      <p style={{ color: '#8ea0b6', marginTop: -8 }}>{lesson.estimatedMinutes} {t('lesson.minutes')} · {lesson.lessonGoal}</p>
 
       <Confetti active={completed} />
 
       <div className="card" style={{ marginBottom: 20, background: 'var(--color-sky)', boxShadow: 'none', textAlign: 'center' }}>
-        <span className="badge badge-free">Concept</span>
+        <span className="badge badge-free">{t('lesson.concept')}</span>
         {/* Audio-first: a 3-year-old can't read this paragraph, so the primary
             action is hearing it, not reading it - the text stays available
             underneath for parents/older kids, just visually secondary. */}
@@ -192,7 +192,7 @@ export default function Lesson() {
             style={{ margin: '14px 0 12px' }}
             onClick={() => tapSpeak(content.concept, { rate: 0.85 })}
           >
-            🔊 Listen
+            {t('lesson.listen')}
           </button>
         </div>
         <p style={{ fontSize: '0.85rem', margin: 0, color: '#8394a3' }}>{content.concept}</p>
@@ -209,8 +209,8 @@ export default function Lesson() {
 
       {content.letters && (
         <div className="card" style={{ marginBottom: 20 }}>
-          <span className="badge badge-gold">Hear the Letters</span>
-          <p style={{ margin: '10px 0 16px', color: '#4b5a6a' }}>Tap each letter to hear how it sounds.</p>
+          <span className="badge badge-gold">{t('lesson.hearLetters')}</span>
+          <p style={{ margin: '10px 0 16px', color: '#4b5a6a' }}>{t('lesson.tapEachLetter')}</p>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 16 }}>
             {content.letters.map((item, i) => (
               <div
@@ -231,7 +231,7 @@ export default function Lesson() {
                 >
                   <p className="arabic-text" dir="rtl" style={{ fontSize: '3rem', margin: '0 0 6px' }}>{item.letter}</p>
                   <p style={{ margin: 0, fontWeight: 800, color: 'var(--color-blue)', fontSize: '1.05rem' }}>{item.name}</p>
-                  <p style={{ margin: '8px 0 0', fontSize: '0.8rem', color: '#8ea0b6' }}>🔊 Tap to hear</p>
+                  <p style={{ margin: '8px 0 0', fontSize: '0.8rem', color: '#8ea0b6' }}>{t('lesson.tapToHear')}</p>
                 </button>
                 <LetterPositions letter={item.letter} positions={item.positions} />
                 <PronunciationCheck text={item.letter} compact />
@@ -243,9 +243,9 @@ export default function Lesson() {
 
       {content.letters?.some((l) => l.harakatSet || l.harakatNote) && (
         <div className="card" style={{ marginBottom: 20 }}>
-          <span className="badge badge-teal">Vowel Sounds</span>
+          <span className="badge badge-teal">{t('lesson.vowelSounds')}</span>
           <p style={{ margin: '10px 0 16px', color: '#4b5a6a' }}>
-            Every letter changes sound with its vowel mark - tap to hear "{content.letters.find((l) => l.harakatSet)?.name ?? ''} a / i / u".
+            {t('lesson.vowelSoundsIntro', { name: content.letters.find((l) => l.harakatSet)?.name ?? '' })}
           </p>
           {content.letters.filter((l) => l.harakatSet || l.harakatNote).map((l, li) => (
             <div key={li} style={{ marginBottom: li < content.letters.length - 1 ? 16 : 0 }}>
@@ -292,9 +292,9 @@ export default function Lesson() {
 
       {content.letters && (
         <div className="card" style={{ marginBottom: 20 }}>
-          <span className="badge badge-purple">Practice Writing</span>
+          <span className="badge badge-purple">{t('lesson.practiceWriting')}</span>
           <p style={{ margin: '10px 0 16px', color: '#4b5a6a' }}>
-            Trace each letter with your finger or mouse - try its Start, Middle and End shapes too.
+            {t('lesson.traceEachLetter')}
           </p>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))', gap: 16 }}>
             {content.letters.map((item, i) => (
@@ -306,8 +306,8 @@ export default function Lesson() {
 
       {content.maddPair && (
         <div className="card" style={{ marginBottom: 20 }}>
-          <span className="badge badge-orange">Short vs Long</span>
-          <p style={{ margin: '10px 0 16px', color: '#4b5a6a' }}>Tap each box to hear the difference in length.</p>
+          <span className="badge badge-orange">{t('lesson.shortVsLong')}</span>
+          <p style={{ margin: '10px 0 16px', color: '#4b5a6a' }}>{t('lesson.tapDifference')}</p>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 16 }}>
             {['short', 'long'].map((key) => {
               const item = content.maddPair[key];
@@ -329,7 +329,7 @@ export default function Lesson() {
                   <p className="arabic-text" dir="rtl" style={{ fontSize: '2rem', margin: '0 0 6px' }}>{item.arabic}</p>
                   <p style={{ margin: '0 0 4px', fontWeight: 700, color: 'var(--color-blue)' }}>"{item.transliteration}"</p>
                   <p style={{ margin: 0, fontSize: '0.8rem', color: '#8ea0b6' }}>{item.label}</p>
-                  <p style={{ margin: '8px 0 0', fontSize: '0.75rem', color: '#8ea0b6' }}>🔊 Tap to hear</p>
+                  <p style={{ margin: '8px 0 0', fontSize: '0.75rem', color: '#8ea0b6' }}>{t('lesson.tapToHear')}</p>
                 </button>
               );
             })}
@@ -339,8 +339,8 @@ export default function Lesson() {
 
       {content.letters?.some((l) => l.maddPair) && (
         <div className="card" style={{ marginBottom: 20 }}>
-          <span className="badge badge-gold">Short vs Long</span>
-          <p style={{ margin: '10px 0 16px', color: '#4b5a6a' }}>Tap to hear the short and long form of each letter.</p>
+          <span className="badge badge-gold">{t('lesson.shortVsLong')}</span>
+          <p style={{ margin: '10px 0 16px', color: '#4b5a6a' }}>{t('lesson.tapShortLongForm')}</p>
           {content.letters.filter((l) => l.maddPair).map((l, li) => (
             <div key={li} style={{ marginBottom: li < content.letters.length - 1 ? 16 : 0 }}>
               <p style={{ margin: '0 0 8px', fontWeight: 700, color: 'var(--color-blue)' }}>{l.name}</p>
@@ -365,7 +365,7 @@ export default function Lesson() {
                       <p className="arabic-text" dir="rtl" style={{ fontSize: '2rem', margin: '0 0 6px' }}>{item.arabic}</p>
                       <p style={{ margin: '0 0 4px', fontWeight: 700, color: 'var(--color-blue)' }}>"{item.transliteration}"</p>
                       <p style={{ margin: 0, fontSize: '0.8rem', color: '#8ea0b6' }}>{item.label}</p>
-                      <p style={{ margin: '8px 0 0', fontSize: '0.75rem', color: '#8ea0b6' }}>🔊 Tap to hear</p>
+                      <p style={{ margin: '8px 0 0', fontSize: '0.75rem', color: '#8ea0b6' }}>{t('lesson.tapToHear')}</p>
                     </button>
                   );
                 })}
@@ -377,7 +377,7 @@ export default function Lesson() {
 
       {content.tanweenForms && (
         <div className="card" style={{ marginBottom: 20 }}>
-          <span className="badge badge-gold">Tanween's 3 Forms</span>
+          <span className="badge badge-gold">{t('lesson.tanweenForms')}</span>
           <p style={{ margin: '10px 0 16px', color: '#4b5a6a' }}>{content.tanweenForms.intro}</p>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(100px, 1fr))', gap: 10 }}>
             {content.tanweenForms.forms.map((form) => (
@@ -405,7 +405,7 @@ export default function Lesson() {
 
       {content.comparisonSet && (
         <div className="card" style={{ marginBottom: 20 }}>
-          <span className="badge badge-teal">Compare Both Sides</span>
+          <span className="badge badge-teal">{t('lesson.compareBothSides')}</span>
           {content.comparisonSet.intro && <p style={{ margin: '10px 0 16px', color: '#4b5a6a' }}>{content.comparisonSet.intro}</p>}
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: 10 }}>
             {content.comparisonSet.items.map((item, i) => (
@@ -434,7 +434,7 @@ export default function Lesson() {
 
       {content.maddTypes && (
         <div className="card" style={{ marginBottom: 20 }}>
-          <span className="badge badge-gold">Types of Madd</span>
+          <span className="badge badge-gold">{t('lesson.typesOfMadd')}</span>
           {content.maddTypes.types.map((type) => (
             <div key={type.key} style={{ marginTop: 12 }}>
               <p style={{ margin: '0 0 4px', fontWeight: 700, color: 'var(--color-blue)' }}>
@@ -458,7 +458,7 @@ export default function Lesson() {
                 <p style={{ margin: 0, fontWeight: 700, color: 'var(--color-blue)' }}>
                   "{type.example.transliteration}" - {type.example.translation}
                 </p>
-                <p style={{ margin: '6px 0 0', fontSize: '0.75rem', color: '#8ea0b6' }}>🔊 Tap to hear</p>
+                <p style={{ margin: '6px 0 0', fontSize: '0.75rem', color: '#8ea0b6' }}>{t('lesson.tapToHear')}</p>
               </button>
             </div>
           ))}
@@ -467,7 +467,7 @@ export default function Lesson() {
 
       {content.tajweedRule && (
         <div className="card" style={{ marginBottom: 20 }}>
-          <span className="badge badge-gold">Tajweed: {content.tajweedRule.name}</span>
+          <span className="badge badge-gold">{t('lesson.tajweedLabel', { name: content.tajweedRule.name })}</span>
           <p style={{ margin: '10px 0 16px', color: '#4b5a6a' }}>{content.tajweedRule.kidExplanation}</p>
           <button
             type="button"
@@ -484,16 +484,16 @@ export default function Lesson() {
           >
             <p className="arabic-text" dir="rtl" style={{ fontSize: '1.8rem', margin: '0 0 4px' }}>{content.tajweedRule.example.arabic}</p>
             <p style={{ margin: 0, fontWeight: 700, color: 'var(--color-blue)' }}>"{content.tajweedRule.example.transliteration}"</p>
-            <p style={{ margin: '6px 0 0', fontSize: '0.75rem', color: '#8ea0b6' }}>🔊 Tap to hear</p>
+            <p style={{ margin: '6px 0 0', fontSize: '0.75rem', color: '#8ea0b6' }}>{t('lesson.tapToHear')}</p>
           </button>
         </div>
       )}
 
       {content.surahCorner && (
         <div className="card" style={{ marginBottom: 20 }}>
-          <span className="badge badge-gold">🌙 Surah Corner</span>
+          <span className="badge badge-gold">{t('lesson.surahCorner')}</span>
           <p style={{ margin: '10px 0 16px', fontWeight: 700, color: 'var(--color-blue)' }}>
-            {content.surahCorner.surahName} — Ayah {content.surahCorner.ayahNumber} of {content.surahCorner.totalAyahsInSurah}
+            {t('lesson.surahCornerAyah', { surahName: content.surahCorner.surahName, n: content.surahCorner.ayahNumber, total: content.surahCorner.totalAyahsInSurah })}
           </p>
           <button
             type="button"
@@ -510,12 +510,12 @@ export default function Lesson() {
           >
             <p className="arabic-text" dir="rtl" style={{ fontSize: '1.8rem', margin: '0 0 4px' }}>{content.surahCorner.arabic}</p>
             <p style={{ margin: 0, fontWeight: 700, color: 'var(--color-blue)' }}>"{content.surahCorner.transliteration}"</p>
-            <p style={{ margin: '6px 0 0', fontSize: '0.75rem', color: '#8ea0b6' }}>🎧 New ayah — tap to hear a reciter</p>
+            <p style={{ margin: '6px 0 0', fontSize: '0.75rem', color: '#8ea0b6' }}>{t('lesson.newAyahTapToHear')}</p>
           </button>
           {content.surahCorner.cumulativeAyahs.length > 1 && (
             <>
               <p style={{ margin: '16px 0 10px', fontWeight: 700, color: 'var(--color-blue-dark)', fontSize: '0.9rem' }}>
-                Recite what you've learned so far, then check yourself:
+                {t('lesson.reciteWhatLearned')}
               </p>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                 {content.surahCorner.cumulativeAyahs.slice(0, -1).map((a) => (
@@ -536,7 +536,7 @@ export default function Lesson() {
                       gap: 10,
                     }}
                   >
-                    <span style={{ fontSize: '0.75rem', color: '#8ea0b6', whiteSpace: 'nowrap' }}>Ayah {a.ayah} 🎧</span>
+                    <span style={{ fontSize: '0.75rem', color: '#8ea0b6', whiteSpace: 'nowrap' }}>{t('lesson.ayahLabel', { n: a.ayah })}</span>
                     <span className="arabic-text" dir="rtl" style={{ fontSize: '1.2rem' }}>{a.arabic}</span>
                   </button>
                 ))}
@@ -548,10 +548,9 @@ export default function Lesson() {
 
       {content.surahFluencyCheck && (
         <div className="card" style={{ marginBottom: 20 }}>
-          <span className="badge badge-gold">🌙 Fluency Check: {content.surahFluencyCheck.surahName}</span>
+          <span className="badge badge-gold">{t('lesson.fluencyCheckLabel', { surahName: content.surahFluencyCheck.surahName })}</span>
           <p style={{ margin: '10px 0 16px', color: '#4b5a6a' }}>
-            Try reciting all {content.surahFluencyCheck.ayahs.length} ayat of {content.surahFluencyCheck.surahName} from memory first, then
-            tap below to hear a reciter go through the whole surah, start to finish.
+            {t('lesson.fluencyCheckIntro', { n: content.surahFluencyCheck.ayahs.length, surahName: content.surahFluencyCheck.surahName })}
           </p>
           <button
             type="button"
@@ -559,13 +558,13 @@ export default function Lesson() {
             disabled={playingFluencyCheck}
             onClick={() => playFluencySurah(content.surahFluencyCheck)}
           >
-            {playingFluencyCheck ? '🎧 Playing...' : '🎧 Play the Whole Surah'}
+            {playingFluencyCheck ? t('lesson.playingWholeSurah') : t('lesson.playWholeSurah')}
           </button>
         </div>
       )}
 
       <div className="card" style={{ marginBottom: 20, textAlign: 'center' }}>
-        <span className="badge badge-free">Arabic Word</span>
+        <span className="badge badge-free">{t('lesson.arabicWord')}</span>
         <ImageBadge image={content.image} />
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12, margin: '16px 0 4px' }}>
           <p className="arabic-text" dir="rtl" style={{ fontSize: '2.5rem', margin: 0 }}>{lesson.arabicWord}</p>
@@ -573,7 +572,7 @@ export default function Lesson() {
         </div>
         {content.transliteration && (
           <p style={{ margin: '0 0 4px', color: '#8ea0b6', fontStyle: 'italic', fontSize: '0.95rem' }}>
-            Sounds like: "{content.transliteration}"
+            {t('lesson.soundsLike', { text: content.transliteration })}
           </p>
         )}
         <p style={{ fontWeight: 700, color: 'var(--color-blue)' }}>{lesson.arabicWordMeaning}</p>
@@ -585,7 +584,7 @@ export default function Lesson() {
             </div>
             {content.secondWord.transliteration && (
               <p style={{ margin: '0 0 4px', color: '#8ea0b6', fontStyle: 'italic', fontSize: '0.95rem' }}>
-                Sounds like: "{content.secondWord.transliteration}"
+                {t('lesson.soundsLike', { text: content.secondWord.transliteration })}
               </p>
             )}
             <p style={{ fontWeight: 700, color: 'var(--color-blue)' }}>{content.secondWord.translation}</p>
@@ -596,14 +595,14 @@ export default function Lesson() {
       <PronunciationCheck text={lesson.arabicWord} />
 
       <div className="card" style={{ marginBottom: 28, background: 'rgba(200,150,12,0.06)', border: '1px solid rgba(200,150,12,0.25)' }}>
-        <span className="badge badge-locked">Quranic Connection</span>
+        <span className="badge badge-locked">{t('lesson.quranicConnection')}</span>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, margin: '14px 0 4px' }}>
           <p className="arabic-text" dir="rtl" style={{ fontSize: '1.5rem', margin: 0 }}>{content.quranicConnection?.arabic}</p>
           <SpeakButton text={content.quranicConnection?.arabic} size={18} />
         </div>
         {content.transliteration && (
           <p style={{ margin: '0 0 8px', color: '#8ea0b6', fontStyle: 'italic', fontSize: '0.9rem' }}>
-            Sounds like: "{content.transliteration}"
+            {t('lesson.soundsLike', { text: content.transliteration })}
           </p>
         )}
         <p style={{ margin: '0 0 8px', color: '#4b5a6a', fontStyle: 'italic' }}>"{content.quranicConnection?.translation}"</p>
@@ -616,7 +615,7 @@ export default function Lesson() {
             style={{ marginTop: 12 }}
             onClick={() => playReciterAudio(content.quranRef)}
           >
-            🎧 Hear a Reciter ({content.quranRef.surahName} {content.quranRef.surah}:{content.quranRef.ayah})
+            {t('lesson.hearReciter', { surahName: content.quranRef.surahName, surah: content.quranRef.surah, ayah: content.quranRef.ayah })}
           </button>
         )}
       </div>
@@ -625,26 +624,26 @@ export default function Lesson() {
 
       {!completed ? (
         <button className="btn btn-primary btn-chunky" disabled={submitting} onClick={handleMarkComplete}>
-          {submitting ? 'Saving...' : 'Mark Complete'}
+          {submitting ? t('lesson.saving') : t('lesson.markComplete')}
         </button>
       ) : (
         <div className="card" style={{ textAlign: 'center', background: 'rgba(26,122,74,0.08)' }}>
           <HudMascot pose="celebrate" size={72} className={isCheering ? 'mascot-cheer' : ''} style={{ margin: '0 auto 8px' }} />
-          <h3 style={{ margin: '0 0 8px' }}>Lesson complete!</h3>
+          <h3 style={{ margin: '0 0 8px' }}>{t('lesson.lessonComplete')}</h3>
           <p style={{ margin: 0 }}>
-            {lesson.checkpointDue ? "Time for a quick checkpoint to review what you've learned." : 'Ready for the next lesson?'}
+            {lesson.checkpointDue ? t('lesson.checkpointDueMsg') : t('lesson.readyNextLesson')}
           </p>
           {newBadges.length > 0 && (
             <div style={{ margin: '16px 0 0' }}>
               {newBadges.map((code) => (
                 <span key={code} className="badge badge-gold" style={{ margin: '0 4px' }}>
-                  New Badge: {badgeInfo(code).name}
+                  {t('lesson.newBadge', { name: badgeInfo(code).name })}
                 </span>
               ))}
             </div>
           )}
           <button className="btn btn-primary btn-chunky" style={{ marginTop: 16 }} onClick={handleContinue}>
-            {lesson.checkpointDue ? 'Start Checkpoint →' : 'Next Lesson →'}
+            {lesson.checkpointDue ? t('lesson.startCheckpoint') : t('lesson.nextLesson')}
           </button>
         </div>
       )}

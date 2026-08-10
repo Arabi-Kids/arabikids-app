@@ -85,7 +85,7 @@ export default function Pricing() {
     setError('');
     const link = PAYMENT_LINKS[tier]?.[planId];
     if (!link) {
-      setError('This plan is not available for checkout yet — please try again shortly.');
+      setError(copy.checkoutUnavailable);
       return;
     }
     setLoadingPlan(planId);
@@ -110,7 +110,7 @@ export default function Pricing() {
 
       <div
         role="group"
-        aria-label="Choose how many children"
+        aria-label={copy.chooseChildrenAria}
         style={{ display: 'inline-flex', background: 'var(--color-sky)', borderRadius: 999, padding: 4, gap: 4, marginBottom: 8 }}
       >
         {[

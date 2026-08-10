@@ -3,17 +3,19 @@ import { isSpeechRecognitionSupported, listenOnce, scorePronunciation } from '..
 import { speakSmart } from '../lib/speech.js';
 import { playTap, playSuccess } from '../lib/sounds.js';
 import { useCelebrate } from '../hooks/useCelebrate.js';
-
-const FEEDBACK = {
-  3: { stars: '🌟🌟🌟', message: 'Excellent!' },
-  2: { stars: '🌟🌟', message: 'Good try!' },
-  1: { stars: '🌟', message: 'Keep practicing!' },
-};
+import { useLanguage } from '../context/LanguageContext.jsx';
 
 export default function PronunciationCheck({ text, compact = false }) {
   const [status, setStatus] = useState('idle'); // idle | listening | scored | error
   const [result, setResult] = useState(null);
   const [isCheering, triggerCheer] = useCelebrate();
+  const { t } = useLanguage();
+  const copy = t('pronunciationCheck');
+  const FEEDBACK = {
+    3: { stars: '🌟🌟🌟', message: copy.excellent },
+    2: { stars: '🌟🌟', message: copy.goodTry },
+    1: { stars: '🌟', message: copy.keepPracticing },
+  };
 
   if (!isSpeechRecognitionSupported() || !text) return null;
 
@@ -44,7 +46,7 @@ export default function PronunciationCheck({ text, compact = false }) {
         onClick={() => { playTap(); speakSmart(text, { rate: 0.7 }); }}
         style={compact ? COMPACT_BTN_STYLE : undefined}
       >
-        🔊{compact ? '' : ' Listen'}
+        🔊{compact ? '' : copy.listen}
       </button>
       <button
         type="button"
@@ -53,7 +55,7 @@ export default function PronunciationCheck({ text, compact = false }) {
         disabled={status === 'listening'}
         style={compact ? { ...COMPACT_BTN_STYLE, borderColor: 'var(--color-gold)' } : undefined}
       >
-        {status === 'listening' ? '🎤…' : compact ? '🎤' : '🎤 Tap to Speak'}
+        {status === 'listening' ? '🎤…' : compact ? '🎤' : copy.tapToSpeak}
       </button>
     </div>
   );
@@ -67,15 +69,15 @@ export default function PronunciationCheck({ text, compact = false }) {
             {FEEDBACK[result.stars].stars}
           </p>
         )}
-        {status === 'error' && <p style={{ margin: 0, fontSize: '0.7rem', color: '#8ea0b6' }}>Couldn't hear that.</p>}
+        {status === 'error' && <p style={{ margin: 0, fontSize: '0.7rem', color: '#8ea0b6' }}>{copy.couldntHear}</p>}
       </div>
     );
   }
 
   return (
     <div className="card" style={{ marginBottom: 20, textAlign: 'center' }}>
-      <span className="badge badge-gold">Practice Pronunciation</span>
-      <p style={{ margin: '10px 0 16px', color: '#4b5a6a' }}>Listen, then repeat it into your microphone.</p>
+      <span className="badge badge-gold">{copy.title}</span>
+      <p style={{ margin: '10px 0 16px', color: '#4b5a6a' }}>{copy.subtitle}</p>
 
       {buttons}
 
@@ -90,7 +92,7 @@ export default function PronunciationCheck({ text, compact = false }) {
 
       {status === 'error' && (
         <p style={{ margin: 0, color: '#8ea0b6', fontSize: '0.9rem' }}>
-          Couldn't hear that clearly — check your microphone and try again.
+          {copy.couldntHearClear}
         </p>
       )}
     </div>

@@ -10,7 +10,7 @@ export default function StageVideo() {
   const { stageId } = useParams();
   const navigate = useNavigate();
   const { activeChild, refreshChildren } = useActiveChild();
-  const { language } = useLanguage();
+  const { language, t } = useLanguage();
   const [stage, setStage] = useState(null);
   const [nextStage, setNextStage] = useState(null);
   const [status, setStatus] = useState(null);
@@ -46,13 +46,13 @@ export default function StageVideo() {
     }
   }
 
-  if (loading) return <div className="container" style={{ padding: 60 }}>Loading...</div>;
+  if (loading) return <div className="container" style={{ padding: 60 }}>{t('stageVideo.loading')}</div>;
 
   if (!stage) {
     return (
       <div className="container" style={{ padding: 60, textAlign: 'center' }}>
-        <h1 className="page-title">Stage not found</h1>
-        <Link to="/lessons/curriculum" className="btn btn-primary">Back to Curriculum</Link>
+        <h1 className="page-title">{t('stageVideo.stageNotFound')}</h1>
+        <Link to="/lessons/curriculum" className="btn btn-primary">{t('stageVideo.backToCurriculum')}</Link>
       </div>
     );
   }
@@ -61,11 +61,11 @@ export default function StageVideo() {
     return (
       <div className="container" style={{ padding: 60, textAlign: 'center' }}>
         <HudMascot pose="mark" size={72} style={{ margin: '0 auto 12px' }} />
-        <h1 className="page-title">Not quite yet</h1>
+        <h1 className="page-title">{t('stageVideo.notQuiteYet')}</h1>
         <p className="page-subtitle">
-          Complete Stage {stage.orderIndex}'s mastery checkpoint first to unlock its recap video.
+          {t('stageVideo.completeMasteryFirst', { n: stage.orderIndex })}
         </p>
-        <Link to={`/lessons/stage/${stageId}`} className="btn btn-primary">Back to Stage {stage.orderIndex}</Link>
+        <Link to={`/lessons/stage/${stageId}`} className="btn btn-primary">{t('stageVideo.backToStageN', { n: stage.orderIndex })}</Link>
       </div>
     );
   }
@@ -73,10 +73,10 @@ export default function StageVideo() {
   return (
     <div className="container" style={{ padding: '48px 0', maxWidth: 640 }}>
       <Link to={`/lessons/stage/${stageId}`} style={{ color: 'var(--color-blue)', fontWeight: 700 }}>
-        ← Back to stage
+        {t('stageVideo.backToStage')}
       </Link>
       <h1 className="page-title" style={{ marginTop: 12, textAlign: 'center' }}>
-        Stage {stage.orderIndex} Recap
+        {t('stageVideo.stageRecapTitle', { n: stage.orderIndex })}
       </h1>
       <p className="page-subtitle" style={{ textAlign: 'center' }}>{stage.name}</p>
 
@@ -95,10 +95,10 @@ export default function StageVideo() {
       <div style={{ textAlign: 'center' }}>
         <button className="btn btn-primary" onClick={handleContinue} disabled={continuing}>
           {continuing
-            ? 'Saving...'
+            ? t('stageVideo.saving')
             : nextStage
-              ? `Continue to Stage ${nextStage.orderIndex} →`
-              : 'Finish — You Completed ArabiKids! →'}
+              ? t('stageVideo.continueToStage', { n: nextStage.orderIndex })
+              : t('stageVideo.finishCompleted')}
         </button>
       </div>
     </div>

@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useLanguage } from '../context/LanguageContext.jsx';
 
 // Public-site-only "install ArabiKids" banner. Listens for the browser's
 // beforeinstallprompt event and offers a one-tap install; dismiss is
@@ -6,6 +7,7 @@ import { useEffect, useState } from 'react';
 export default function AddToHomeScreen() {
   const [deferredPrompt, setDeferredPrompt] = useState(null);
   const [dismissed, setDismissed] = useState(() => localStorage.getItem('arabikids_a2hs_dismissed') === '1');
+  const { t } = useLanguage();
 
   useEffect(() => {
     function handler(e) {
@@ -50,14 +52,14 @@ export default function AddToHomeScreen() {
     >
       <span style={{ fontSize: '1.6rem' }}>📲</span>
       <div style={{ flex: 1 }}>
-        <p style={{ margin: 0, fontWeight: 800, color: 'var(--color-blue)' }}>Install ArabiKids</p>
-        <p style={{ margin: 0, fontSize: '0.85rem', color: '#6b7a8a' }}>Add to your home screen for quick, offline-friendly access.</p>
+        <p style={{ margin: 0, fontWeight: 800, color: 'var(--color-blue)' }}>{t('installPrompt.title')}</p>
+        <p style={{ margin: 0, fontSize: '0.85rem', color: '#6b7a8a' }}>{t('installPrompt.subtitle')}</p>
       </div>
       <button className="btn btn-outline" style={{ padding: '8px 14px' }} onClick={dismiss}>
-        Later
+        {t('installPrompt.later')}
       </button>
       <button className="btn btn-primary" style={{ padding: '8px 14px' }} onClick={install}>
-        Install
+        {t('installPrompt.install')}
       </button>
     </div>
   );

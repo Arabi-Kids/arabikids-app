@@ -346,7 +346,27 @@ export async function completeLessonForChild({ childId, lessonId }) {
 // Stage checkpoints
 // ---------------------------------------------------------------------------
 
-export async function getStageCheckpoint(stageId, checkpointOrder) {
+/** correct_index (not text) identifies the right answer, since displayed
+ * option strings are localized - matching by text against the English
+ * correct_answer would break once options are translated, same pattern as
+ * placement_questions. */
+function mapExerciseQuestion(q, language) {
+  const title = (language === 'ar' ? q.title_ar : language === 'ms' ? q.title_ms : null) ?? q.title;
+  const instruction = (language === 'ar' ? q.instruction_ar : language === 'ms' ? q.instruction_ms : null) ?? q.instruction;
+  const options = (language === 'ar' ? q.options_ar : language === 'ms' ? q.options_ms : null) ?? q.options;
+  const explanation = (language === 'ar' ? q.explanation_ar : language === 'ms' ? q.explanation_ms : null) ?? q.explanation;
+  return {
+    id: q.id,
+    questionNumber: q.question_number,
+    title,
+    instruction,
+    options,
+    correctAnswer: q.correct_index != null ? options[q.correct_index] : q.correct_answer,
+    explanation,
+  };
+}
+
+export async function getStageCheckpoint(stageId, checkpointOrder, language = 'en') {
   const { data: se, error } = await supabase
     .from('stage_exercises')
     .select('*, exercise_questions(*)')
@@ -364,15 +384,7 @@ export async function getStageCheckpoint(stageId, checkpointOrder) {
     questions: se.exercise_questions
       .slice()
       .sort((a, b) => a.question_number - b.question_number)
-      .map((q) => ({
-        id: q.id,
-        questionNumber: q.question_number,
-        title: q.title,
-        instruction: q.instruction,
-        options: q.options,
-        correctAnswer: q.correct_answer,
-        explanation: q.explanation,
-      })),
+      .map((q) => mapExerciseQuestion(q, language)),
   };
 }
 
@@ -443,15 +455,18 @@ export async function getCheckpointProgress(childId, stageExerciseId) {
  * window (see attachRecapGroups in supabase/seed.mjs) - fetched by stage +
  * checkpoint order rather than lesson order_index, since callers only know
  * "which checkpoint", not which lesson happens to be last in its window. */
-export async function getRecapGroup(stageId, checkpointOrder) {
+export async function getRecapGroup(stageId, checkpointOrder, language = 'en') {
+  const localizedColumn = language === 'ar' ? 'content_ar' : language === 'ms' ? 'content_ms' : null;
   const { data: lessons, error } = await supabase
     .from('lessons')
-    .select('content, order_index')
+    .select(`content, order_index${localizedColumn ? `, ${localizedColumn}` : ''}`)
     .eq('stage_id', stageId)
     .order('order_index', { ascending: false });
   if (error) throw new Error(error.message);
   const match = lessons.find((l) => l.content?.recapGroup?.checkpointOrder === checkpointOrder);
-  return match?.content?.recapGroup ?? null;
+  if (!match) return null;
+  const localized = localizedColumn ? match[localizedColumn] : null;
+  return localized?.content?.recapGroup ?? match.content?.recapGroup ?? null;
 }
 
 // ---------------------------------------------------------------------------
@@ -584,7 +599,7 @@ async function checkLevelBadge(childId, stageId) {
  * near-empty. `stageIds` optionally scopes the sheet to just the stages the
  * child has actually mastered so far (see LevelPrintable.jsx) instead of
  * every stage in the level - defaults to the whole level when omitted. */
-export async function getLevelPrintableData(levelId, stageIds) {
+export async function getLevelPrintableData(levelId, stageIds, language = 'en') {
   let stages;
   if (stageIds) {
     stages = stageIds.map((id) => ({ id }));
@@ -595,9 +610,11 @@ export async function getLevelPrintableData(levelId, stageIds) {
   }
   if (stages.length === 0) return { letters: [], tajweedRules: [], tanweenForms: null, vocabulary: [], comparisons: [] };
 
+  const localizedColumn = language === 'ar' ? 'content_ar' : language === 'ms' ? 'content_ms' : null;
+
   const { data: lessons, error: lessonsError } = await supabase
     .from('lessons')
-    .select('title, arabic_word, arabic_word_meaning, content')
+    .select(`title, arabic_word, arabic_word_meaning, content${localizedColumn ? `, ${localizedColumn}` : ''}`)
     .in(
       'stage_id',
       stages.map((s) => s.id)
@@ -610,7 +627,13 @@ export async function getLevelPrintableData(levelId, stageIds) {
   const vocabularyByWord = new Map();
   const comparisonsByKey = new Map();
 
-  for (const { title, arabic_word: arabicWord, arabic_word_meaning: meaning, content } of lessons) {
+  for (const row of lessons) {
+    const localized = localizedColumn ? row[localizedColumn] : null;
+    const title = localized?.title ?? row.title;
+    const meaning = localized?.arabicWordMeaning ?? row.arabic_word_meaning;
+    const arabicWord = row.arabic_word;
+    const content = localized?.content ?? row.content;
+
     if (content?.letters) {
       for (const l of content.letters) {
         if (!lettersByChar.has(l.letter)) lettersByChar.set(l.letter, { letter: l.letter, name: l.name, positions: l.positions });
@@ -760,18 +783,23 @@ export async function deletePushSubscription(childId, endpoint) {
  * dedupe-by-word approach as getLevelPrintableData, scoped to a single stage
  * and including each lesson's id so My Vocabulary/Write can key off it (e.g.
  * for favoriting). */
-export async function getStageVocabulary(stageId) {
+export async function getStageVocabulary(stageId, language = 'en') {
+  const localizedColumn = language === 'ar' ? 'content_ar' : language === 'ms' ? 'content_ms' : null;
   const { data: lessons, error } = await supabase
     .from('lessons')
-    .select('id, arabic_word, arabic_word_meaning, content')
+    .select(`id, arabic_word, arabic_word_meaning, content${localizedColumn ? `, ${localizedColumn}` : ''}`)
     .eq('stage_id', stageId)
     .order('order_index');
   if (error) throw new Error(error.message);
 
   const byWord = new Map();
-  for (const { id, arabic_word: arabic, arabic_word_meaning: meaning, content } of lessons) {
+  for (const row of lessons) {
+    const localized = localizedColumn ? row[localizedColumn] : null;
+    const content = localized?.content ?? row.content;
+    const meaning = localized?.arabicWordMeaning ?? row.arabic_word_meaning;
+    const arabic = row.arabic_word;
     if (content?.type === 'reading' || !arabic || byWord.has(arabic)) continue;
-    byWord.set(arabic, { lessonId: id, arabic, meaning, transliteration: content?.transliteration });
+    byWord.set(arabic, { lessonId: row.id, arabic, meaning, transliteration: content?.transliteration });
   }
   return [...byWord.values()];
 }
@@ -809,20 +837,25 @@ export async function toggleFavoriteWord(childId, lessonId, currentlyFavorited) 
   return true;
 }
 
-export async function getStageReadingPassages(stageId) {
+export async function getStageReadingPassages(stageId, language = 'en') {
   const { data, error } = await supabase
     .from('stage_reading_passages')
-    .select('id, text_content, translation, order_index')
+    .select('id, text_content, translation, translation_ar, translation_ms, order_index')
     .eq('stage_id', stageId)
     .order('order_index');
   if (error) throw new Error(error.message);
-  return data.map((p) => ({ id: p.id, textContent: p.text_content, translation: p.translation, orderIndex: p.order_index }));
+  return data.map((p) => ({
+    id: p.id,
+    textContent: p.text_content,
+    translation: (language === 'ar' ? p.translation_ar : language === 'ms' ? p.translation_ms : null) ?? p.translation,
+    orderIndex: p.order_index,
+  }));
 }
 
 /** The stage's mastery checkpoint (its highest checkpoint_order, is_mastery
  * true) - same shape as getStageCheckpoint, reused by the Practice tab as a
  * replayable, non-gating quiz. */
-export async function getStageMasteryCheckpoint(stageId) {
+export async function getStageMasteryCheckpoint(stageId, language = 'en') {
   const { data: se, error } = await supabase
     .from('stage_exercises')
     .select('*, exercise_questions(*)')
@@ -840,15 +873,7 @@ export async function getStageMasteryCheckpoint(stageId) {
     questions: se.exercise_questions
       .slice()
       .sort((a, b) => a.question_number - b.question_number)
-      .map((q) => ({
-        id: q.id,
-        questionNumber: q.question_number,
-        title: q.title,
-        instruction: q.instruction,
-        options: q.options,
-        correctAnswer: q.correct_answer,
-        explanation: q.explanation,
-      })),
+      .map((q) => mapExerciseQuestion(q, language)),
   };
 }
 

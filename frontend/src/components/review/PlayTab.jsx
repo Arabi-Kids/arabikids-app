@@ -1,5 +1,6 @@
 import { useEffect, useState, useCallback } from 'react';
 import { getStageVocabulary, logReviewActivity } from '../../lib/db.js';
+import { useLanguage } from '../../context/LanguageContext.jsx';
 import HudMascot from '../HudMascot.jsx';
 import Confetti from '../Confetti.jsx';
 import { playTap, playSuccess } from '../../lib/sounds.js';
@@ -20,6 +21,8 @@ function shuffle(arr) {
 // Memory Game come later). Pulls only this stage's own vocabulary, no
 // pass/fail - just score/stars and Play Again, logged via review_activity.
 export default function PlayTab({ stageId, childId }) {
+  const { language, t } = useLanguage();
+  const copy = t('reviewTabs.play');
   const [pool, setPool] = useState([]);
   const [arabicTiles, setArabicTiles] = useState([]);
   const [meaningTiles, setMeaningTiles] = useState([]);
@@ -46,14 +49,14 @@ export default function PlayTab({ stageId, childId }) {
   useEffect(() => {
     setLoading(true);
     setError('');
-    getStageVocabulary(stageId)
+    getStageVocabulary(stageId, language)
       .then((vocab) => {
         setPool(vocab);
         startRound(vocab);
       })
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
-  }, [stageId, startRound]);
+  }, [stageId, language, startRound]);
 
   const complete = arabicTiles.length > 0 && matchedIds.length === arabicTiles.length;
 
@@ -86,23 +89,23 @@ export default function PlayTab({ stageId, childId }) {
     }
   }
 
-  if (loading) return <p>Loading the matching game...</p>;
+  if (loading) return <p>{copy.loading}</p>;
   if (error) return <p className="error-text">{error}</p>;
-  if (pool.length < 2) return <p style={{ color: '#8ea0b6' }}>Not enough vocabulary yet to play this game.</p>;
+  if (pool.length < 2) return <p style={{ color: '#8ea0b6' }}>{copy.notEnoughVocab}</p>;
 
   const stars = Math.max(1, Math.round((Math.max(50, 100 - mistakes * 10) / 100) * 3));
 
   return (
     <div>
-      <p style={{ color: '#8ea0b6', marginTop: 0 }}>Tap a word, then tap its meaning to match them.</p>
+      <p style={{ color: '#8ea0b6', marginTop: 0 }}>{copy.tapInstructions}</p>
 
       <Confetti active={complete} />
       {complete && (
         <div className="card" style={{ textAlign: 'center', background: 'rgba(200,150,12,0.08)', marginBottom: 16 }}>
           <HudMascot pose="celebrate" size={64} className={isCheering ? 'mascot-cheer' : ''} style={{ margin: '0 auto 8px' }} />
-          <h3 style={{ margin: '0 0 4px' }}>All Matched!</h3>
+          <h3 style={{ margin: '0 0 4px' }}>{copy.allMatched}</h3>
           <p style={{ margin: '0 0 12px', fontSize: '1.4rem' }}>{'⭐'.repeat(stars)}</p>
-          <button className="btn btn-primary" onClick={() => startRound(pool)}>Play Again</button>
+          <button className="btn btn-primary" onClick={() => startRound(pool)}>{copy.playAgain}</button>
         </div>
       )}
 

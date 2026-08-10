@@ -4,23 +4,13 @@ import { BookIcon, PathIcon, TargetIcon, DeviceIcon, StarSparkleIcon } from '../
 import Seo from '../components/Seo.jsx';
 import { useLanguage } from '../context/LanguageContext.jsx';
 
-// Arabic-script demo snippets stay identical across languages (per the
-// language-plan: only explanatory prose is translated, not the Arabic
-// content being demonstrated) - name/desc come from the translation
-// dictionary at render time, zipped with this by index.
-const LEVEL_SAMPLES = [
-  'Letter ب (baa) → بِسْمِ → Surah Al-Fatihah 1:1',
-  'كِتَاب (book) → often refers to the Quran',
-  'رَبِّ الْعَالَمِينَ → "Lord of the worlds" → Al-Fatihah 1:2',
-  'إِيَّاكَ نَعْبُدُ → "You alone we worship" → Al-Fatihah 1:5',
-];
-
 const FEATURE_ICONS = [BookIcon, PathIcon, TargetIcon, DeviceIcon, StarSparkleIcon];
 const FEATURE_ACCENTS = ['var(--color-blue)', 'var(--color-teal)', 'var(--color-gold)', 'var(--color-orange)', 'var(--color-purple)'];
 
 export default function Home() {
   const { t } = useLanguage();
   const levels = t('home.levels');
+  const levelSamples = t('home.levelSamples');
   const features = t('home.features');
   const steps = t('home.steps');
   const testimonials = t('home.testimonials');
@@ -97,7 +87,7 @@ export default function Home() {
               <span className="badge badge-free" style={{ marginBottom: 12 }}>{level.desc}</span>
               <h3 style={{ color: 'var(--color-blue)', margin: '4px 0 8px' }}>{level.name}</h3>
               <p className="arabic-text" dir="rtl" style={{ color: '#8ea0b6', fontWeight: 700, margin: 0, fontSize: '0.9rem' }}>
-                {LEVEL_SAMPLES[i]}
+                {levelSamples[i]}
               </p>
             </div>
           ))}
@@ -217,7 +207,7 @@ export default function Home() {
                     fontWeight: 700,
                   }}
                 >
-                  Book
+                  {t('home.playWordBook')}
                 </div>
                 <div
                   className="arabic-text"
@@ -244,7 +234,7 @@ export default function Home() {
                     opacity: 0.6,
                   }}
                 >
-                  House
+                  {t('home.playWordHouse')}
                 </div>
               </div>
               <p style={{ color: '#5a6a7a', margin: 0 }}>{t('home.playDesc')}</p>

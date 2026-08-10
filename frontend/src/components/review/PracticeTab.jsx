@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { getStageMasteryCheckpoint, logReviewActivity } from '../../lib/db.js';
+import { useLanguage } from '../../context/LanguageContext.jsx';
 import ExerciseCard from '../ExerciseCard.jsx';
 import HudMascot from '../HudMascot.jsx';
 
@@ -9,6 +10,8 @@ import HudMascot from '../HudMascot.jsx';
 // never affect child_stage_progress/child_checkpoint_progress. Unlimited
 // attempts, no pass/fail consequence.
 export default function PracticeTab({ stageId, childId }) {
+  const { language, t } = useLanguage();
+  const copy = t('reviewTabs.practice');
   const [checkpoint, setCheckpoint] = useState(null);
   const [answers, setAnswers] = useState({});
   const [result, setResult] = useState(null);
@@ -18,11 +21,11 @@ export default function PracticeTab({ stageId, childId }) {
   useEffect(() => {
     setLoading(true);
     setError('');
-    getStageMasteryCheckpoint(stageId)
+    getStageMasteryCheckpoint(stageId, language)
       .then(setCheckpoint)
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
-  }, [stageId]);
+  }, [stageId, language]);
 
   function selectAnswer(questionId, option) {
     if (result) return;
@@ -51,9 +54,9 @@ export default function PracticeTab({ stageId, childId }) {
     setResult(null);
   }
 
-  if (loading) return <p>Loading practice questions...</p>;
+  if (loading) return <p>{copy.loading}</p>;
   if (error) return <p className="error-text">{error}</p>;
-  if (!checkpoint) return <p style={{ color: '#8ea0b6' }}>No practice questions found for this stage.</p>;
+  if (!checkpoint) return <p style={{ color: '#8ea0b6' }}>{copy.noQuestions}</p>;
 
   const allAnswered = checkpoint.questions.every((q) => answers[q.id] !== undefined);
   const stars = result ? Math.max(1, Math.round((result.score / 100) * 3)) : 0;
@@ -61,7 +64,7 @@ export default function PracticeTab({ stageId, childId }) {
   return (
     <div>
       <p style={{ color: '#8ea0b6', marginTop: 0 }}>
-        Practice as many times as you like - this never affects your stage progress.
+        {copy.practiceNote}
       </p>
 
       {checkpoint.questions.map((q, i) => (
@@ -77,14 +80,14 @@ export default function PracticeTab({ stageId, childId }) {
 
       {!result ? (
         <button className="btn btn-primary" disabled={!allAnswered} onClick={handleSubmit}>
-          Check My Answers
+          {copy.checkAnswers}
         </button>
       ) : (
         <div className="card" style={{ textAlign: 'center', background: 'rgba(200,150,12,0.08)' }}>
           <HudMascot pose="celebrate" size={64} style={{ margin: '0 auto 8px' }} />
-          <h3 style={{ margin: '0 0 4px' }}>Score: {result.score}%</h3>
+          <h3 style={{ margin: '0 0 4px' }}>{copy.scoreLabel.replace('{n}', result.score)}</h3>
           <p style={{ margin: '0 0 12px', fontSize: '1.4rem' }}>{'⭐'.repeat(stars)}</p>
-          <button className="btn btn-primary" onClick={handleTryAgain}>Try Again</button>
+          <button className="btn btn-primary" onClick={handleTryAgain}>{copy.tryAgain}</button>
         </div>
       )}
     </div>

@@ -11,7 +11,7 @@ import LessonRecapCard from '../components/LessonRecapCard.jsx';
 export default function StageRecap() {
   const { stageId, checkpointOrder } = useParams();
   const { activeChild } = useActiveChild();
-  const { language } = useLanguage();
+  const { language, t } = useLanguage();
   const [stage, setStage] = useState(null);
   const [recapGroup, setRecapGroup] = useState(null);
   const [passed, setPassed] = useState(false);
@@ -25,7 +25,7 @@ export default function StageRecap() {
     Promise.all([
       getCurriculum(language),
       getStageCheckpoint(Number(stageId), Number(checkpointOrder)),
-      getRecapGroup(Number(stageId), Number(checkpointOrder)),
+      getRecapGroup(Number(stageId), Number(checkpointOrder), language),
     ])
       .then(async ([{ stages }, checkpoint, recap]) => {
         setStage(stages.find((s) => s.id === Number(stageId)));
@@ -39,14 +39,14 @@ export default function StageRecap() {
       .finally(() => setLoading(false));
   }, [stageId, checkpointOrder, activeChild, language]);
 
-  if (loading) return <div className="container" style={{ padding: 60 }}>Loading recap...</div>;
+  if (loading) return <div className="container" style={{ padding: 60 }}>{t('stageRecap.loading')}</div>;
   if (error) return <div className="container" style={{ padding: 60 }}><p className="error-text">{error}</p></div>;
 
   if (!stage) {
     return (
       <div className="container" style={{ padding: 60, textAlign: 'center' }}>
-        <h1 className="page-title">Stage not found</h1>
-        <Link to="/lessons/curriculum" className="btn btn-primary">Back to Curriculum</Link>
+        <h1 className="page-title">{t('stageRecap.stageNotFound')}</h1>
+        <Link to="/lessons/curriculum" className="btn btn-primary">{t('stageRecap.backToCurriculum')}</Link>
       </div>
     );
   }
@@ -55,9 +55,9 @@ export default function StageRecap() {
     return (
       <div className="container" style={{ padding: 60, textAlign: 'center' }}>
         <HudMascot pose="mark" size={72} style={{ margin: '0 auto 12px' }} />
-        <h1 className="page-title">Not quite yet</h1>
-        <p className="page-subtitle">Pass this checkpoint first to unlock its recap.</p>
-        <Link to={`/lessons/stage/${stageId}`} className="btn btn-primary">Back to Stage {stage.orderIndex}</Link>
+        <h1 className="page-title">{t('stageRecap.notQuiteYet')}</h1>
+        <p className="page-subtitle">{t('stageRecap.passFirst')}</p>
+        <Link to={`/lessons/stage/${stageId}`} className="btn btn-primary">{t('stageRecap.backToStageN', { n: stage.orderIndex })}</Link>
       </div>
     );
   }
@@ -65,16 +65,16 @@ export default function StageRecap() {
   return (
     <div className="container" style={{ padding: '48px 0', maxWidth: 720 }}>
       <Link to={`/lessons/stage/${stageId}`} style={{ color: 'var(--color-blue)', fontWeight: 700 }}>
-        ← Back to stage
+        {t('stageRecap.backToStage')}
       </Link>
       <h1 className="page-title" style={{ marginTop: 12 }}>
-        Recap: Stage {stage.orderIndex}, Checkpoint {checkpointOrder}
+        {t('stageRecap.recapTitle', { n: stage.orderIndex, c: checkpointOrder })}
       </h1>
       <p style={{ color: '#8ea0b6', marginTop: -8, marginBottom: 20 }}>{stage.name}</p>
       {recapGroup ? (
         <LessonRecapCard recapGroup={recapGroup} />
       ) : (
-        <p className="page-subtitle">No recap available for this checkpoint.</p>
+        <p className="page-subtitle">{t('stageRecap.noRecap')}</p>
       )}
     </div>
   );
