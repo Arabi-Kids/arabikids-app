@@ -33,3 +33,22 @@ export function playReciterAudio(quranRef, { onStart, onEnd, onError } = {}) {
   audio.play().catch(() => onError?.());
   return true;
 }
+
+/** Chains every ayah's real reciter audio back-to-back via onEnd, so a
+ * single call plays a whole surah straight through - reuses the same
+ * per-ayah URLs as playReciterAudio, no new audio needed. Callback-based
+ * (no internal React state) so callers manage their own "is playing" UI
+ * state, same convention as playReciterAudio itself. */
+export function playFluencySurah({ surahNumber, surahName, ayahs }, { onEnd, onError } = {}) {
+  let i = 0;
+  const playNext = () => {
+    if (i >= ayahs.length) {
+      onEnd?.();
+      return;
+    }
+    const ayah = ayahs[i];
+    i += 1;
+    playReciterAudio({ surah: surahNumber, ayah: ayah.ayah, surahName }, { onEnd: playNext, onError: () => onError?.() });
+  };
+  playNext();
+}

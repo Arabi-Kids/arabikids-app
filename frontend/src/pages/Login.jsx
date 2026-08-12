@@ -29,7 +29,7 @@ export default function Login() {
 
   return (
     <div className="container">
-      <Seo title="Log In | ArabiKids" description="Log in to your ArabiKids account to continue your child's Arabic and Qur'an journey." path="/login" />
+      <Seo title="Log In | ArabiKids" description="Log in to your ArabiKids account to continue your child's Arabic and Qur'an learning." path="/login" />
       <div className="card auth-card">
         <HudMascot pose="mark" size={56} style={{ margin: '0 auto 12px', display: 'block' }} />
         <h1 className="page-title" style={{ textAlign: 'center' }}>

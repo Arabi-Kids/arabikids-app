@@ -22,6 +22,8 @@ import ThankYou from './pages/ThankYou.jsx';
 import AddChild from './pages/AddChild.jsx';
 import LessonHub from './pages/LessonHub.jsx';
 import ArabicCurriculumHub from './pages/ArabicCurriculumHub.jsx';
+import QuranPillarHub from './pages/QuranPillarHub.jsx';
+import QuranUnit from './pages/QuranUnit.jsx';
 import ComingSoonPillar from './pages/ComingSoonPillar.jsx';
 import StageLessons from './pages/StageLessons.jsx';
 import Lesson from './pages/Lesson.jsx';
@@ -79,6 +81,15 @@ export default function PublicSite() {
                   content. */}
               <Route path="/lessons" element={<LessonHub />} />
               <Route path="/lessons/curriculum" element={<ArabicCurriculumHub />} />
+              <Route path="/lessons/quran" element={<QuranPillarHub />} />
+              <Route
+                path="/lessons/quran/unit/:orderIndex"
+                element={
+                  <ProtectedRoute>
+                    <QuranUnit />
+                  </ProtectedRoute>
+                }
+              />
               <Route path="/lessons/coming-soon/:pillarKey" element={<ComingSoonPillar />} />
               <Route
                 path="/lessons/stage/:stageId"

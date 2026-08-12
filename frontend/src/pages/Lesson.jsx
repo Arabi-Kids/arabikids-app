@@ -2,57 +2,53 @@ import { useEffect, useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useActiveChild } from '../context/ActiveChildContext.jsx';
 import { useLanguage } from '../context/LanguageContext.jsx';
-import { getLessonDetail, completeLessonForChild } from '../lib/db.js';
+import { getLessonDetail, completeLessonForChild, getStageVocabulary, logReviewActivity } from '../lib/db.js';
 import { badgeInfo } from '../lib/badges.js';
 import HudMascot from '../components/HudMascot.jsx';
 import SpeakButton from '../components/SpeakButton.jsx';
 import LetterTraceCanvas from '../components/LetterTraceCanvas.jsx';
 import LetterPositions from '../components/LetterPositions.jsx';
 import PronunciationCheck from '../components/PronunciationCheck.jsx';
+import PictureWordCard from '../components/PictureWordCard.jsx';
+import TapMatchGame from '../components/games/TapMatchGame.jsx';
+import DragMatchGame from '../components/games/DragMatchGame.jsx';
+import SoundMatchGame from '../components/games/SoundMatchGame.jsx';
+import MemoryGame from '../components/games/MemoryGame.jsx';
 import { speakSmart } from '../lib/speech.js';
-import { playReciterAudio } from '../lib/quranAudio.js';
 import { playTap, playCelebration } from '../lib/sounds.js';
 import { useCelebrate } from '../hooks/useCelebrate.js';
 import Confetti from '../components/Confetti.jsx';
-import { VOCAB_ICONS } from '../components/VocabIcons.jsx';
 
-// Renders the optional content.image reference picture (icon / color
-// swatch / number badge) - see supabase content.image shape in db.js's
-// getLessonDetail. Returns null when a lesson has no image, which is the
-// large majority (only concrete, picturable words get one - no people, no
-// depictions of Allah's names or sacred phrases).
-function ImageBadge({ image }) {
-  if (!image) return null;
-  const badgeStyle = {
-    width: 72,
-    height: 72,
-    borderRadius: '50%',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    margin: '0 auto 12px',
-  };
-  if (image.type === 'color') {
-    return <div style={{ ...badgeStyle, background: image.hex, border: '3px solid rgba(0,0,0,0.08)' }} />;
-  }
-  if (image.type === 'number') {
-    return (
-      <div style={{ ...badgeStyle, background: 'var(--color-sky)', color: 'var(--color-blue)', fontSize: '2rem', fontWeight: 900 }}>
-        {image.value}
-      </div>
-    );
-  }
-  if (image.type === 'icon') {
-    const Icon = VOCAB_ICONS[image.key];
-    if (!Icon) return null;
-    return (
-      <div style={{ ...badgeStyle, background: 'var(--color-sky)', color: 'var(--color-blue)' }}>
-        <Icon style={{ width: 40, height: 40 }} />
-      </div>
-    );
-  }
-  return null;
+// Small tap-to-hear letter badge used inside the embedded practice games'
+// tiles - the vocabulary pool (getStageVocabulary) doesn't carry a
+// content.image reference per word, so every game tile uses this same
+// generic first-letter badge rather than depending on illustrations that
+// don't exist yet for most words (see PictureWordCard's identical fallback
+// for the lesson's own featured word).
+function MiniBadge({ arabic }) {
+  return (
+    <div
+      className="arabic-text"
+      style={{
+        width: 44,
+        height: 44,
+        borderRadius: '50%',
+        background: 'var(--color-sky)',
+        color: 'var(--color-blue)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        margin: '0 auto 6px',
+        fontSize: '1.2rem',
+        fontWeight: 900,
+      }}
+    >
+      {arabic?.[0]}
+    </div>
+  );
 }
+
+const GAME_TYPES = ['tap', 'drag', 'sound', 'memory'];
 
 // A tap sound plus the existing speak-the-word behavior, in one call - used
 // by every tappable letter/word/example tile on this page so taps always
@@ -75,26 +71,8 @@ export default function Lesson() {
   const [submitting, setSubmitting] = useState(false);
   const [completed, setCompleted] = useState(false);
   const [newBadges, setNewBadges] = useState([]);
-  const [playingFluencyCheck, setPlayingFluencyCheck] = useState(false);
+  const [vocabPool, setVocabPool] = useState([]);
   const [isCheering, triggerCheer] = useCelebrate();
-
-  // Chains every ayah's real reciter audio back-to-back via onEnd, so tapping
-  // once plays the whole surah straight through - reuses the same per-ayah
-  // URLs as the single-ayah "Hear a Reciter" button, no new audio needed.
-  function playFluencySurah({ surahNumber, surahName, ayahs }) {
-    setPlayingFluencyCheck(true);
-    let i = 0;
-    const playNext = () => {
-      if (i >= ayahs.length) {
-        setPlayingFluencyCheck(false);
-        return;
-      }
-      const ayah = ayahs[i];
-      i += 1;
-      playReciterAudio({ surah: surahNumber, ayah: ayah.ayah, surahName }, { onEnd: playNext, onError: () => setPlayingFluencyCheck(false) });
-    };
-    playNext();
-  }
 
   useEffect(() => {
     setLoading(true);
@@ -111,6 +89,17 @@ export default function Lesson() {
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
   }, [stageId, orderIndex, language]);
+
+  // Every lesson embeds a short practice game pulled from this stage's own
+  // vocabulary (getStageVocabulary - already deduped, already used by the
+  // Review Hub's Play tab) - a smart default that gives all 172 lessons a
+  // game with zero bespoke authoring, instead of requiring new per-lesson
+  // content before "interactive across all 16 stages" can ship.
+  useEffect(() => {
+    getStageVocabulary(stageId, language)
+      .then(setVocabPool)
+      .catch(() => {});
+  }, [stageId, language]);
 
   async function handleMarkComplete() {
     if (!activeChild) {
@@ -489,136 +478,93 @@ export default function Lesson() {
         </div>
       )}
 
-      {content.surahCorner && (
-        <div className="card" style={{ marginBottom: 20 }}>
-          <span className="badge badge-gold">{t('lesson.surahCorner')}</span>
-          <p style={{ margin: '10px 0 16px', fontWeight: 700, color: 'var(--color-blue)' }}>
-            {t('lesson.surahCornerAyah', { surahName: content.surahCorner.surahName, n: content.surahCorner.ayahNumber, total: content.surahCorner.totalAyahsInSurah })}
-          </p>
-          <button
-            type="button"
-            onClick={() => playReciterAudio(content.quranRef)}
-            style={{
-              background: 'rgba(200,150,12,0.08)',
-              border: '2px solid var(--color-gold)',
-              borderRadius: 'var(--radius-md)',
-              padding: '14px 12px',
-              cursor: 'pointer',
-              textAlign: 'center',
-              width: '100%',
-            }}
-          >
-            <p className="arabic-text" dir="rtl" style={{ fontSize: '1.8rem', margin: '0 0 4px' }}>{content.surahCorner.arabic}</p>
-            <p style={{ margin: 0, fontWeight: 700, color: 'var(--color-blue)' }}>"{content.surahCorner.transliteration}"</p>
-            <p style={{ margin: '6px 0 0', fontSize: '0.75rem', color: '#8ea0b6' }}>{t('lesson.newAyahTapToHear')}</p>
-          </button>
-          {content.surahCorner.cumulativeAyahs.length > 1 && (
-            <>
-              <p style={{ margin: '16px 0 10px', fontWeight: 700, color: 'var(--color-blue-dark)', fontSize: '0.9rem' }}>
-                {t('lesson.reciteWhatLearned')}
-              </p>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                {content.surahCorner.cumulativeAyahs.slice(0, -1).map((a) => (
-                  <button
-                    key={a.ayah}
-                    type="button"
-                    onClick={() => playReciterAudio({ surah: content.surahCorner.surahNumber, ayah: a.ayah, surahName: content.surahCorner.surahName })}
-                    style={{
-                      background: 'rgba(27,79,138,0.05)',
-                      border: '1px solid var(--color-blue)',
-                      borderRadius: 'var(--radius-md)',
-                      padding: '10px 12px',
-                      cursor: 'pointer',
-                      textAlign: 'right',
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      alignItems: 'center',
-                      gap: 10,
-                    }}
-                  >
-                    <span style={{ fontSize: '0.75rem', color: '#8ea0b6', whiteSpace: 'nowrap' }}>{t('lesson.ayahLabel', { n: a.ayah })}</span>
-                    <span className="arabic-text" dir="rtl" style={{ fontSize: '1.2rem' }}>{a.arabic}</span>
-                  </button>
-                ))}
-              </div>
-            </>
-          )}
-        </div>
+      <PictureWordCard
+        arabicWord={lesson.arabicWord}
+        meaning={lesson.arabicWordMeaning}
+        transliteration={content.transliteration}
+        image={content.image}
+        letterHighlight={content.letters?.length === 1 ? content.letters[0].letter : undefined}
+      />
+      {content.secondWord && (
+        <PictureWordCard
+          arabicWord={content.secondWord.arabic}
+          meaning={content.secondWord.translation}
+          transliteration={content.secondWord.transliteration}
+          size="sm"
+          mascot={null}
+        />
       )}
-
-      {content.surahFluencyCheck && (
-        <div className="card" style={{ marginBottom: 20 }}>
-          <span className="badge badge-gold">{t('lesson.fluencyCheckLabel', { surahName: content.surahFluencyCheck.surahName })}</span>
-          <p style={{ margin: '10px 0 16px', color: '#4b5a6a' }}>
-            {t('lesson.fluencyCheckIntro', { n: content.surahFluencyCheck.ayahs.length, surahName: content.surahFluencyCheck.surahName })}
-          </p>
-          <button
-            type="button"
-            className="btn btn-primary"
-            disabled={playingFluencyCheck}
-            onClick={() => playFluencySurah(content.surahFluencyCheck)}
-          >
-            {playingFluencyCheck ? t('lesson.playingWholeSurah') : t('lesson.playWholeSurah')}
-          </button>
-        </div>
-      )}
-
-      <div className="card" style={{ marginBottom: 20, textAlign: 'center' }}>
-        <span className="badge badge-free">{t('lesson.arabicWord')}</span>
-        <ImageBadge image={content.image} />
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12, margin: '16px 0 4px' }}>
-          <p className="arabic-text" dir="rtl" style={{ fontSize: '2.5rem', margin: 0 }}>{lesson.arabicWord}</p>
-          <SpeakButton text={lesson.arabicWord} size={22} />
-        </div>
-        {content.transliteration && (
-          <p style={{ margin: '0 0 4px', color: '#8ea0b6', fontStyle: 'italic', fontSize: '0.95rem' }}>
-            {t('lesson.soundsLike', { text: content.transliteration })}
-          </p>
-        )}
-        <p style={{ fontWeight: 700, color: 'var(--color-blue)' }}>{lesson.arabicWordMeaning}</p>
-        {content.secondWord && (
-          <>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12, margin: '20px 0 4px' }}>
-              <p className="arabic-text" dir="rtl" style={{ fontSize: '2rem', margin: 0 }}>{content.secondWord.arabic}</p>
-              <SpeakButton text={content.secondWord.arabic} size={22} />
-            </div>
-            {content.secondWord.transliteration && (
-              <p style={{ margin: '0 0 4px', color: '#8ea0b6', fontStyle: 'italic', fontSize: '0.95rem' }}>
-                {t('lesson.soundsLike', { text: content.secondWord.transliteration })}
-              </p>
-            )}
-            <p style={{ fontWeight: 700, color: 'var(--color-blue)' }}>{content.secondWord.translation}</p>
-          </>
-        )}
-      </div>
 
       <PronunciationCheck text={lesson.arabicWord} />
 
-      <div className="card" style={{ marginBottom: 28, background: 'rgba(200,150,12,0.06)', border: '1px solid rgba(200,150,12,0.25)' }}>
-        <span className="badge badge-locked">{t('lesson.quranicConnection')}</span>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10, margin: '14px 0 4px' }}>
-          <p className="arabic-text" dir="rtl" style={{ fontSize: '1.5rem', margin: 0 }}>{content.quranicConnection?.arabic}</p>
-          <SpeakButton text={content.quranicConnection?.arabic} size={18} />
+      {vocabPool.length >= 2 && (
+        <div className="card" style={{ marginBottom: 20 }}>
+          <span className="badge badge-teal">{t('lesson.practiceGame')}</span>
+          <div style={{ marginTop: 12 }}>
+            {(() => {
+              const gameType = GAME_TYPES[lesson.orderIndex % GAME_TYPES.length];
+              const pool = vocabPool.map((w) => ({ ...w, id: w.lessonId }));
+              const onComplete = (score) => logReviewActivity(activeChild?.id, Number(stageId), 'play', score).catch(() => {});
+              const gameCopy = {
+                instructions: t(`lesson.gameInstructions_${gameType}`),
+                allMatched: t('lesson.gameAllMatched'),
+                playAgain: t('lesson.gamePlayAgain'),
+                playAgainSound: t('lesson.gameReplaySound'),
+              };
+              if (gameType === 'tap') {
+                return (
+                  <TapMatchGame
+                    items={pool}
+                    filter={(w) => w.arabic.length <= 30}
+                    copy={gameCopy}
+                    renderLeft={(w) => <span className="arabic-text" dir="rtl" style={{ fontSize: '1.3rem' }}>{w.arabic}</span>}
+                    renderRight={(w) => <span style={{ fontSize: '0.9rem' }}>{w.meaning}</span>}
+                    onComplete={onComplete}
+                  />
+                );
+              }
+              if (gameType === 'drag') {
+                return (
+                  <DragMatchGame
+                    items={pool}
+                    filter={(w) => w.arabic.length <= 30}
+                    copy={gameCopy}
+                    renderChip={(w) => <span className="arabic-text" dir="rtl" style={{ fontSize: '1.2rem' }}>{w.arabic}</span>}
+                    renderTarget={(w) => <span style={{ fontSize: '0.9rem' }}>{w.meaning}</span>}
+                    onComplete={onComplete}
+                  />
+                );
+              }
+              if (gameType === 'sound') {
+                return (
+                  <SoundMatchGame
+                    items={pool}
+                    filter={(w) => w.arabic.length <= 30}
+                    copy={gameCopy}
+                    renderImage={(w) => (
+                      <>
+                        <MiniBadge arabic={w.arabic} />
+                        <span style={{ fontSize: '0.75rem' }}>{w.meaning}</span>
+                      </>
+                    )}
+                    onComplete={onComplete}
+                  />
+                );
+              }
+              return (
+                <MemoryGame
+                  items={pool}
+                  filter={(w) => w.arabic.length <= 30}
+                  copy={gameCopy}
+                  renderWordFace={(w) => <span className="arabic-text" dir="rtl" style={{ fontSize: '1.1rem' }}>{w.arabic}</span>}
+                  renderPictureFace={(w) => <MiniBadge arabic={w.arabic} />}
+                  onComplete={onComplete}
+                />
+              );
+            })()}
+          </div>
         </div>
-        {content.transliteration && (
-          <p style={{ margin: '0 0 8px', color: '#8ea0b6', fontStyle: 'italic', fontSize: '0.9rem' }}>
-            {t('lesson.soundsLike', { text: content.transliteration })}
-          </p>
-        )}
-        <p style={{ margin: '0 0 8px', color: '#4b5a6a', fontStyle: 'italic' }}>"{content.quranicConnection?.translation}"</p>
-        <p style={{ margin: 0, color: 'var(--color-blue-dark)', fontWeight: 700 }}>{content.quranicConnection?.reference}</p>
-        {content.quranicConnection?.note && <p style={{ margin: '8px 0 0', color: '#6b7a8a' }}>{content.quranicConnection.note}</p>}
-        {content.quranRef && (
-          <button
-            type="button"
-            className="btn btn-outline"
-            style={{ marginTop: 12 }}
-            onClick={() => playReciterAudio(content.quranRef)}
-          >
-            {t('lesson.hearReciter', { surahName: content.quranRef.surahName, surah: content.quranRef.surah, ayah: content.quranRef.ayah })}
-          </button>
-        )}
-      </div>
+      )}
 
       {error && <p className="error-text">{error}</p>}
 

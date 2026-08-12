@@ -371,6 +371,15 @@ function itemsAllReferences(items) {
   return items.map((it) => it.reference);
 }
 
+// Qur'an-specific fields (quranicConnection, quranRef, surahCorner,
+// surahFluencyCheck) used to be embedded here unconditionally - they now
+// live in the dedicated quran_* tables (supabase/add_quran_pillar.sql),
+// migrated off the live lessons table via scripts/migrate-quran-pillar.mjs
+// + scripts/strip-quran-fields.mjs. A future full reseed would need a
+// companion routine to repopulate quran_* from this same item data (surah/
+// ayah/reference fields are still present on each item, just no longer
+// written into lessons.content) - not built this pass since seeding is a
+// rare, manual, dev-only operation.
 export function buildLessons(stageKey, items, { minutes = 8 } = {}) {
   return items.map((item, i) => ({
     stageKey,
@@ -385,12 +394,6 @@ export function buildLessons(stageKey, items, { minutes = 8 } = {}) {
       concept: item.concept,
       transliteration: item.transliteration,
       ...(item.extra || {}),
-      quranicConnection: {
-        arabic: item.arabicWord,
-        translation: item.meaning,
-        reference: item.reference,
-        note: `"${item.arabicWord}" (${item.meaning}) is found in ${item.reference}.`,
-      },
     },
   }));
 }

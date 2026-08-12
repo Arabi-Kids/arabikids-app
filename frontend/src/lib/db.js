@@ -343,6 +343,133 @@ export async function completeLessonForChild({ childId, lessonId }) {
 }
 
 // ---------------------------------------------------------------------------
+// Qur'an pillar (quran_units / quran_ayahs / quran_word_connections) -
+// independent of the Arabic Curriculum's levels/stages/lessons, see
+// supabase/add_quran_pillar.sql. Same localization convention as
+// getCurriculum's `pick` helper.
+// ---------------------------------------------------------------------------
+
+function pickLocalized(row, base, language) {
+  return (language === 'ar' ? row[`${base}_ar`] : language === 'ms' ? row[`${base}_ms`] : null) ?? row[base];
+}
+
+function mapQuranUnitRow(row, language) {
+  return {
+    id: row.id,
+    orderIndex: row.order_index,
+    unitType: row.unit_type,
+    surahNumber: row.surah_number,
+    title: pickLocalized(row, 'title', language),
+    ayahNumber: row.ayah_number,
+    cumulativeThrough: row.cumulative_through,
+    ayahRangeStart: row.ayah_range_start,
+    ayahRangeEnd: row.ayah_range_end,
+    isFree: row.is_free,
+    estimatedMinutes: row.estimated_minutes,
+  };
+}
+
+export async function getQuranUnits(language = 'en') {
+  const [{ data: units, error: unitsError }, { data: surahs, error: surahsError }] = await Promise.all([
+    supabase.from('quran_units').select('*').order('order_index'),
+    supabase.from('quran_surahs').select('*').order('surah_number'),
+  ]);
+  if (unitsError) throw new Error(unitsError.message);
+  if (surahsError) throw new Error(surahsError.message);
+
+  const mappedUnits = units.map((u) => mapQuranUnitRow(u, language));
+  return {
+    surahs: surahs.map((s) => ({
+      surahNumber: s.surah_number,
+      name: s.name,
+      nameArabic: s.name_arabic,
+      totalAyahs: s.total_ayahs,
+      units: mappedUnits.filter((u) => u.surahNumber === s.surah_number),
+    })),
+  };
+}
+
+export async function getQuranUnitDetail(orderIndex, language = 'en') {
+  const { data: unitRow, error: unitError } = await supabase
+    .from('quran_units')
+    .select('*')
+    .eq('order_index', Number(orderIndex))
+    .maybeSingle();
+  if (unitError) throw new Error(unitError.message);
+  if (!unitRow) return { notFound: true };
+  if (!unitRow.is_free) {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user) return { locked: true };
+    const { data: profile } = await supabase.from('users').select('subscription_status, role').eq('id', user.id).maybeSingle();
+    if (profile?.role !== 'admin' && profile?.subscription_status !== 'active') return { locked: true };
+  }
+
+  const { data: ayahRows, error: ayahError } = await supabase
+    .from('quran_ayahs')
+    .select('*')
+    .eq('surah_number', unitRow.surah_number)
+    .lte('ayah_number', unitRow.unit_type === 'surah_corner' ? unitRow.ayah_number : unitRow.ayah_range_end)
+    .order('ayah_number');
+  if (ayahError) throw new Error(ayahError.message);
+
+  return {
+    unit: mapQuranUnitRow(unitRow, language),
+    ayahs: ayahRows.map((a) => ({
+      ayahNumber: a.ayah_number,
+      arabic: a.arabic,
+      transliteration: a.transliteration,
+      translation: pickLocalized(a, 'translation', language),
+    })),
+  };
+}
+
+export async function getQuranWordConnections(language = 'en') {
+  const { data, error } = await supabase.from('quran_word_connections').select('*').order('order_index');
+  if (error) throw new Error(error.message);
+  return data.map((row) => ({
+    id: row.id,
+    arabicWord: row.arabic_word,
+    wordMeaning: row.word_meaning,
+    arabicCitation: row.arabic_citation,
+    translation: pickLocalized(row, 'translation', language),
+    reference: pickLocalized(row, 'reference', language),
+    note: pickLocalized(row, 'note', language),
+    surahNumber: row.surah_number,
+    ayahNumber: row.ayah_number,
+  }));
+}
+
+/** Same shape as completeLessonForChild, minus the streak/badge hook -
+ * Qur'an-pillar progress is independent of the Arabic Curriculum's
+ * stage-advancement machinery (deliberate scoping: no Hifz tracker/streak
+ * integration this pass, see the plan's "explicit scoping call"). */
+export async function completeQuranUnitForChild({ childId, quranUnitId, score = 100 }) {
+  const nowIso = new Date().toISOString();
+  const { data: existing, error: existingError } = await supabase
+    .from('child_quran_progress')
+    .select('attempts, completed_at')
+    .eq('child_id', childId)
+    .eq('quran_unit_id', quranUnitId)
+    .maybeSingle();
+  if (existingError) throw new Error(existingError.message);
+
+  const { error: upsertError } = await supabase.from('child_quran_progress').upsert(
+    {
+      child_id: childId,
+      quran_unit_id: quranUnitId,
+      score,
+      completed_at: existing?.completed_at ?? nowIso,
+      attempts: (existing?.attempts ?? 0) + 1,
+      last_attempt_at: nowIso,
+    },
+    { onConflict: 'child_id,quran_unit_id' }
+  );
+  if (upsertError) throw new Error(upsertError.message);
+}
+
+// ---------------------------------------------------------------------------
 // Stage checkpoints
 // ---------------------------------------------------------------------------
 

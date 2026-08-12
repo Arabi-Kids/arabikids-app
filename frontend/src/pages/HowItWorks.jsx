@@ -12,7 +12,7 @@ export default function HowItWorks() {
     <div>
       <Seo
         title="How It Works | ArabiKids"
-        description="See how ArabiKids teaches Arabic and Qur'an together in one continuous journey, with checkpoints and progress tracking every step of the way."
+        description="See how ArabiKids teaches Arabic and the Qur'an side by side, with checkpoints and progress tracking every step of the way."
         path="/how-it-works"
       />
       <div className="container" style={{ padding: '60px 0 40px', textAlign: 'center' }}>

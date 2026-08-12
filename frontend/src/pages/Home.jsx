@@ -20,7 +20,7 @@ export default function Home() {
     <div>
       <Seo
         title="ArabiKids - Teaching the Language of the Quran, One Kid at a Time"
-        description="ArabiKids teaches Arabic and Qur'an together, never separately, so every child understands what they recite. 16 stages, ages 3-17, Stage 1 free."
+        description="ArabiKids teaches Arabic and the Qur'an side by side, so every child understands what they recite. 16 stages, ages 3-17, Stage 1 free."
         path="/"
       />
       <section className="hero-section">

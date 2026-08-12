@@ -4,7 +4,7 @@
 export const PILLARS = [
   {
     key: 'arabic-quran',
-    name: 'Arabic & Qur’an Curriculum',
+    name: 'Arabic Curriculum',
     tagline: '16 stages, one continuous journey from first letters to fluent reading.',
     icon: '📖',
     status: 'live',
@@ -39,14 +39,10 @@ export const PILLARS = [
   {
     key: 'knowledge-extras',
     name: 'Qur’an & Knowledge Extras',
-    tagline: 'Memorization tracking, the Islamic calendar, and the 99 Names.',
+    tagline: 'Progressive Surah recitation, word-by-word Qur’anic connections, and fluency checks.',
     icon: '🌙',
-    status: 'coming-soon',
-    items: [
-      'Qur’an memorization (Hifz) tracker — short surahs with progress tracking',
-      'Islamic calendar awareness — Ramadan, Eid, Hijri months and seasonal content',
-      'Asma-ul-Husna (99 Names) — a standalone mini-track',
-    ],
+    status: 'live',
+    path: '/lessons/quran',
     accent: 'var(--color-orange)',
   },
 ];

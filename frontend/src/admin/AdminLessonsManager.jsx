@@ -16,11 +16,7 @@ const NEW_LESSON_TEMPLATE = {
   arabic_word_meaning: '',
   is_free: false,
   estimated_minutes: 8,
-  contentText: JSON.stringify(
-    { type: 'vocabulary', concept: '', quranicConnection: { arabic: '', translation: '', reference: '', note: '' } },
-    null,
-    2
-  ),
+  contentText: JSON.stringify({ type: 'vocabulary', concept: '' }, null, 2),
 };
 
 export default function AdminLessonsManager() {

@@ -9,8 +9,8 @@ import { StarSparkleIcon } from '../components/Icons.jsx';
 import Seo from '../components/Seo.jsx';
 
 const CURRICULUM_SEO = {
-  title: "Arabic & Qur'an Curriculum | ArabiKids",
-  description: "Browse all 16 stages of the ArabiKids Arabic and Qur'an curriculum, from first letters to full sentences and Qur'anic fluency.",
+  title: 'Arabic Curriculum | ArabiKids',
+  description: 'Browse all 16 stages of the ArabiKids Arabic curriculum, from first letters to full sentences and fluent reading.',
   path: '/lessons/curriculum',
 };
 
