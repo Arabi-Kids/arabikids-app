@@ -19,8 +19,8 @@ export default function Home() {
   return (
     <div>
       <Seo
-        title="ArabiKids - Teaching the Language of the Quran, One Kid at a Time"
-        description="ArabiKids teaches Arabic and the Qur'an side by side, so every child understands what they recite. 16 stages, ages 3-17, Stage 1 free."
+        title="ArabiKids - The Fun Way to Learn Arabic and Connect with the Qur'an"
+        description="Playful games and interactive lessons teach kids real Arabic, word by word, and connect it to the Qur'an. 16 stages, ages 3-17, Stage 1 free."
         path="/"
       />
       <section className="hero-section">

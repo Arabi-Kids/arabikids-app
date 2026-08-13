@@ -523,6 +523,44 @@ button {
   z-index: 2;
 }
 
+.hero-animation-icon-badge {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: var(--color-sky);
+  color: var(--color-blue);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.hero-animation-icon-badge-sm {
+  width: 40px;
+  height: 40px;
+}
+
+.hero-animation-game-scene {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.hero-animation-chip {
+  background: #fff7e6;
+  border: 2px solid var(--color-gold, #e8b93c);
+  border-radius: 999px;
+  padding: 4px 12px;
+  font-size: 1.2rem;
+  color: var(--color-blue-dark);
+}
+
+.hero-animation-arrow {
+  color: #8ea0b6;
+  font-weight: 800;
+  font-size: 1.1rem;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .hero-animation-step {
     animation: none;
