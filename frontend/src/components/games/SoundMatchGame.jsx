@@ -5,7 +5,7 @@ import { playTap } from '../../lib/sounds.js';
 import { speakSmart } from '../../lib/speech.js';
 
 /** Sound → tap-the-picture matching game. `items` need a stable `id`,
- * `arabicWord` (used as the speakSmart() fallback), and optional
+ * `arabic` (used as the speakSmart() fallback), and optional
  * `audioUrl` for a real sound effect. `renderImage(item)` renders the
  * tappable picture tile.
  *
@@ -40,7 +40,7 @@ export default function SoundMatchGame({ items, renderImage, size = 6, filter, c
     if (current.audioUrl) {
       new Audio(current.audioUrl).play().catch(() => {});
     } else {
-      speakSmart(current.arabicWord);
+      speakSmart(current.arabic);
     }
   }
 
