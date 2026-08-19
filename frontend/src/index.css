@@ -572,6 +572,47 @@ button {
   }
 }
 
+/* ---------------- Lesson stepper (one focused screen at a time) ---------------- */
+.lesson-step-progress {
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+  margin-bottom: 4px;
+  flex-wrap: wrap;
+}
+
+.lesson-step-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: #dbe4ee;
+  transition: background 0.2s, width 0.2s;
+}
+
+.lesson-step-dot.active {
+  width: 22px;
+  background: var(--color-blue);
+}
+
+.lesson-step-dot.done {
+  background: var(--color-teal);
+}
+
+.lesson-step-screen {
+  animation: lessonStepIn 0.32s ease;
+}
+
+@keyframes lessonStepIn {
+  0% { opacity: 0; transform: scale(0.96) translateY(10px); }
+  100% { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lesson-step-screen {
+    animation: none;
+  }
+}
+
 /* ---------------- Stage recap animation (narrated slideshow, no video file) ---------------- */
 .stage-recap-anim {
   display: flex;

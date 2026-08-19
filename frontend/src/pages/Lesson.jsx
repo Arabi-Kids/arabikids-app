@@ -10,6 +10,7 @@ import LetterTraceCanvas from '../components/LetterTraceCanvas.jsx';
 import LetterPositions from '../components/LetterPositions.jsx';
 import PronunciationCheck from '../components/PronunciationCheck.jsx';
 import PictureWordCard from '../components/PictureWordCard.jsx';
+import LessonStepper from '../components/LessonStepper.jsx';
 import TapMatchGame from '../components/games/TapMatchGame.jsx';
 import DragMatchGame from '../components/games/DragMatchGame.jsx';
 import SoundMatchGame from '../components/games/SoundMatchGame.jsx';
@@ -157,19 +158,17 @@ export default function Lesson() {
 
   const content = lesson.content;
 
-  return (
-    <div className="container" style={{ padding: '48px 0', maxWidth: 720 }}>
-      <Link to={`/lessons/stage/${stageId}`} style={{ color: 'var(--color-blue)', fontWeight: 700 }}>
-        {t('lesson.backToStage')}
-      </Link>
-      <h1 className="page-title" style={{ marginTop: 12 }}>
-        {t('lesson.lessonLabel', { n: lesson.orderIndex, title: lesson.title })}
-      </h1>
-      <p style={{ color: '#8ea0b6', marginTop: -8 }}>{lesson.estimatedMinutes} {t('lesson.minutes')} · {lesson.lessonGoal}</p>
+  // One focused "screen" per section instead of one long scrolling page -
+  // each entry below becomes its own step in <LessonStepper>, in the same
+  // order these used to stack as cards. Sections only appear when the
+  // lesson's content actually has that field (letters, harakat, madd, etc.),
+  // exactly like the old conditional rendering.
+  const steps = [];
 
-      <Confetti active={completed} />
-
-      <div className="card" style={{ marginBottom: 20, background: 'var(--color-sky)', boxShadow: 'none', textAlign: 'center' }}>
+  steps.push({
+    key: 'concept',
+    node: (
+      <div className="card" style={{ background: 'var(--color-sky)', boxShadow: 'none', textAlign: 'center' }}>
         <span className="badge badge-free">{t('lesson.concept')}</span>
         {/* Audio-first: a 3-year-old can't read this paragraph, so the primary
             action is hearing it, not reading it - the text stays available
@@ -195,9 +194,14 @@ export default function Lesson() {
           </div>
         )}
       </div>
+    ),
+  });
 
-      {content.letters && (
-        <div className="card" style={{ marginBottom: 20 }}>
+  if (content.letters) {
+    steps.push({
+      key: 'letters',
+      node: (
+        <div className="card">
           <span className="badge badge-gold">{t('lesson.hearLetters')}</span>
           <p style={{ margin: '10px 0 16px', color: '#4b5a6a' }}>{t('lesson.tapEachLetter')}</p>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 16 }}>
@@ -228,10 +232,15 @@ export default function Lesson() {
             ))}
           </div>
         </div>
-      )}
+      ),
+    });
+  }
 
-      {content.letters?.some((l) => l.harakatSet || l.harakatNote) && (
-        <div className="card" style={{ marginBottom: 20 }}>
+  if (content.letters?.some((l) => l.harakatSet || l.harakatNote)) {
+    steps.push({
+      key: 'harakat',
+      node: (
+        <div className="card">
           <span className="badge badge-teal">{t('lesson.vowelSounds')}</span>
           <p style={{ margin: '10px 0 16px', color: '#4b5a6a' }}>
             {t('lesson.vowelSoundsIntro', { name: content.letters.find((l) => l.harakatSet)?.name ?? '' })}
@@ -277,10 +286,15 @@ export default function Lesson() {
             </div>
           ))}
         </div>
-      )}
+      ),
+    });
+  }
 
-      {content.letters && (
-        <div className="card" style={{ marginBottom: 20 }}>
+  if (content.letters) {
+    steps.push({
+      key: 'trace',
+      node: (
+        <div className="card">
           <span className="badge badge-purple">{t('lesson.practiceWriting')}</span>
           <p style={{ margin: '10px 0 16px', color: '#4b5a6a' }}>
             {t('lesson.traceEachLetter')}
@@ -291,10 +305,15 @@ export default function Lesson() {
             ))}
           </div>
         </div>
-      )}
+      ),
+    });
+  }
 
-      {content.maddPair && (
-        <div className="card" style={{ marginBottom: 20 }}>
+  if (content.maddPair) {
+    steps.push({
+      key: 'maddPair',
+      node: (
+        <div className="card">
           <span className="badge badge-orange">{t('lesson.shortVsLong')}</span>
           <p style={{ margin: '10px 0 16px', color: '#4b5a6a' }}>{t('lesson.tapDifference')}</p>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 16 }}>
@@ -324,10 +343,15 @@ export default function Lesson() {
             })}
           </div>
         </div>
-      )}
+      ),
+    });
+  }
 
-      {content.letters?.some((l) => l.maddPair) && (
-        <div className="card" style={{ marginBottom: 20 }}>
+  if (content.letters?.some((l) => l.maddPair)) {
+    steps.push({
+      key: 'lettersMaddPair',
+      node: (
+        <div className="card">
           <span className="badge badge-gold">{t('lesson.shortVsLong')}</span>
           <p style={{ margin: '10px 0 16px', color: '#4b5a6a' }}>{t('lesson.tapShortLongForm')}</p>
           {content.letters.filter((l) => l.maddPair).map((l, li) => (
@@ -362,10 +386,15 @@ export default function Lesson() {
             </div>
           ))}
         </div>
-      )}
+      ),
+    });
+  }
 
-      {content.tanweenForms && (
-        <div className="card" style={{ marginBottom: 20 }}>
+  if (content.tanweenForms) {
+    steps.push({
+      key: 'tanween',
+      node: (
+        <div className="card">
           <span className="badge badge-gold">{t('lesson.tanweenForms')}</span>
           <p style={{ margin: '10px 0 16px', color: '#4b5a6a' }}>{content.tanweenForms.intro}</p>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(100px, 1fr))', gap: 10 }}>
@@ -390,10 +419,15 @@ export default function Lesson() {
             ))}
           </div>
         </div>
-      )}
+      ),
+    });
+  }
 
-      {content.comparisonSet && (
-        <div className="card" style={{ marginBottom: 20 }}>
+  if (content.comparisonSet) {
+    steps.push({
+      key: 'comparison',
+      node: (
+        <div className="card">
           <span className="badge badge-teal">{t('lesson.compareBothSides')}</span>
           {content.comparisonSet.intro && <p style={{ margin: '10px 0 16px', color: '#4b5a6a' }}>{content.comparisonSet.intro}</p>}
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: 10 }}>
@@ -419,10 +453,15 @@ export default function Lesson() {
             ))}
           </div>
         </div>
-      )}
+      ),
+    });
+  }
 
-      {content.maddTypes && (
-        <div className="card" style={{ marginBottom: 20 }}>
+  if (content.maddTypes) {
+    steps.push({
+      key: 'maddTypes',
+      node: (
+        <div className="card">
           <span className="badge badge-gold">{t('lesson.typesOfMadd')}</span>
           {content.maddTypes.types.map((type) => (
             <div key={type.key} style={{ marginTop: 12 }}>
@@ -452,10 +491,15 @@ export default function Lesson() {
             </div>
           ))}
         </div>
-      )}
+      ),
+    });
+  }
 
-      {content.tajweedRule && (
-        <div className="card" style={{ marginBottom: 20 }}>
+  if (content.tajweedRule) {
+    steps.push({
+      key: 'tajweed',
+      node: (
+        <div className="card">
           <span className="badge badge-gold">{t('lesson.tajweedLabel', { name: content.tajweedRule.name })}</span>
           <p style={{ margin: '10px 0 16px', color: '#4b5a6a' }}>{content.tajweedRule.kidExplanation}</p>
           <button
@@ -476,29 +520,44 @@ export default function Lesson() {
             <p style={{ margin: '6px 0 0', fontSize: '0.75rem', color: '#8ea0b6' }}>{t('lesson.tapToHear')}</p>
           </button>
         </div>
-      )}
+      ),
+    });
+  }
 
-      <PictureWordCard
-        arabicWord={lesson.arabicWord}
-        meaning={lesson.arabicWordMeaning}
-        transliteration={content.transliteration}
-        image={content.image}
-        letterHighlight={content.letters?.length === 1 ? content.letters[0].letter : undefined}
-      />
-      {content.secondWord && (
+  steps.push({
+    key: 'word',
+    node: (
+      <div>
         <PictureWordCard
-          arabicWord={content.secondWord.arabic}
-          meaning={content.secondWord.translation}
-          transliteration={content.secondWord.transliteration}
-          size="sm"
-          mascot={null}
+          arabicWord={lesson.arabicWord}
+          meaning={lesson.arabicWordMeaning}
+          transliteration={content.transliteration}
+          image={content.image}
+          letterHighlight={content.letters?.length === 1 ? content.letters[0].letter : undefined}
         />
-      )}
+        {content.secondWord && (
+          <PictureWordCard
+            arabicWord={content.secondWord.arabic}
+            meaning={content.secondWord.translation}
+            transliteration={content.secondWord.transliteration}
+            size="sm"
+            mascot={null}
+          />
+        )}
+      </div>
+    ),
+  });
 
-      <PronunciationCheck text={lesson.arabicWord} />
+  steps.push({
+    key: 'pronunciation',
+    node: <PronunciationCheck text={lesson.arabicWord} />,
+  });
 
-      {vocabPool.length >= 2 && (
-        <div className="card" style={{ marginBottom: 20 }}>
+  if (vocabPool.length >= 2) {
+    steps.push({
+      key: 'game',
+      node: (
+        <div className="card">
           <span className="badge badge-teal">{t('lesson.practiceGame')}</span>
           <div style={{ marginTop: 12 }}>
             {(() => {
@@ -564,35 +623,62 @@ export default function Lesson() {
             })()}
           </div>
         </div>
-      )}
+      ),
+    });
+  }
 
-      {error && <p className="error-text">{error}</p>}
-
-      {!completed ? (
-        <button className="btn btn-primary btn-chunky" disabled={submitting} onClick={handleMarkComplete}>
-          {submitting ? t('lesson.saving') : t('lesson.markComplete')}
-        </button>
-      ) : (
-        <div className="card" style={{ textAlign: 'center', background: 'rgba(26,122,74,0.08)' }}>
-          <HudMascot pose="celebrate" size={72} className={isCheering ? 'mascot-cheer' : ''} style={{ margin: '0 auto 8px' }} />
-          <h3 style={{ margin: '0 0 8px' }}>{t('lesson.lessonComplete')}</h3>
-          <p style={{ margin: 0 }}>
-            {lesson.checkpointDue ? t('lesson.checkpointDueMsg') : t('lesson.readyNextLesson')}
-          </p>
-          {newBadges.length > 0 && (
-            <div style={{ margin: '16px 0 0' }}>
-              {newBadges.map((code) => (
-                <span key={code} className="badge badge-gold" style={{ margin: '0 4px' }}>
-                  {t('lesson.newBadge', { name: badgeInfo(code).name })}
-                </span>
-              ))}
+  steps.push({
+    key: 'complete',
+    node: (
+      <div>
+        {error && <p className="error-text">{error}</p>}
+        {!completed ? (
+          <div className="card" style={{ textAlign: 'center' }}>
+            <span className="badge badge-free">{t('lesson.readyToFinish')}</span>
+            <div style={{ marginTop: 14 }}>
+              <button className="btn btn-primary btn-chunky" disabled={submitting} onClick={handleMarkComplete}>
+                {submitting ? t('lesson.saving') : t('lesson.markComplete')}
+              </button>
             </div>
-          )}
-          <button className="btn btn-primary btn-chunky" style={{ marginTop: 16 }} onClick={handleContinue}>
-            {lesson.checkpointDue ? t('lesson.startCheckpoint') : t('lesson.nextLesson')}
-          </button>
-        </div>
-      )}
+          </div>
+        ) : (
+          <div className="card" style={{ textAlign: 'center', background: 'rgba(26,122,74,0.08)' }}>
+            <HudMascot pose="celebrate" size={72} className={isCheering ? 'mascot-cheer' : ''} style={{ margin: '0 auto 8px' }} />
+            <h3 style={{ margin: '0 0 8px' }}>{t('lesson.lessonComplete')}</h3>
+            <p style={{ margin: 0 }}>
+              {lesson.checkpointDue ? t('lesson.checkpointDueMsg') : t('lesson.readyNextLesson')}
+            </p>
+            {newBadges.length > 0 && (
+              <div style={{ margin: '16px 0 0' }}>
+                {newBadges.map((code) => (
+                  <span key={code} className="badge badge-gold" style={{ margin: '0 4px' }}>
+                    {t('lesson.newBadge', { name: badgeInfo(code).name })}
+                  </span>
+                ))}
+              </div>
+            )}
+            <button className="btn btn-primary btn-chunky" style={{ marginTop: 16 }} onClick={handleContinue}>
+              {lesson.checkpointDue ? t('lesson.startCheckpoint') : t('lesson.nextLesson')}
+            </button>
+          </div>
+        )}
+      </div>
+    ),
+  });
+
+  return (
+    <div className="container" style={{ padding: '48px 0', maxWidth: 720 }}>
+      <Link to={`/lessons/stage/${stageId}`} style={{ color: 'var(--color-blue)', fontWeight: 700 }}>
+        {t('lesson.backToStage')}
+      </Link>
+      <h1 className="page-title" style={{ marginTop: 12 }}>
+        {t('lesson.lessonLabel', { n: lesson.orderIndex, title: lesson.title })}
+      </h1>
+      <p style={{ color: '#8ea0b6', marginTop: -8, marginBottom: 24 }}>{lesson.estimatedMinutes} {t('lesson.minutes')} · {lesson.lessonGoal}</p>
+
+      <Confetti active={completed} />
+
+      <LessonStepper key={`${stageId}-${orderIndex}`} steps={steps} />
     </div>
   );
 }

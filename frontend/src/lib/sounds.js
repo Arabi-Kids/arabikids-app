@@ -62,3 +62,23 @@ export function playCelebration() {
     tone(freq, { duration: 0.18, delay: i * 0.09, volume: 0.14 });
   });
 }
+
+/** Quick rising "whoosh" - stepping forward/back between lesson screens. */
+export function playWhoosh() {
+  if (isMuted()) return;
+  const audioCtx = getContext();
+  if (!audioCtx) return;
+  const osc = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+  osc.type = 'sine';
+  const start = audioCtx.currentTime;
+  osc.frequency.setValueAtTime(320, start);
+  osc.frequency.exponentialRampToValueAtTime(560, start + 0.14);
+  gain.gain.setValueAtTime(0, start);
+  gain.gain.linearRampToValueAtTime(0.07, start + 0.02);
+  gain.gain.exponentialRampToValueAtTime(0.0001, start + 0.16);
+  osc.connect(gain);
+  gain.connect(audioCtx.destination);
+  osc.start(start);
+  osc.stop(start + 0.18);
+}
