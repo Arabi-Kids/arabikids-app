@@ -11,28 +11,55 @@ const API_KEY = process.env.ENGINEMAILER_API_KEY;
 const SENDER_EMAIL = process.env.ENGINEMAILER_SENDER_EMAIL;
 const SENDER_NAME = process.env.ENGINEMAILER_SENDER_NAME || 'ArabiKids';
 
-async function sendTransactionalEmail({ toEmail, subject, html, campaignName }) {
+function sleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+// Retries transient failures (rate limiting, momentary 5xx, dropped
+// connections) up to 2 extra times with a short backoff. Signup fires two of
+// these (welcome email + admin alert) to this same endpoint within
+// milliseconds of each other with no coordination, which without a retry
+// made an occasional 429/5xx from Enginemailer a silent, permanent miss -
+// this is what caused "some registrations I get the email, some I don't."
+async function sendTransactionalEmail({ toEmail, subject, html, campaignName }, attempt = 1) {
   if (!API_KEY || !SENDER_EMAIL) {
     console.warn('Enginemailer sender not configured yet (missing API key or verified sender domain) — skipping email send.');
     return { sent: false, reason: 'not_configured' };
   }
 
-  const res = await fetch(SEND_URL, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', APIKey: API_KEY },
-    body: JSON.stringify({
-      CampaignName: campaignName,
-      ToEmail: toEmail,
-      Subject: subject,
-      SenderEmail: SENDER_EMAIL,
-      SenderName: SENDER_NAME,
-      SubmittedContent: html,
-    }),
-  });
+  const MAX_ATTEMPTS = 3;
+  let res;
+  try {
+    res = await fetch(SEND_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', APIKey: API_KEY },
+      body: JSON.stringify({
+        CampaignName: campaignName,
+        ToEmail: toEmail,
+        Subject: subject,
+        SenderEmail: SENDER_EMAIL,
+        SenderName: SENDER_NAME,
+        SubmittedContent: html,
+      }),
+    });
+  } catch (err) {
+    if (attempt < MAX_ATTEMPTS) {
+      await sleep(300 * attempt);
+      return sendTransactionalEmail({ toEmail, subject, html, campaignName }, attempt + 1);
+    }
+    console.error(`Enginemailer SendEmail network error (attempt ${attempt}):`, err.message);
+    return { sent: false, reason: 'network_error' };
+  }
+
   const data = await res.json().catch(() => ({}));
   const ok = res.ok && data?.Result?.Status === 'OK';
   if (!ok) {
-    console.error('Enginemailer SendEmail failed:', JSON.stringify(data));
+    const isTransient = res.status === 429 || res.status >= 500;
+    if (isTransient && attempt < MAX_ATTEMPTS) {
+      await sleep(300 * attempt);
+      return sendTransactionalEmail({ toEmail, subject, html, campaignName }, attempt + 1);
+    }
+    console.error(`Enginemailer SendEmail failed (attempt ${attempt}, status ${res.status}):`, JSON.stringify(data));
     return { sent: false, reason: 'send_failed', detail: data };
   }
   return { sent: true };

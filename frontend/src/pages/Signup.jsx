@@ -42,8 +42,14 @@ export default function Signup() {
     try {
       const { needsEmailConfirmation } = await register(form);
       functionsApi.subscribeEnginemailer({ name: form.name, email: form.email }).catch(() => {});
-      functionsApi.sendWelcomeEmail(form.name, form.email).catch(() => {});
-      functionsApi.notifyAdminSignup(form.name, form.email).catch(() => {});
+      // Sequenced, not parallel: both of these hit Enginemailer's send
+      // endpoint, and firing them at the same instant was contributing to
+      // intermittent drops (Enginemailer has no visible rate-limit docs, but
+      // near-simultaneous sends from the same sender clearly fared worse).
+      functionsApi
+        .sendWelcomeEmail(form.name, form.email)
+        .catch(() => {})
+        .finally(() => functionsApi.notifyAdminSignup(form.name, form.email).catch(() => {}));
       if (needsEmailConfirmation) {
         setConfirmEmailSent(true);
       } else {
