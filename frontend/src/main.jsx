@@ -4,6 +4,7 @@ import { BrowserRouter } from 'react-router-dom';
 import App from './App.jsx';
 import './index.css';
 import { captureAttribution } from './lib/attribution.js';
+import { captureReferral } from './lib/referral.js';
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
@@ -18,7 +19,11 @@ ReactDOM.createRoot(document.getElementById('root')).render(
 // (scope '/admin/', its own name/theme) so "Install app" on /admin/* offers
 // an "ArabiKids Admin" shortcut instead of the parent-facing one.
 const isAdminRoute = window.location.pathname.startsWith('/admin');
-if (!isAdminRoute) captureAttribution();
+const isAffiliateRoute = window.location.pathname.startsWith('/affiliate');
+if (!isAdminRoute && !isAffiliateRoute) {
+  captureAttribution();
+  captureReferral();
+}
 if (isAdminRoute) {
   const manifestLink = document.querySelector('link[rel="manifest"]') || document.createElement('link');
   manifestLink.rel = 'manifest';

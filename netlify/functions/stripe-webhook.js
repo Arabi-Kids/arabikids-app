@@ -53,6 +53,100 @@ async function updateUserFromSubscription(supabase, subscription, eventCreatedAt
   return { email: current.email, plan, tier };
 }
 
+// Affiliate referral: Stripe Payment Links can't carry custom metadata (only
+// client_reference_id/prefilled_email as URL params, and client_reference_id
+// is already committed to the Supabase user id), so the referral is
+// associated entirely on the Supabase side before checkout even happens -
+// see frontend/src/lib/referral.js and AuthContext.jsx's register(). This
+// just resolves that pre-existing association into a `referrals` row, once,
+// the first time this customer's checkout completes. Deliberately does NOT
+// create a commission_events row here - that only happens on an actual
+// `invoice.paid` (see below), which is what "never on trial signups" means
+// in practice: a referral that never converts stays 'pending' forever.
+async function createReferralIfNeeded(supabase, customerId) {
+  const { data: customerRow } = await supabase.from('users').select('id, referral_code_used').eq('id', customerId).maybeSingle();
+  if (!customerRow?.referral_code_used) return;
+
+  const { data: existingReferral } = await supabase.from('referrals').select('id').eq('customer_id', customerId).maybeSingle();
+  if (existingReferral) return;
+
+  const { data: affiliate } = await supabase
+    .from('affiliates')
+    .select('id, status')
+    .eq('referral_code', customerRow.referral_code_used)
+    .maybeSingle();
+  if (!affiliate || affiliate.status !== 'active') return;
+
+  // Tier is the affiliate's CURRENT active-referral count at the moment this
+  // new referral is created - "forward-only": existing referrals already
+  // have their own frozen rate and are never touched by this.
+  const { count: activeReferralCount } = await supabase
+    .from('referrals')
+    .select('id', { count: 'exact', head: true })
+    .eq('affiliate_id', affiliate.id)
+    .eq('status', 'active');
+
+  const tierRate = activeReferralCount >= 30 ? 0.2 : activeReferralCount >= 10 ? 0.15 : 0.1;
+
+  await supabase.from('referrals').insert({
+    affiliate_id: affiliate.id,
+    customer_id: customerId,
+    commission_tier_at_signup: tierRate,
+    status: 'pending',
+  });
+}
+
+// Commission on an actual successful payment - the only trigger the business
+// rules allow (never trial signups, never failed/refunded payments). Cap
+// enforcement happens here, inline, on every invoice: the first invoice
+// whose paid-at is at/past a referral's cap_expires_at gets no commission
+// and permanently expires the referral. Idempotent via the stripe_invoice_id
+// unique constraint - a 23505 conflict means Stripe redelivered an event we
+// already processed, not an error.
+async function recordCommissionForInvoice(supabase, invoice, eventCreatedAt) {
+  if (!invoice.subscription || !invoice.amount_paid || invoice.amount_paid <= 0) return;
+
+  const { data: userRow } = await supabase.from('users').select('id').eq('stripe_subscription_id', invoice.subscription).maybeSingle();
+  if (!userRow) return;
+
+  const { data: referral } = await supabase.from('referrals').select('*').eq('customer_id', userRow.id).maybeSingle();
+  if (!referral || referral.status === 'expired') return;
+
+  const paidAt = new Date(invoice.status_transitions?.paid_at ? invoice.status_transitions.paid_at * 1000 : eventCreatedAt);
+
+  let effectiveReferral = referral;
+  if (referral.status === 'pending') {
+    // First-ever qualifying payment for this referral: activate it and start
+    // its 24-month cap clock from this exact payment date.
+    const capExpiresAt = new Date(paidAt);
+    capExpiresAt.setMonth(capExpiresAt.getMonth() + 24);
+    const { data: updated } = await supabase
+      .from('referrals')
+      .update({ status: 'active', commission_start_date: paidAt.toISOString(), cap_expires_at: capExpiresAt.toISOString() })
+      .eq('id', referral.id)
+      .select()
+      .single();
+    effectiveReferral = updated || effectiveReferral;
+  }
+
+  if (effectiveReferral.cap_expires_at && new Date(effectiveReferral.cap_expires_at) <= paidAt) {
+    await supabase.from('referrals').update({ status: 'expired' }).eq('id', effectiveReferral.id);
+    return;
+  }
+
+  const commissionAmountCents = Math.round(invoice.amount_paid * effectiveReferral.commission_tier_at_signup);
+  const { error: insertError } = await supabase.from('commission_events').insert({
+    referral_id: effectiveReferral.id,
+    affiliate_id: effectiveReferral.affiliate_id,
+    stripe_invoice_id: invoice.id,
+    amount_paid_cents: invoice.amount_paid,
+    commission_rate_applied: effectiveReferral.commission_tier_at_signup,
+    commission_amount_cents: commissionAmountCents,
+    invoice_paid_at: paidAt.toISOString(),
+  });
+  if (insertError && insertError.code !== '23505') throw new Error(insertError.message);
+}
+
 async function markStatus(supabase, subscriptionId, status, eventCreatedAt) {
   const { data: current } = await supabase
     .from('users')
@@ -119,7 +213,18 @@ exports.handler = async (event) => {
               `<p><strong>${result.email}</strong> just subscribed to the <strong>${result.tier}</strong> plan (${result.plan}).</p>`
             );
           }
+          // Independent of the staleness check above (which only guards
+          // subscription-status writes) - referral attribution keys off
+          // client_reference_id directly, once, the first time this
+          // customer's checkout completes.
+          if (session.client_reference_id) {
+            await createReferralIfNeeded(supabase, session.client_reference_id);
+          }
         }
+        break;
+      }
+      case 'invoice.paid': {
+        await recordCommissionForInvoice(supabase, stripeEvent.data.object, eventCreatedAt);
         break;
       }
       case 'customer.subscription.updated':

@@ -4,11 +4,27 @@ const MONTHLY_USD = 9.99;
 const ANNUAL_USD = 89.99;
 const FAMILY_MULTIPLIER = 1.5;
 
+// Affiliates get a real auth.users row (they share the same Supabase Auth
+// backend as customers/admins, just a distinct client storageKey - see
+// lib/supabaseAffiliate.js), which means the on-signup DB trigger also
+// creates a harmless, unused public.users row for them (deliberately not
+// special-cased there - see supabase/add_affiliate_program.sql's header
+// comment for why). Excluded here so affiliate accounts never inflate
+// customer counts/lists.
+async function getAffiliateAuthUserIds() {
+  const { data, error } = await supabaseAdmin.from('affiliates').select('auth_user_id');
+  if (error) throw new Error(error.message);
+  return data.map((a) => a.auth_user_id);
+}
+
 export async function getDashboardStats() {
-  const { data: users, error: usersError } = await supabaseAdmin
+  const affiliateIds = await getAffiliateAuthUserIds();
+  let query = supabaseAdmin
     .from('users')
     .select('id, name, email, subscription_status, subscription_plan, subscription_tier, created_at')
     .order('created_at', { ascending: false });
+  if (affiliateIds.length) query = query.not('id', 'in', `(${affiliateIds.join(',')})`);
+  const { data: users, error: usersError } = await query;
   if (usersError) throw new Error(usersError.message);
 
   const { count: totalLessons, error: lessonsError } = await supabaseAdmin
@@ -53,11 +69,13 @@ export async function getDashboardStats() {
 }
 
 export async function listUsers({ search, status } = {}) {
+  const affiliateIds = await getAffiliateAuthUserIds();
   let query = supabaseAdmin
     .from('users')
     .select('id, name, email, role, subscription_status, subscription_plan, subscription_tier, created_at, signup_source')
     .order('created_at', { ascending: false });
 
+  if (affiliateIds.length) query = query.not('id', 'in', `(${affiliateIds.join(',')})`);
   if (status) query = query.eq('subscription_status', status);
   if (search) query = query.or(`name.ilike.%${search}%,email.ilike.%${search}%`);
 
@@ -211,4 +229,97 @@ export async function sendAdminNotification({ title, body, url, sendPush, sendEm
   const data = await res.json().catch(() => ({}));
   if (!res.ok) throw new Error(data.message || 'Failed to send notification.');
   return data;
+}
+
+// ---------------------------------------------------------------------------
+// Affiliate program
+// ---------------------------------------------------------------------------
+
+export async function listAffiliates({ search } = {}) {
+  let query = supabaseAdmin.from('affiliates').select('*').order('created_at', { ascending: false });
+  if (search) query = query.or(`name.ilike.%${search}%,email.ilike.%${search}%,referral_code.ilike.%${search}%`);
+  const { data: affiliates, error } = await query;
+  if (error) throw new Error(error.message);
+
+  const [{ data: referrals, error: referralsError }, { data: payouts, error: payoutsError }] = await Promise.all([
+    supabaseAdmin.from('referrals').select('affiliate_id, status'),
+    supabaseAdmin.from('affiliate_payouts').select('affiliate_id, amount_cents').eq('status', 'pending'),
+  ]);
+  if (referralsError) throw new Error(referralsError.message);
+  if (payoutsError) throw new Error(payoutsError.message);
+
+  return affiliates.map((a) => {
+    const theirReferrals = referrals.filter((r) => r.affiliate_id === a.id);
+    const activeCount = theirReferrals.filter((r) => r.status === 'active').length;
+    const currentTierRate = activeCount >= 30 ? 0.2 : activeCount >= 10 ? 0.15 : 0.1;
+    const pendingCents = payouts.filter((p) => p.affiliate_id === a.id).reduce((sum, p) => sum + p.amount_cents, 0);
+    return { ...a, activeReferralCount: activeCount, currentTierRate, pendingPayoutCents: pendingCents };
+  });
+}
+
+function maskEmail(email) {
+  if (!email) return '—';
+  const [local, domain] = email.split('@');
+  if (!domain) return email;
+  return `${local.slice(0, 3)}***@${domain}`;
+}
+
+export async function listReferrals({ search, affiliateId, status } = {}) {
+  let query = supabaseAdmin
+    .from('referrals')
+    .select('id, affiliate_id, customer_id, commission_tier_at_signup, commission_start_date, cap_expires_at, status, created_at')
+    .order('created_at', { ascending: false });
+  if (affiliateId) query = query.eq('affiliate_id', affiliateId);
+  if (status) query = query.eq('status', status);
+  const { data: referrals, error } = await query;
+  if (error) throw new Error(error.message);
+  if (!referrals.length) return [];
+
+  const [{ data: affiliates, error: affiliatesError }, { data: customers, error: customersError }] = await Promise.all([
+    supabaseAdmin.from('affiliates').select('id, name'),
+    supabaseAdmin.from('users').select('id, email').in('id', referrals.map((r) => r.customer_id)),
+  ]);
+  if (affiliatesError) throw new Error(affiliatesError.message);
+  if (customersError) throw new Error(customersError.message);
+
+  const affiliateNameById = new Map(affiliates.map((a) => [a.id, a.name]));
+  const emailById = new Map(customers.map((c) => [c.id, c.email]));
+  const now = new Date();
+
+  const rows = referrals.map((r) => ({
+    ...r,
+    affiliateName: affiliateNameById.get(r.affiliate_id) ?? '—',
+    maskedCustomerEmail: maskEmail(emailById.get(r.customer_id)),
+    monthsRemaining:
+      r.status === 'active' && r.cap_expires_at
+        ? Math.max(0, Math.ceil((new Date(r.cap_expires_at) - now) / (1000 * 60 * 60 * 24 * 30)))
+        : null,
+  }));
+
+  if (!search) return rows;
+  const needle = search.toLowerCase();
+  return rows.filter((r) => r.affiliateName.toLowerCase().includes(needle) || r.maskedCustomerEmail.toLowerCase().includes(needle));
+}
+
+export async function markPayoutSent(payoutId, adminUserId) {
+  const { error } = await supabaseAdmin
+    .from('affiliate_payouts')
+    .update({ status: 'sent', sent_at: new Date().toISOString(), marked_by: adminUserId })
+    .eq('id', payoutId);
+  if (error) throw new Error(error.message);
+}
+
+export async function listPendingPayouts(affiliateId) {
+  const { data, error } = await supabaseAdmin
+    .from('affiliate_payouts')
+    .select('*')
+    .eq('affiliate_id', affiliateId)
+    .order('period_month', { ascending: false });
+  if (error) throw new Error(error.message);
+  return data;
+}
+
+export async function updateAffiliateStatus(affiliateId, status) {
+  const { error } = await supabaseAdmin.from('affiliates').update({ status }).eq('id', affiliateId);
+  if (error) throw new Error(error.message);
 }

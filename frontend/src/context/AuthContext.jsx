@@ -2,6 +2,7 @@ import { createContext, useContext, useEffect, useState, useCallback } from 'rea
 import { supabase } from '../lib/supabase.js';
 import { mapUserRow } from '../lib/db.js';
 import { getAttribution } from '../lib/attribution.js';
+import { getReferral } from '../lib/referral.js';
 
 const AuthContext = createContext(null);
 
@@ -84,6 +85,14 @@ export function AuthProvider({ children }) {
       const attribution = getAttribution();
       if (attribution) {
         supabase.from('users').update({ signup_source: attribution }).eq('id', data.user.id).then(() => {}, () => {});
+      }
+
+      // Same best-effort pattern - the affiliate referral code (if any) is
+      // resolved to an actual affiliate later, at first successful payment
+      // (see stripe-webhook.js), not here.
+      const referralCode = getReferral();
+      if (referralCode) {
+        supabase.from('users').update({ referral_code_used: referralCode }).eq('id', data.user.id).then(() => {}, () => {});
       }
 
       // Carry over whatever language the guest picked before signing up -

@@ -9,6 +9,7 @@ import AdminSubscriptions from './admin/AdminSubscriptions.jsx';
 import AdminLessonsManager from './admin/AdminLessonsManager.jsx';
 import AdminSupport from './admin/AdminSupport.jsx';
 import AdminNotifications from './admin/AdminNotifications.jsx';
+import AdminAffiliates from './admin/AdminAffiliates.jsx';
 
 // Completely separate product from the public site: its own auth context,
 // its own token storage, its own layout, no shared Navbar/Footer.
@@ -30,6 +31,7 @@ export default function AdminApp() {
           <Route path="lessons" element={<AdminLessonsManager />} />
           <Route path="support" element={<AdminSupport />} />
           <Route path="notifications" element={<AdminNotifications />} />
+          <Route path="affiliates" element={<AdminAffiliates />} />
           <Route index element={<Navigate to="dashboard" replace />} />
         </Route>
       </Routes>
