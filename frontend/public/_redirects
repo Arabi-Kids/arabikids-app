@@ -1,0 +1,6 @@
+# SPA fallback for React Router — Cloudflare Pages serves any unmatched
+# path through index.html, same as netlify.toml's old `/*` rewrite. Note
+# `/api/*` never reaches this: Cloudflare Pages Functions under
+# functions/api/* are matched first, natively, before falling through to
+# this static-routing file.
+/*    /index.html   200

@@ -1,0 +1,20 @@
+# index.html/sw.js/manifest.webmanifest keep the same URL across every deploy
+# (unlike the hashed JS/CSS asset filenames, which are automatically
+# cache-busted), so Cloudflare's edge cache can keep serving a stale copy to
+# a given edge node for a little while after a deploy unless told not to.
+# no-cache still allows a conditional revalidation request (cheap, uses
+# ETag) - it just forbids serving a cached copy without checking first, so
+# new deploys are visible immediately instead of only after that edge node's
+# cache happens to expire. Ported from netlify.toml's [[headers]] blocks.
+
+/index.html
+  Cache-Control: no-cache
+
+/sw.js
+  Cache-Control: no-cache
+
+/manifest.webmanifest
+  Cache-Control: no-cache
+
+/admin-manifest.webmanifest
+  Cache-Control: no-cache
