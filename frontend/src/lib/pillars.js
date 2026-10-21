@@ -16,12 +16,8 @@ export const PILLARS = [
     name: 'Islamic Practical Life',
     tagline: 'Wudu, Salah and everyday du’as, step by step.',
     icon: '🕌',
-    status: 'coming-soon',
-    items: [
-      'Wudu (ablution) — the step-by-step cleansing process',
-      'Salah (prayer) — movements and Arabic recitation with proper pronunciation',
-      'Du’as for daily life — before/after eating, entering/leaving the house, and more',
-    ],
+    status: 'live',
+    path: '/lessons/practical',
     accent: 'var(--color-teal)',
   },
   {

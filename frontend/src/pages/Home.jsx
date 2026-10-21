@@ -15,6 +15,7 @@ export default function Home() {
   const steps = t('home.steps');
   const testimonials = t('home.testimonials');
   const trustStrip = t('home.trustStrip');
+  const whatsNew = t('home.whatsNew');
 
   return (
     <div>
@@ -71,6 +72,34 @@ export default function Home() {
               <div style={{ color: '#dbe4ee', fontSize: '0.85rem', fontWeight: 700 }}>{label}</div>
             </div>
           ))}
+        </div>
+      </section>
+
+      <section style={{ background: 'var(--color-sky)', padding: '60px 0' }}>
+        <div className="container">
+          <div style={{ textAlign: 'center' }}>
+            <span className="badge badge-gold" style={{ marginBottom: 12 }}>{t('home.whatsNewTag')}</span>
+          </div>
+          <h2 className="page-title" style={{ textAlign: 'center' }}>
+            {t('home.whatsNewTitle')}
+          </h2>
+          <p className="page-subtitle" style={{ textAlign: 'center' }}>
+            {t('home.whatsNewSubtitle')}
+          </p>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 20 }}>
+            {whatsNew.map((item, i) => (
+              <Link
+                key={item.to}
+                to={item.to}
+                className="card card-kid"
+                style={{ '--card-accent': FEATURE_ACCENTS[i % FEATURE_ACCENTS.length], display: 'block', textDecoration: 'none' }}
+              >
+                <h3 style={{ color: 'var(--color-blue)', margin: '4px 0 10px' }}>{item.title}</h3>
+                <p style={{ color: '#5a6a7a', margin: '0 0 14px' }}>{item.desc}</p>
+                <span style={{ color: 'var(--color-blue)', fontWeight: 800 }}>{item.cta} →</span>
+              </Link>
+            ))}
+          </div>
         </div>
       </section>
 

@@ -38,8 +38,14 @@ function mapChildRow(row) {
     maxStageId: row.max_stage_id,
     currentStreak: row.current_streak,
     longestStreak: row.longest_streak,
+    demonstrator: row.demonstrator ?? null,
     createdAt: row.created_at,
   };
+}
+
+export async function setChildDemonstrator(childId, demonstrator) {
+  const { error } = await supabase.from('child_profiles').update({ demonstrator }).eq('id', childId);
+  if (error) throw new Error(error.message);
 }
 
 // ---------------------------------------------------------------------------

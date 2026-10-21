@@ -134,7 +134,7 @@ export async function onRequestPost({ request, env }) {
     const { data: recipients, error: recipientsError } = await recipientsQuery;
     if (recipientsError) throw new Error(recipientsError.message);
 
-    const html = emailLayout({ title, bodyHtml: `<p>${body}</p>`, ctaText: url ? 'Learn More' : undefined, ctaUrl: url || undefined });
+    const html = emailLayout({ title, bodyHtml: `<p>${body.replace(/\n/g, '<br>')}</p>`, ctaText: url ? 'Learn More' : undefined, ctaUrl: url || undefined });
 
     await Promise.all(
       recipients.map(async (p) => {

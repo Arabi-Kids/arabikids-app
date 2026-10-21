@@ -1,10 +1,41 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import { VitePWA } from 'vite-plugin-pwa';
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 
-export default defineConfig({
+// DEV-ONLY (fixture mode, `vite serve` only - never part of a build): serves
+// ../audio-library/*.mp3 at /dev-audio/ plus /dev-audio/index.json (the ids
+// that exist) so locally generated voice clips can be heard inside the real
+// screens before anything is uploaded or approved.
+function devAudioLibrary() {
+  const dir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', 'audio-library');
+  return {
+    name: 'dev-audio-library',
+    apply: 'serve',
+    configureServer(server) {
+      server.middlewares.use('/dev-audio', (req, res, next) => {
+        const name = decodeURIComponent((req.url ?? '/').split('?')[0]).replace(/^\/+/, '');
+        if (name === 'index.json') {
+          const ids = fs.existsSync(dir) ? fs.readdirSync(dir).filter((f) => f.endsWith('.mp3')).map((f) => f.slice(0, -4)) : [];
+          res.setHeader('Content-Type', 'application/json');
+          res.end(JSON.stringify(ids));
+          return;
+        }
+        const file = path.join(dir, name);
+        if (!file.startsWith(dir) || !name.endsWith('.mp3') || !fs.existsSync(file)) return next();
+        res.setHeader('Content-Type', 'audio/mpeg');
+        fs.createReadStream(file).pipe(res);
+      });
+    },
+  };
+}
+
+export default defineConfig(({ mode }) => ({
   plugins: [
     react(),
+    ...(mode === 'fixture' ? [devAudioLibrary()] : []),
     VitePWA({
       // We register the service worker ourselves from main.jsx, which also
       // swaps in a separate manifest (admin-manifest.webmanifest) on /admin/*
@@ -43,4 +74,4 @@ export default defineConfig({
   server: {
     port: 5173,
   },
-});
+}));

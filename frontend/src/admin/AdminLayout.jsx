@@ -44,6 +44,8 @@ export default function AdminLayout() {
           <NavLink to="/admin/support" onClick={closeNav} className={({ isActive }) => (isActive ? 'active' : '')}>Support</NavLink>
           <NavLink to="/admin/notifications" onClick={closeNav} className={({ isActive }) => (isActive ? 'active' : '')}>Notifications</NavLink>
           <NavLink to="/admin/affiliates" onClick={closeNav} className={({ isActive }) => (isActive ? 'active' : '')}>Affiliates</NavLink>
+          <NavLink to="/admin/content" onClick={closeNav} className={({ isActive }) => (isActive ? 'active' : '')}>Content Review</NavLink>
+          <NavLink to="/admin/audio" onClick={closeNav} className={({ isActive }) => (isActive ? 'active' : '')}>Audio Review</NavLink>
           <button
             onClick={handleLogout}
             style={{

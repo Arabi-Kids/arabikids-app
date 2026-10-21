@@ -148,6 +148,14 @@ export default function ArabicCurriculumHub() {
       <p className="page-subtitle">
         {(isPaid() ? copy.subtitlePaid : copy.subtitleFree).replace('{name}', activeChild?.name ?? '')}
       </p>
+      <Link to="/lessons/letters" className="card card-kid" style={{ '--card-accent': 'var(--color-gold)', display: 'flex', alignItems: 'center', gap: 14, marginBottom: 20 }}>
+        <HudMascot pose="mark" size={56} />
+        <span>
+          <span style={{ display: 'block', fontWeight: 900, color: 'var(--color-blue)' }}>{t('interactive.letters.title')}</span>
+          <span style={{ display: 'block', color: '#4b5a6a', fontSize: '0.9rem' }}>{t('interactive.letters.subtitle')}</span>
+        </span>
+      </Link>
+
       {searchBox}
 
       {error && <p className="error-text">{error}</p>}

@@ -26,6 +26,10 @@ import QuranPillarHub from './pages/QuranPillarHub.jsx';
 import QuranUnit from './pages/QuranUnit.jsx';
 import ComingSoonPillar from './pages/ComingSoonPillar.jsx';
 import StageLessons from './pages/StageLessons.jsx';
+import LetterLoopHub from './pages/LetterLoopHub.jsx';
+import LetterLoop from './pages/LetterLoop.jsx';
+import PracticalLifeHub from './pages/PracticalLifeHub.jsx';
+import PracticalStage from './pages/PracticalStage.jsx';
 import Lesson from './pages/Lesson.jsx';
 import StageCheckpoint from './pages/StageCheckpoint.jsx';
 import StageRecap from './pages/StageRecap.jsx';
@@ -90,6 +94,29 @@ export default function PublicSite() {
                   </ProtectedRoute>
                 }
               />
+              <Route path="/lessons/letters" element={<LetterLoopHub />} />
+              <Route
+                path="/lessons/letters/:letterNo"
+                element={
+                  <ProtectedRoute>
+                    <LetterLoop />
+                  </ProtectedRoute>
+                }
+              />
+              <Route path="/lessons/practical" element={<PracticalLifeHub />} />
+              <Route
+                path="/lessons/practical/stage/:stageNo"
+                element={
+                  <ProtectedRoute>
+                    <PracticalStage />
+                  </ProtectedRoute>
+                }
+              />
+              {/* Dev-only (dead-code-eliminated from production builds): the
+                  same pages without the login wall, fed by the local content
+                  fixture, for previewing before the DB migration has run. */}
+              {import.meta.env.DEV && <Route path="/dev/letters/:letterNo" element={<LetterLoop />} />}
+              {import.meta.env.DEV && <Route path="/dev/practical/stage/:stageNo" element={<PracticalStage />} />}
               <Route path="/lessons/coming-soon/:pillarKey" element={<ComingSoonPillar />} />
               <Route
                 path="/lessons/stage/:stageId"

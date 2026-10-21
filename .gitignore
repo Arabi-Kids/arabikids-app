@@ -29,3 +29,18 @@ frontend/run-dev.bat
 # Stray local screenshot artifact
 arabikids-frontend-screenshot.png
 deno.lock
+
+# dev-only preview fixture generated from the content pack
+frontend/src/dev/contentFixture.json
+
+# local review screenshots
+screenshots/
+frontend/.env.fixture
+
+# Voice pilot output (generated audio, not source)
+audio-pilot*/
+audio-library/
+audio-colab/
+
+# Local audio work folders
+audio-library-*/

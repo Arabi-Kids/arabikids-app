@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import MusicToggle from '../components/MusicToggle.jsx';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useActiveChild } from '../context/ActiveChildContext.jsx';
 import { useLanguage } from '../context/LanguageContext.jsx';
@@ -668,6 +669,7 @@ export default function Lesson() {
 
   return (
     <div className="container" style={{ padding: '48px 0', maxWidth: 720 }}>
+      <MusicToggle mood="play" />
       <Link to={`/lessons/stage/${stageId}`} style={{ color: 'var(--color-blue)', fontWeight: 700 }}>
         {t('lesson.backToStage')}
       </Link>

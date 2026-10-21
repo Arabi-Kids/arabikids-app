@@ -99,3 +99,45 @@ export function speakSmart(text, { rate = 0.8, onStart, onEnd } = {}) {
     playPreGeneratedAudio(text, { rate, onStart, onEnd });
   }
 }
+
+// ---------------------------------------------------------------------------
+// Language-aware device voice (used by the interactive upgrade's preview
+// fallback). speakSmart/speakArabic above always force an Arabic voice and
+// lang, which is right for Arabic words but makes English/Malay text sound
+// wrong - this picks the voice from the text's own language instead.
+// ---------------------------------------------------------------------------
+const LANG_TAG = { ar: 'ar-SA', en: 'en-US', ms: 'ms-MY' };
+
+function voicesFor(lang) {
+  if (!isSpeechSupported()) return [];
+  return window.speechSynthesis
+    .getVoices()
+    .filter((v) => v.lang.toLowerCase().replace('_', '-').startsWith(lang.toLowerCase()));
+}
+
+/** Names of the installed device voices for 'ar' | 'en' | 'ms'. */
+export function listVoiceNames(lang) {
+  return voicesFor(lang).map((v) => `${v.name} (${v.lang})`);
+}
+
+/** Speaks `text` in `lang` ('ar' | 'en' | 'ms'). Returns true when a voice for
+ * that language exists on this device; false means the browser fell back to
+ * its default voice, which will mispronounce the text. */
+export function speakInLanguage(text, lang, { rate = 0.85, onStart, onEnd } = {}) {
+  if (!isSpeechSupported() || !text) {
+    onEnd?.();
+    return false;
+  }
+  window.speechSynthesis.cancel();
+  const utterance = new SpeechSynthesisUtterance(text);
+  const candidates = voicesFor(lang);
+  const voice = candidates.find((v) => v.localService) || candidates[0];
+  if (voice) utterance.voice = voice;
+  utterance.lang = voice?.lang ?? LANG_TAG[lang] ?? 'en-US';
+  utterance.rate = rate;
+  if (onStart) utterance.onstart = onStart;
+  if (onEnd) utterance.onend = onEnd;
+  utterance.onerror = onEnd;
+  window.speechSynthesis.speak(utterance);
+  return !!voice;
+}

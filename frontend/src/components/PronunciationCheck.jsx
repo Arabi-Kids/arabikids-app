@@ -5,7 +5,9 @@ import { playTap, playSuccess } from '../lib/sounds.js';
 import { useCelebrate } from '../hooks/useCelebrate.js';
 import { useLanguage } from '../context/LanguageContext.jsx';
 
-export default function PronunciationCheck({ text, compact = false }) {
+// showListen=false lets callers that must only play approved audio supply their
+// own Listen button instead of this one's device-TTS preview.
+export default function PronunciationCheck({ text, compact = false, showListen = true }) {
   const [status, setStatus] = useState('idle'); // idle | listening | scored | error
   const [result, setResult] = useState(null);
   const [isCheering, triggerCheer] = useCelebrate();
@@ -40,14 +42,16 @@ export default function PronunciationCheck({ text, compact = false }) {
 
   const buttons = (
     <div style={{ display: 'flex', justifyContent: 'center', gap: compact ? 6 : 12, marginBottom: compact ? 4 : 12 }}>
-      <button
-        type="button"
-        className={compact ? undefined : 'btn btn-secondary'}
-        onClick={() => { playTap(); speakSmart(text, { rate: 0.7 }); }}
-        style={compact ? COMPACT_BTN_STYLE : undefined}
-      >
-        🔊{compact ? '' : copy.listen}
-      </button>
+      {showListen && (
+        <button
+          type="button"
+          className={compact ? undefined : 'btn btn-secondary'}
+          onClick={() => { playTap(); speakSmart(text, { rate: 0.7 }); }}
+          style={compact ? COMPACT_BTN_STYLE : undefined}
+        >
+          🔊{compact ? '' : copy.listen}
+        </button>
+      )}
       <button
         type="button"
         className={compact ? undefined : 'btn btn-primary'}

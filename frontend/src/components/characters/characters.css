@@ -1,0 +1,144 @@
+/* Character animation states. Each avatar is a layered SVG (head, body, arms,
+   eyes, crest/cap, tail are separate groups) so a designer's Rive/Lottie
+   files can later replace it behind the same CharacterAvatar API. All
+   motion stops under prefers-reduced-motion. */
+
+.ck {
+  display: inline-block;
+  line-height: 0;
+}
+
+.ck svg {
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.ck-part {
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+.ck-whole { transform-origin: 80px 150px; }
+.ck-head { transform-origin: 50% 85%; }
+.ck-arm-l { transform-origin: 90% 5%; }
+.ck-arm-r { transform-origin: 10% 5%; }
+.ck-tail { transform-origin: 0% 0%; }
+.ck-crest { transform-origin: 50% 100%; }
+
+.ck-mark { opacity: 0; transition: opacity 0.2s; }
+
+/* idle: gentle bob + blink */
+.ck-idle .ck-whole,
+.ck-talk .ck-whole,
+.ck-wave .ck-whole,
+.ck-point .ck-whole,
+.ck-think .ck-whole { animation: ckBob 3.2s ease-in-out infinite; }
+.ck-idle .ck-eye,
+.ck-wave .ck-eye,
+.ck-point .ck-eye,
+.ck-think .ck-eye,
+.ck-talk .ck-eye { animation: ckBlink 4.5s infinite; }
+
+/* wave */
+.ck-wave .ck-arm-r { animation: ckWave 0.7s ease-in-out infinite; }
+
+/* talk: soft bounce while audio plays */
+.ck-talk .ck-whole { animation: ckTalk 0.42s ease-in-out infinite; }
+
+/* point: draws attention */
+.ck-point .ck-arm-r { transform: rotate(-58deg); animation: ckNudge 1s ease-in-out infinite; }
+
+/* cheer / hop: correct answer */
+.ck-cheer .ck-whole { animation: ckHop 0.6s ease-out 2; }
+.ck-cheer .ck-arm-l { transform: rotate(38deg); }
+.ck-cheer .ck-arm-r { transform: rotate(-38deg); }
+
+/* think: encouraging, never negative */
+.ck-think .ck-head { transform: rotate(-7deg); }
+.ck-think .ck-think-mark { opacity: 1; }
+
+/* sleepy: session cap */
+.ck-sleepy .ck-whole { animation: ckBob 5s ease-in-out infinite; }
+.ck-sleepy .ck-eye { transform: scaleY(0.12); }
+.ck-sleepy .ck-sleep-mark { opacity: 1; animation: ckZ 2.4s ease-in-out infinite; }
+
+@keyframes ckBob {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-2.5px); }
+}
+@keyframes ckBlink {
+  0%, 92%, 100% { transform: scaleY(1); }
+  95% { transform: scaleY(0.1); }
+}
+@keyframes ckWave {
+  0%, 100% { transform: rotate(-12deg); }
+  50% { transform: rotate(-52deg); }
+}
+@keyframes ckTalk {
+  0%, 100% { transform: translateY(0) scale(1); }
+  50% { transform: translateY(-3px) scale(1.015); }
+}
+@keyframes ckNudge {
+  0%, 100% { transform: rotate(-58deg); }
+  50% { transform: rotate(-48deg); }
+}
+@keyframes ckHop {
+  0% { transform: translateY(0); }
+  40% { transform: translateY(-16px); }
+  100% { transform: translateY(0); }
+}
+@keyframes ckZ {
+  0%, 100% { transform: translateY(0); opacity: 0.4; }
+  50% { transform: translateY(-5px); opacity: 1; }
+}
+
+/* intro scene: character slides in */
+.ck-slide-in { animation: ckSlideIn 0.55s cubic-bezier(0.2, 0.9, 0.3, 1.1) both; }
+@keyframes ckSlideIn {
+  from { transform: translateX(-60px); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
+/* speech bubble */
+.ck-bubble {
+  position: relative;
+  background: #fff;
+  border: 3px solid var(--color-blue);
+  border-radius: 20px;
+  padding: 14px 16px;
+  box-shadow: 0 4px 0 var(--color-blue-dark);
+  font-weight: 700;
+  line-height: 1.5;
+  color: var(--color-text);
+}
+.ck-bubble::before {
+  content: '';
+  position: absolute;
+  left: -13px;
+  top: 28px;
+  width: 20px;
+  height: 20px;
+  background: #fff;
+  border-left: 3px solid var(--color-blue);
+  border-bottom: 3px solid var(--color-blue);
+  transform: rotate(45deg);
+}
+.ck-bubble[dir='rtl']::before {
+  left: auto;
+  right: -13px;
+  transform: rotate(-135deg);
+}
+.ck-word { padding: 0 2px; border-radius: 6px; transition: background 0.12s, color 0.12s; }
+.ck-word-on { background: var(--color-gold-light); color: #3a2a00; }
+
+@media (max-width: 520px) {
+  .ck-bubble::before { left: 50%; top: -13px; margin-left: -10px; transform: rotate(135deg); }
+  .ck-bubble[dir='rtl']::before { right: auto; left: 50%; transform: rotate(135deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ck *,
+  .ck-slide-in { animation: none !important; }
+  .ck-point .ck-arm-r { transform: rotate(-58deg); }
+}
