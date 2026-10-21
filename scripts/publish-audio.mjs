@@ -62,8 +62,14 @@ if (args.includes('--apply')) {
     process.exit(1);
   }
   const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_KEY);
-  const { data: rows, error } = await supabase.from('audio_assets').select('id');
-  if (error) throw error;
+  // Supabase returns at most 1000 rows per request, so read the table in pages.
+  const rows = [];
+  for (let from = 0; ; from += 1000) {
+    const { data, error } = await supabase.from('audio_assets').select('id').range(from, from + 999);
+    if (error) throw error;
+    rows.push(...data);
+    if (data.length < 1000) break;
+  }
   const known = new Set(rows.map((r) => r.id));
   const todo = ids.filter((id) => known.has(id));
   const unknown = ids.filter((id) => !known.has(id));
