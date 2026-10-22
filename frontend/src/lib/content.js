@@ -181,13 +181,23 @@ export async function getAudioManifest() {
     }
     return map;
   }
-  const { data, error } = await supabase
-    .from('audio_assets')
-    .select('id, file_url, timings_json, status')
-    .not('file_url', 'is', null);
-  if (error) throw new Error(error.message);
+  // The API returns at most 1000 rows per request, and there are more clips than
+  // that, so read the table in stable pages until a short page comes back.
+  const PAGE = 1000;
+  const rows = [];
+  for (let from = 0; ; from += PAGE) {
+    const { data, error } = await supabase
+      .from('audio_assets')
+      .select('id, file_url, timings_json, status')
+      .not('file_url', 'is', null)
+      .order('id')
+      .range(from, from + PAGE - 1);
+    if (error) throw new Error(error.message);
+    rows.push(...data);
+    if (data.length < PAGE) break;
+  }
   const map = new Map();
-  for (const r of data) {
+  for (const r of rows) {
     if (r.status === 'rejected') continue;
     map.set(r.id, { fileUrl: r.file_url, timings: r.timings_json, status: r.status });
   }
