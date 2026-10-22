@@ -42,8 +42,8 @@ export default function Home() {
               <Link to="/signup" className="btn btn-primary btn-chunky">
                 {t('home.startTrial')}
               </Link>
-              <Link to="/how-it-works" className="btn btn-outline btn-chunky">
-                {t('home.seeHow')}
+              <Link to="/lessons/letters" className="btn btn-outline btn-chunky">
+                {t('home.tryLetters')}
               </Link>
             </div>
           </div>

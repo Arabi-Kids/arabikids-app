@@ -1,5 +1,5 @@
-import HudMascot from './HudMascot.jsx';
-import { CatIcon } from './VocabIcons.jsx';
+import AnimalArt from './animals/AnimalArt.jsx';
+import CharacterAvatar from './characters/CharacterAvatar.jsx';
 import { useLanguage } from '../context/LanguageContext.jsx';
 
 // Spec: "show, not just tell, how the platform works" - a lightweight CSS
@@ -20,31 +20,27 @@ export default function HeroAnimation({ videoUrl = null }) {
   return (
     <div className="hero-animation" aria-hidden="true">
       <div className="hero-animation-step" style={{ animationDelay: '0s' }}>
-        <span className="hero-animation-badge">{copy.step1Badge}</span>
-        <div className="hero-animation-icon-badge">
-          <CatIcon width={40} height={40} />
+        <span className="hero-animation-badge">{copy.n1Badge}</span>
+        <div style={{ display: 'flex', justifyContent: 'center', margin: '4px 0' }}>
+          <AnimalArt name="duck" size={96} />
         </div>
-        <p className="arabic-text" style={{ fontSize: '1.7rem', margin: '6px 0 2px', color: 'var(--color-blue-dark)' }}>قِطة</p>
-        <p className="hero-animation-sub">{copy.step1Sub}</p>
+        <p className="arabic-text" style={{ fontSize: '1.7rem', margin: '2px 0', color: 'var(--color-blue-dark)' }}>بَاء · بَطَّة</p>
+        <p className="hero-animation-sub">{copy.n1Sub}</p>
       </div>
       <div className="hero-animation-step" style={{ animationDelay: '3s' }}>
-        <span className="hero-animation-badge">{copy.step2Badge}</span>
-        <div className="hero-animation-game-scene">
-          <span className="arabic-text hero-animation-chip">قِطة</span>
-          <span className="hero-animation-arrow">→</span>
-          <span className="hero-animation-icon-badge hero-animation-icon-badge-sm">
-            <CatIcon width={26} height={26} />
-          </span>
+        <span className="hero-animation-badge">{copy.n2Badge}</span>
+        <div style={{ display: 'flex', justifyContent: 'center', margin: '4px 0' }}>
+          <CharacterAvatar id="hudi" state="cheer" size={96} />
         </div>
-        <p className="hero-animation-sub">{copy.step2Sub}</p>
+        <p className="hero-animation-sub">{copy.n2Sub}</p>
       </div>
       <div className="hero-animation-step" style={{ animationDelay: '6s' }}>
-        <span className="hero-animation-badge">{copy.step3Badge}</span>
-        <p className="arabic-text hero-animation-arabic">بِسْمِ اللَّهِ</p>
-        <p className="hero-animation-sub">{copy.step3Sub}</p>
-      </div>
-      <div className="hero-animation-mascot">
-        <HudMascot pose="mark" size={48} />
+        <span className="hero-animation-badge">{copy.n3Badge}</span>
+        <div style={{ display: 'flex', justifyContent: 'center', gap: 4, margin: '4px 0' }}>
+          <CharacterAvatar id="amir" state="idle" size={84} />
+          <CharacterAvatar id="nur" state="idle" size={84} />
+        </div>
+        <p className="hero-animation-sub">{copy.n3Sub}</p>
       </div>
     </div>
   );

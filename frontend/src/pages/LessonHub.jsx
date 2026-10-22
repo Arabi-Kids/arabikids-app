@@ -9,6 +9,7 @@ import { PILLARS } from '../lib/pillars.js';
 import HudMascot from '../components/HudMascot.jsx';
 import ZaydMascot from '../components/ZaydMascot.jsx';
 import AmalMascot from '../components/AmalMascot.jsx';
+import CharacterAvatar from '../components/characters/CharacterAvatar.jsx';
 import PushNotificationPrompt from '../components/PushNotificationPrompt.jsx';
 import Seo from '../components/Seo.jsx';
 
@@ -69,11 +70,47 @@ export default function LessonHub() {
             )}
             <PushNotificationPrompt childId={activeChild.id} />
           </div>
-          <Link to={`/lessons/stage/${currentStage.id}`} className="btn btn-primary btn-chunky">
-            {copy.continueLearning} →
-          </Link>
+          {currentStage.orderIndex === 1 ? (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 6, alignItems: 'flex-start' }}>
+              <Link to="/lessons/letters" className="btn btn-primary btn-chunky">
+                {copy.continueLetters} →
+              </Link>
+              <Link to={`/lessons/stage/${currentStage.id}`} style={{ color: 'var(--color-blue)', fontWeight: 700, fontSize: '0.9rem' }}>
+                {copy.stageLink}
+              </Link>
+            </div>
+          ) : (
+            <Link to={`/lessons/stage/${currentStage.id}`} className="btn btn-primary btn-chunky">
+              {copy.continueLearning} →
+            </Link>
+          )}
         </div>
       )}
+
+      <div style={{ marginBottom: 28 }}>
+        <span className="badge badge-gold" style={{ marginBottom: 10, display: 'inline-block' }}>{copy.featuredTitle}</span>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 20 }}>
+          <Link to="/lessons/letters" className="card card-kid" style={{ '--card-accent': 'var(--color-gold)', display: 'flex', alignItems: 'center', gap: 16 }}>
+            <CharacterAvatar id="hudi" state="cheer" size={92} />
+            <span>
+              <span style={{ display: 'block', fontWeight: 900, color: 'var(--color-blue)', fontSize: '1.15rem' }}>{copy.lettersTitle}</span>
+              <span style={{ display: 'block', color: '#4b5a6a', margin: '4px 0 8px' }}>{copy.lettersDesc}</span>
+              <span style={{ color: 'var(--color-blue)', fontWeight: 800 }}>{copy.lettersCta} →</span>
+            </span>
+          </Link>
+          <Link to="/lessons/practical" className="card card-kid" style={{ '--card-accent': 'var(--color-teal)', display: 'flex', alignItems: 'center', gap: 16 }}>
+            <span style={{ display: 'flex' }}>
+              <CharacterAvatar id="amir" state="idle" size={76} />
+              <CharacterAvatar id="nur" state="idle" size={76} style={{ marginInlineStart: -12 }} />
+            </span>
+            <span>
+              <span style={{ display: 'block', fontWeight: 900, color: 'var(--color-blue)', fontSize: '1.15rem' }}>{copy.practicalTitle}</span>
+              <span style={{ display: 'block', color: '#4b5a6a', margin: '4px 0 8px' }}>{copy.practicalDesc}</span>
+              <span style={{ color: 'var(--color-blue)', fontWeight: 800 }}>{copy.practicalCta} →</span>
+            </span>
+          </Link>
+        </div>
+      </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: 20 }}>
         {PILLARS.map((pillar) => {

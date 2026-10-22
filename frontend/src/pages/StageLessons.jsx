@@ -72,6 +72,16 @@ export default function StageLessons() {
         </h1>
       </div>
       {stage.introKids && <p style={{ margin: '6px 0 20px', color: '#4b5a6a', fontSize: '1.05rem' }}>{stage.introKids}</p>}
+      {stage.orderIndex === 1 && (
+        <Link to="/lessons/letters" className="card card-kid" style={{ '--card-accent': 'var(--color-gold)', display: 'flex', alignItems: 'center', gap: 14, marginBottom: 20 }}>
+          <HudMascot pose="mark" size={56} />
+          <span>
+            <span style={{ display: 'block', fontWeight: 900, color: 'var(--color-blue)' }}>{t('stageLessons.newLettersTitle')}</span>
+            <span style={{ display: 'block', color: '#4b5a6a', fontSize: '0.9rem' }}>{t('stageLessons.newLettersDesc')}</span>
+            <span style={{ color: 'var(--color-blue)', fontWeight: 800 }}>{t('stageLessons.newLettersCta')} →</span>
+          </span>
+        </Link>
+      )}
 
       <Link
         to={`/lessons/stage/${stage.id}/review`}
