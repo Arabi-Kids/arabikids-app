@@ -96,6 +96,14 @@ export default function ArabicCurriculumHub() {
         <Seo {...CURRICULUM_SEO} />
         {header}
         <p className="page-subtitle">{copy.subtitleGuest}</p>
+        <Link to="/lessons/letters" className="card card-kid" style={{ '--card-accent': 'var(--color-gold)', display: 'flex', alignItems: 'center', gap: 14, marginBottom: 20 }}>
+          <HudMascot pose="mark" size={56} />
+          <span>
+            <span className="badge badge-gold" style={{ marginBottom: 4, display: 'inline-block' }}>{t('interactive.letters.newBadge')}</span>
+            <span style={{ display: 'block', fontWeight: 900, color: 'var(--color-blue)' }}>{t('interactive.letters.title')}</span>
+            <span style={{ display: 'block', color: '#4b5a6a', fontSize: '0.9rem' }}>{t('interactive.letters.subtitle')}</span>
+          </span>
+        </Link>
         {searchBox}
         {error && <p className="error-text">{error}</p>}
         {levels.map((level, levelIndex) => {
@@ -108,10 +116,10 @@ export default function ArabicCurriculumHub() {
               <p style={{ color: '#8ea0b6', marginTop: 0 }}>{level.description}</p>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: 16 }}>
                 {stages.map((stage) => (
-                  <Link key={stage.id} to="/login" className="card card-kid" style={{ '--card-accent': levelAccent, display: 'block', opacity: 0.75 }}>
+                  <Link key={stage.id} to={stage.orderIndex <= 2 ? '/lessons/letters' : '/login'} className="card card-kid" style={{ '--card-accent': levelAccent, display: 'block', opacity: stage.orderIndex <= 2 ? 1 : 0.75 }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
                       <span style={{ fontWeight: 800, color: 'var(--color-blue)' }}>{copy.stageLabel.replace('{n}', stage.orderIndex)}</span>
-                      <span className="badge badge-locked">{copy.signIn}</span>
+                      {stage.orderIndex <= 2 ? <span className="badge badge-gold">{t('interactive.letters.newBadge')}</span> : <span className="badge badge-locked">{copy.signIn}</span>}
                     </div>
                     <p style={{ margin: 0, fontWeight: 700 }}>{stage.name}</p>
                   </Link>
@@ -179,13 +187,14 @@ export default function ArabicCurriculumHub() {
               return (
                 <Link
                   key={stage.id}
-                  to={state === 'locked-payment' ? '/pricing' : state === 'locked' ? '#' : `/lessons/stage/${stage.id}`}
+                  to={state === 'locked-payment' ? '/pricing' : state === 'locked' ? '#' : stage.orderIndex <= 2 ? '/lessons/letters' : `/lessons/stage/${stage.id}`}
                   className="card card-kid"
                   onClick={(e) => state === 'locked' && e.preventDefault()}
                   style={{ '--card-accent': levelAccent, display: 'block', opacity: state === 'locked' ? 0.6 : 1, cursor: state === 'locked' ? 'default' : 'pointer' }}
                 >
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
                     <span style={{ fontWeight: 800, color: 'var(--color-blue)' }}>{copy.stageLabel.replace('{n}', stage.orderIndex)}</span>
+                    {stage.orderIndex <= 2 && state === 'active' && <span className="badge badge-gold">{t('interactive.letters.newBadge')}</span>}
                     {state === 'locked' && <span className="badge badge-locked">{copy.locked}</span>}
                     {state === 'locked-payment' && <span className="badge badge-locked">{copy.subscribe}</span>}
                     {state === 'active' && isCurrent && <span className="badge badge-free">{copy.inProgress}</span>}
@@ -230,6 +239,20 @@ export default function ArabicCurriculumHub() {
                         <p style={{ margin: '6px 0 0', color: '#4b5a6a', fontSize: '0.85rem' }}>{stage.introParents}</p>
                       )}
                     </>
+                  )}
+                  {stage.orderIndex <= 2 && state === 'active' && (
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        navigate(`/lessons/stage/${stage.id}`);
+                      }}
+                      className="badge badge-locked"
+                      style={{ display: 'inline-block', marginTop: 10, marginInlineEnd: 6, border: 'none', cursor: 'pointer' }}
+                    >
+                      {t('interactive.letters.oldLessons')}
+                    </button>
                   )}
                   {state === 'active' && (
                     <button

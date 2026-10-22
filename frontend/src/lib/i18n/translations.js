@@ -318,6 +318,8 @@ export const translations = {
       },
       letters: {
         loading: 'Loading...',
+        newBadge: 'New',
+        oldLessons: 'Original lessons & checkpoint',
         title: 'Interactive Letters',
         subtitle: 'Hear it, chant it, trace it and say it with Hudi, one letter at a time.',
         backToCurriculum: '← Arabic Curriculum',
@@ -1334,6 +1336,8 @@ export const translations = {
       },
       letters: {
         loading: 'جارٍ التحميل...',
+        newBadge: 'جديد',
+        oldLessons: 'الدروس الأصلية والاختبار',
         title: 'الحروف التفاعلية',
         subtitle: 'استمع وردّد وارسم وانطق مع هدهد، حرفًا بعد حرف.',
         backToCurriculum: '← المنهج العربي',
@@ -2350,6 +2354,8 @@ export const translations = {
       },
       letters: {
         loading: 'Memuatkan...',
+        newBadge: 'Baharu',
+        oldLessons: 'Pelajaran asal & ujian',
         title: 'Huruf Interaktif',
         subtitle: 'Dengar, dendangkan, jejak dan sebut bersama Hudi, satu huruf pada satu masa.',
         backToCurriculum: '← Kurikulum Bahasa Arab',
