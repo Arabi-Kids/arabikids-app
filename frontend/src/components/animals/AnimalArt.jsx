@@ -2,6 +2,9 @@ import { ArtBox } from './parts.jsx';
 import * as Mammals from './Mammals.jsx';
 import * as Birds from './Birds.jsx';
 import * as Others from './Others.jsx';
+import * as Places from './Places.jsx';
+import * as Living from './Living.jsx';
+import * as Things from './Things.jsx';
 
 // word key -> drawing. Filled in by each batch of illustrations.
 const DRAWINGS = {
@@ -12,6 +15,17 @@ const DRAWINGS = {
   crocodile: Others.Crocodile, frog: Others.Frog, fish: Others.Fish, bee: Others.Bee,
   corn: Others.Corn, pomegranate: Others.Pomegranate, lemon: Others.Lemon, banana: Others.Banana,
   sun: Others.Sun, flower: Others.Flower,
+  // objects, places and people for the beginning/middle/end words
+  door: Places.Door, house: Places.House, school: Places.School, mosque: Places.Mosque, tower: Places.Tower,
+  farm: Places.Farm, cave: Places.Cave, road: Places.Road, sea: Places.Sea, star: Places.Star, moon: Places.Moon,
+  tree: Places.Tree, palm: Places.Palm, nest: Places.Nest, garden: Places.Garden, calendar: Places.Calendar,
+  grapes: Living.Grapes, apple: Living.Apple, watermelon: Living.Watermelon, egg: Living.Egg, ear: Living.Ear,
+  eye: Living.EyeArt, finger: Living.Finger, hair: Living.Hair, face: Living.Face, boy: Living.Boy,
+  teacher: Living.Teacher, cow: Living.Cow, cat: Living.Cat, mule: Living.Mule, ant: Living.Ant,
+  stick: Things.Stick, big: Things.Big, desk: Things.Desk, many: Things.Many, talk: Things.Talk, ten: Things.Ten,
+  cage: Things.Cage, white: Things.White, carpet: Things.Carpet, glasses: Things.Glasses, brain: Things.Brain,
+  lock: Things.Lock, pen: Things.Pen, knowledge: Things.Knowledge, cup: Things.Cup, bucket: Things.Bucket,
+  chair: Things.Chair, lesson: Things.Lesson,
 };
 
 // letter id -> the picture word(s) shown for it. L26 (hoopoe) is Hudi himself.

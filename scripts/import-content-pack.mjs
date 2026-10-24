@@ -13,7 +13,7 @@ import { fileURLToPath } from 'node:url';
 import { config } from 'dotenv';
 import { createClient } from '@supabase/supabase-js';
 import {
-  firstWord, chantText, sentencePattern, idNumber, vowelForms, VOWELS_FROM_LETTER,
+  firstWord, chantText, sentencePattern, idNumber, vowelForms, VOWELS_FROM_LETTER, findLetterTexts, FIND_OK_TEXT,
 } from '../frontend/src/lib/contentHelpers.js';
 import { arabicFromRaw, kidText } from '../frontend/src/lib/contentHelpers.js';
 import { translations } from '../frontend/src/lib/i18n/translations.js';
@@ -257,6 +257,15 @@ export function buildAudioManifest(items) {
         add(`${it.id}.chant.ms`, it.id, 'ms', 'voicestudio', chantText(d, 'ms'));
         add(`${it.id}.chant.ar`, it.id, 'ar', 'voicestudio', chantText(d, 'ar'));
         add(`${it.id}.sentence.ar`, it.id, 'ar', 'voicestudio', sentencePattern(d));
+        {
+          // Hudi's lines in the "find the letter" game.
+          const ft = findLetterTexts(d);
+          for (const lang of ['en', 'ms', 'ar']) {
+            add(`FIND.${it.id}.ask.${lang}`, it.id, lang, 'voicestudio', ft.ask[lang]);
+            add(`FIND.${it.id}.wrong.${lang}`, it.id, lang, 'voicestudio', ft.wrong[lang]);
+            if (it.id === 'L01') add(`FIND.ok.${lang}`, it.id, lang, 'voicestudio', FIND_OK_TEXT[lang]);
+          }
+        }
         if (idNumber(it.id) >= VOWELS_FROM_LETTER) {
           for (const v of vowelForms(d.letter, d.sound_with_fatha)) {
             add(`${it.id}.${v.key}.ar`, it.id, 'ar', 'voicestudio', v.arabic);

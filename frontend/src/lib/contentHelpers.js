@@ -102,7 +102,7 @@ export function highlightClusters(word, cell) {
 
 /** Vowel variants (fatha/kasra/damma) are introduced from this letter on
  * ("after the first set of letters" - the spec gives no number). */
-export const VOWELS_FROM_LETTER = 4;
+export const VOWELS_FROM_LETTER = 1;
 
 const FATHA = 'َ';
 const KASRA = 'ِ';
@@ -232,3 +232,21 @@ export function arabicFromRaw(raw) {
   const text = m ? m[1] : s.replace(/\s*\[[^\]]*\]\s*/g, ' ').replace(/\s*\([^)]*\)\s*$/, '');
   return text.replace(/\s+/g, ' ').trim();
 }
+
+/** What Hudi says in the "find the letter" game. Used by the lesson (text on
+ * screen), by the import script (audio manifest) and by the voice generator,
+ * so the words on screen and the clip always match. */
+export function findLetterTexts(d) {
+  const en = d.name_say;
+  const ar = d.name_ar;
+  return {
+    ask: { en: `Find the letter ${en}!`, ms: `Cari huruf ${en}!`, ar: `اِبْحَثْ عَنْ حَرْفِ ${ar}!` },
+    wrong: { en: `This is not ${en}. Try again!`, ms: `Ini bukan ${en}. Cuba lagi!`, ar: `هَذَا لَيْسَ ${ar}. حَاوِلْ مَرَّةً أُخْرَى!` },
+  };
+}
+
+export const FIND_OK_TEXT = {
+  en: 'Mashallah! You found it!',
+  ms: 'Masya-Allah! Kamu jumpa!',
+  ar: 'مَا شَاءَ اللَّهُ! لَقَدْ وَجَدْتَهُ!',
+};

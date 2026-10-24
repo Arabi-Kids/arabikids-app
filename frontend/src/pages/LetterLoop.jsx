@@ -16,9 +16,10 @@ import {
   awardSticker,
 } from '../lib/content.js';
 import {
-  chantText, sentencePattern, firstWord, primaryGlyph, highlightClusters, vowelForms, VOWELS_FROM_LETTER, arabicWords,
+  chantText, sentencePattern, firstWord, primaryGlyph, highlightClusters, vowelForms, VOWELS_FROM_LETTER, arabicWords, findLetterTexts, FIND_OK_TEXT,
 } from '../lib/contentHelpers.js';
 import { LETTER_PICTURE_EMOJI } from '../lib/letterPictures.js';
+import { positionPicture } from '../lib/positionPictures.js';
 import { characterName } from '../lib/characters.config.js';
 import AnimalArt, { LETTER_ART, hasArt } from '../components/animals/AnimalArt.jsx';
 import { playTap, playCelebration } from '../lib/sounds.js';
@@ -62,6 +63,24 @@ function StatusChip({ status, copy }) {
       {status === 'preview' && copy.audioPreview}
       {status === 'tts-preview' && copy.audioTtsPreview}
     </p>
+  );
+}
+
+// Picture for a position word: an animated drawing, an emoji, a character, or a
+// soft neutral tile with the English meaning when no honest picture exists.
+function PositionPicture({ pic, label }) {
+  if (pic?.art && hasArt(pic.art)) return <AnimalArt name={pic.art} size={76} />;
+  if (pic?.avatar) return <CharacterAvatar id={pic.avatar} state="idle" size={76} />;
+  if (pic?.emoji) return <span style={{ fontSize: '3.2rem', lineHeight: 1 }} aria-hidden="true">{pic.emoji}</span>;
+  return (
+    <span
+      style={{
+        width: 76, height: 76, borderRadius: '50%', display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+        background: 'rgba(27,79,138,0.1)', color: 'var(--color-blue)', fontWeight: 800, fontSize: '0.8rem', padding: 6, textAlign: 'center',
+      }}
+    >
+      {label}
+    </span>
   );
 }
 
@@ -294,8 +313,10 @@ export default function LetterLoop() {
   const glyph = primaryGlyph(d.letter);
   const sentence = sentencePattern(d);
   const positions = bundle.positions?.data;
-  const introLines = hostLines.map((l) => ({ id: l.id, text: pickLang(l.data, language) }));
+  const introLines = hostLines.map((l) => ({ id: l.id, text: language === 'ar' ? l.data.i18n?.ar?.text ?? l.data.arabic_optional ?? '' : pickLang(l.data, language) }));
   const isDraft = letter.reviewStatus !== 'approved';
+  const voiceLang = ['ms', 'ar'].includes(language) ? language : 'en';
+  const findTexts = findLetterTexts(d);
 
   const steps = [];
 
@@ -448,6 +469,9 @@ export default function LetterLoop() {
                   }}
                 >
                   <p style={{ margin: '0 0 6px', fontSize: '0.8rem', fontWeight: 800, color: '#8ea0b6' }}>{r.label}</p>
+                  <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: 84, marginBottom: 6 }}>
+                    <PositionPicture pic={positionPicture(bundle.positions.id, r.key)} label={gloss(r.cell)} />
+                  </div>
                   <p className="arabic-text" dir="rtl" style={{ textAlign: 'center', fontSize: '2.2rem', margin: '0 0 4px' }}>
                     {highlightClusters(word, d.letter).map((c, i) => (
                       <span key={i} style={c.on ? { color: 'var(--color-terracotta)' } : undefined}>{c.text}</span>
@@ -536,9 +560,15 @@ export default function LetterLoop() {
               others={letterPool}
               picture={hasArt(LETTER_ART[letterId]?.[0]) ? <AnimalArt name={LETTER_ART[letterId][0]} size={92} /> : (LETTER_PICTURE_EMOJI[letterId] ?? '❔')}
               word={wordAr}
-              prompt={copy.findPrompt.replace('{name}', nameShown)}
-              doneText={copy.findDone}
-              tryAgainText={copy.findTryAgain}
+              audio={audio}
+              ids={{ ask: `FIND.${letterId}.ask.${voiceLang}`, wrong: `FIND.${letterId}.wrong.${voiceLang}`, ok: `FIND.ok.${voiceLang}` }}
+              text={{
+                ask: findTexts.ask[voiceLang],
+                wrong: findTexts.wrong[voiceLang],
+                ok: FIND_OK_TEXT[voiceLang],
+                hearAgain: copy.findHearAgain,
+                comingSoon: audioCopy.audioComingSoon,
+              }}
             />
           </div>
         </div>
