@@ -413,8 +413,14 @@ async function main() {
   }
   console.log(`content_items: ${fresh.length} new (draft), ${known.length} refreshed (review state untouched)`);
 
-  const { data: existingClips, error: e2 } = await supabase.from('audio_assets').select('id');
-  if (e2) throw e2;
+  // Supabase returns at most 1000 rows per request: read the ids in pages.
+  const existingClips = [];
+  for (let from = 0; ; from += 1000) {
+    const { data, error: e2 } = await supabase.from('audio_assets').select('id').range(from, from + 999);
+    if (e2) throw e2;
+    existingClips.push(...data);
+    if (data.length < 1000) break;
+  }
   const clipIds = new Set(existingClips.map((r) => r.id));
   const freshClips = clips.filter((c) => !clipIds.has(c.id));
   const knownClips = clips
