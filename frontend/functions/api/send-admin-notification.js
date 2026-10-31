@@ -74,8 +74,20 @@ export async function onRequestPost({ request, env }) {
   // raw-base64url format. ---
   let sent = 0;
   let pruned = 0;
+  // Shown to the admin when a send reaches 0 devices (no secrets, only counts and error text).
+  let pushSubscriptionsFound = 0;
+  const pushFailures = [];
   if (sendPush && env.VAPID_PRIVATE_KEY_JWK) {
-    const privateJWK = JSON.parse(env.VAPID_PRIVATE_KEY_JWK);
+    let privateJWK;
+    try {
+      privateJWK = JSON.parse(env.VAPID_PRIVATE_KEY_JWK);
+    } catch (err) {
+      pushFailures.push(`VAPID_PRIVATE_KEY_JWK is not valid JSON (${String(err.message).slice(0, 80)})`);
+    }
+    if (privateJWK && (typeof privateJWK !== 'object' || !privateJWK.d || !privateJWK.x || !privateJWK.y)) {
+      pushFailures.push(`VAPID_PRIVATE_KEY_JWK parsed as ${typeof privateJWK} but lacks x, y or d`);
+      privateJWK = null;
+    }
     const adminContact = env.VAPID_SUBJECT || 'mailto:hello@arabikids.online';
 
     let subsQuery = supabase.from('push_subscriptions').select('id, endpoint, p256dh, auth');
@@ -93,9 +105,11 @@ export async function onRequestPost({ request, env }) {
     if (subsError) throw new Error(subsError.message);
 
     const staleSubscriptionIds = [];
+    pushSubscriptionsFound = subscriptions.length;
 
     await Promise.all(
       subscriptions.map(async (sub) => {
+        if (!privateJWK) return;
         try {
           const { endpoint, headers, body } = await buildPushHTTPRequest({
             privateJWK,
@@ -108,10 +122,13 @@ export async function onRequestPost({ request, env }) {
           } else if (res.status === 404 || res.status === 410) {
             staleSubscriptionIds.push(sub.id);
           } else {
-            console.error('send-admin-notification: push failed for', sub.id, res.status, await res.text().catch(() => ''));
+            const detail = await res.text().catch(() => '');
+            console.error('send-admin-notification: push failed for', sub.id, res.status, detail);
+            pushFailures.push(`HTTP ${res.status} ${detail.slice(0, 120)}`);
           }
         } catch (err) {
           console.error('send-admin-notification: push failed for', sub.id, err.message);
+          pushFailures.push(`error ${String(err.message).slice(0, 120)}`);
         }
       })
     );
@@ -156,5 +173,5 @@ export async function onRequestPost({ request, env }) {
   });
   if (insertError) throw new Error(insertError.message);
 
-  return json(200, { sent, pruned, emailsSent });
+  return json(200, { sent, pruned, emailsSent, pushSubscriptionsFound, pushFailures: pushFailures.slice(0, 3) });
 }

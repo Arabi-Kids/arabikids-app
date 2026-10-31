@@ -150,7 +150,11 @@ export default function AdminNotifications() {
       const parts = [];
       if (sendPush) parts.push(`${data.sent} device${data.sent === 1 ? '' : 's'}`);
       if (sendEmail) parts.push(`${data.emailsSent} email${data.emailsSent === 1 ? '' : 's'}`);
-      setResult(`Sent to ${parts.join(' and ')}.${data.pruned ? ` Pruned ${data.pruned} stale push subscriptions.` : ''}`);
+      const pushWhy =
+        sendPush && !data.sent
+          ? ` Push check: ${data.pushSubscriptionsFound ?? 0} subscription(s) found${data.pushFailures?.length ? `; ${data.pushFailures.join('; ')}` : ''}.`
+          : '';
+      setResult(`Sent to ${parts.join(' and ')}.${data.pruned ? ` Pruned ${data.pruned} stale push subscriptions.` : ''}${pushWhy}`);
       setTitle('');
       setBody('');
       setUrl('');
