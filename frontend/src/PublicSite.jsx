@@ -28,6 +28,9 @@ import ComingSoonPillar from './pages/ComingSoonPillar.jsx';
 import StageLessons from './pages/StageLessons.jsx';
 import LetterLoopHub from './pages/LetterLoopHub.jsx';
 import LetterLoop from './pages/LetterLoop.jsx';
+import LetterStage from './pages/LetterStage.jsx';
+import LetterStageTest from './pages/LetterStageTest.jsx';
+import LetterStagePrint from './pages/LetterStagePrint.jsx';
 import PracticalLifeHub from './pages/PracticalLifeHub.jsx';
 import PracticalStage from './pages/PracticalStage.jsx';
 import Lesson from './pages/Lesson.jsx';
@@ -95,6 +98,23 @@ export default function PublicSite() {
                 }
               />
               <Route path="/lessons/letters" element={<LetterLoopHub />} />
+              <Route path="/lessons/letters/stage/:stageNo" element={<LetterStage />} />
+              <Route
+                path="/lessons/letters/stage/:stageNo/test"
+                element={
+                  <ProtectedRoute>
+                    <LetterStageTest />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/lessons/letters/stage/:stageNo/print/:kind"
+                element={
+                  <ProtectedRoute>
+                    <LetterStagePrint />
+                  </ProtectedRoute>
+                }
+              />
               <Route
                 path="/lessons/letters/:letterNo"
                 element={
@@ -116,6 +136,8 @@ export default function PublicSite() {
                   same pages without the login wall, fed by the local content
                   fixture, for previewing before the DB migration has run. */}
               {import.meta.env.DEV && <Route path="/dev/letters/:letterNo" element={<LetterLoop />} />}
+              {import.meta.env.DEV && <Route path="/dev/stage/:stageNo/test" element={<LetterStageTest />} />}
+              {import.meta.env.DEV && <Route path="/dev/stage/:stageNo/print/:kind" element={<LetterStagePrint />} />}
               {import.meta.env.DEV && <Route path="/dev/practical/stage/:stageNo" element={<PracticalStage />} />}
               <Route path="/lessons/coming-soon/:pillarKey" element={<ComingSoonPillar />} />
               <Route

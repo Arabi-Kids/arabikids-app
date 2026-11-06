@@ -40,7 +40,7 @@ export default function LessonHub() {
     <div className="container" style={{ padding: '48px 0' }}>
       <Seo
         title="Lessons Hub | ArabiKids"
-        description="Explore ArabiKids' learning pillars: the 16-stage Arabic Curriculum, from first letters to fluent reading, plus Qur'an recitation and more."
+        description="Explore ArabiKids: Interactive Letters with Hudi in four stages for young children, a calm 16-stage Arabic course for older kids and adults, plus Islamic Practical Life and Qur'an recitation."
         path="/lessons"
       />
       <div style={{ display: 'flex', justifyContent: 'center', gap: 4, marginBottom: 8 }}>
@@ -91,7 +91,9 @@ export default function LessonHub() {
         <span className="badge badge-gold" style={{ marginBottom: 10, display: 'inline-block' }}>{copy.featuredTitle}</span>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 20 }}>
           <Link to="/lessons/letters" className="card card-kid" style={{ '--card-accent': 'var(--color-gold)', display: 'flex', alignItems: 'center', gap: 16 }}>
-            <CharacterAvatar id="hudi" state="cheer" size={92} />
+            <span style={{ flex: '0 0 auto', display: 'flex' }}>
+              <CharacterAvatar id="hudi" state="cheer" size={92} />
+            </span>
             <span>
               <span style={{ display: 'block', fontWeight: 900, color: 'var(--color-blue)', fontSize: '1.15rem' }}>{copy.lettersTitle}</span>
               <span style={{ display: 'block', color: '#4b5a6a', margin: '4px 0 8px' }}>{copy.lettersDesc}</span>
@@ -107,6 +109,14 @@ export default function LessonHub() {
               <span style={{ display: 'block', fontWeight: 900, color: 'var(--color-blue)', fontSize: '1.15rem' }}>{copy.practicalTitle}</span>
               <span style={{ display: 'block', color: '#4b5a6a', margin: '4px 0 8px' }}>{copy.practicalDesc}</span>
               <span style={{ color: 'var(--color-blue)', fontWeight: 800 }}>{copy.practicalCta} →</span>
+            </span>
+          </Link>
+          <Link to="/lessons/curriculum" className="card card-kid" style={{ '--card-accent': 'var(--color-blue)', display: 'flex', alignItems: 'center', gap: 16 }}>
+            <span aria-hidden="true" style={{ fontSize: '3rem', width: 76, height: 76, borderRadius: 18, background: 'rgba(27,79,138,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center', flex: '0 0 auto' }}>📖</span>
+            <span>
+              <span style={{ display: 'block', fontWeight: 900, color: 'var(--color-blue)', fontSize: '1.15rem' }}>{copy.olderTitle}</span>
+              <span style={{ display: 'block', color: '#4b5a6a', margin: '4px 0 8px' }}>{copy.olderDesc}</span>
+              <span style={{ color: 'var(--color-blue)', fontWeight: 800 }}>{copy.olderCta} →</span>
             </span>
           </Link>
         </div>

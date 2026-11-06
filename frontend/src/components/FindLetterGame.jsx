@@ -16,6 +16,7 @@ export default function FindLetterGame({ target, others, picture, word, audio, i
   const [line, setLine] = useState('ask');
   const [talking, setTalking] = useState(false);
   const timer = useRef(null);
+  const mistakes = useRef(0);
 
   function say(kind) {
     setLine(kind);
@@ -50,9 +51,10 @@ export default function FindLetterGame({ target, others, picture, word, audio, i
       playSuccess();
       setWon(true);
       say('ok');
-      onWin?.();
+      onWin?.({ mistakes: mistakes.current });
     } else {
       playTap();
+      mistakes.current += 1;
       setWrong(tile.id);
       setTimeout(() => setWrong(null), 600);
       say('wrong');

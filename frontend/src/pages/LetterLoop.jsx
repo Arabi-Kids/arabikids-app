@@ -14,7 +14,10 @@ import {
   markIntroSeen,
   completeContentItem,
   awardSticker,
+  listStickers,
 } from '../lib/content.js';
+import { stageOfLetter, stageOpen, LETTER_STAGES, stageStickerId } from '../lib/letterStages.js';
+import { interpolate } from '../lib/i18n/translations.js';
 import {
   chantText, sentencePattern, firstWord, primaryGlyph, highlightClusters, vowelForms, VOWELS_FROM_LETTER, arabicWords, findLetterTexts, FIND_OK_TEXT,
 } from '../lib/contentHelpers.js';
@@ -124,7 +127,7 @@ function PictureTile({ letterId, label, bouncing }) {
 export default function LetterLoop() {
   const { letterNo } = useParams();
   const navigate = useNavigate();
-  const { isPaid } = useAuth();
+  const { isPaid, isAdmin } = useAuth();
   const { activeChild } = useActiveChild();
   const { language, t } = useLanguage();
   const copy = t('interactive.letters');
@@ -152,6 +155,18 @@ export default function LetterLoop() {
   const timers = useRef([]);
 
   useEffect(() => () => timers.current.forEach(clearTimeout), []);
+
+  // Stages 2 to 4 only open once the previous stage's test is passed (admins always can).
+  useEffect(() => {
+    if (!activeChild || isAdmin() || stageOfLetter(n).n === 1) return;
+    listStickers(activeChild.id)
+      .then((s) => {
+        const ids = new Set(s.map((x) => x.stickerId));
+        const passedNos = LETTER_STAGES.filter((st) => ids.has(stageStickerId(st.n))).map((st) => st.n);
+        if (!stageOpen(stageOfLetter(n).n, passedNos)) navigate('/lessons/letters', { replace: true });
+      })
+      .catch(() => {});
+  }, [activeChild?.id, n]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     let cancelled = false;
@@ -599,7 +614,10 @@ export default function LetterLoop() {
     });
   }
 
-  const nextN = n < LETTER_COUNT ? n + 1 : null;
+  const stageNow = stageOfLetter(n);
+  const stageEnds = n === stageNow.to;
+  const stageLabel = interpolate(copy.stages.label, { n: stageNow.n });
+  const nextN = n < LETTER_COUNT && !stageEnds ? n + 1 : null;
   steps.push({
     key: 'reward',
     node: (
@@ -627,7 +645,10 @@ export default function LetterLoop() {
                   {copy.nextLetter}
                 </button>
               )}
-              <Link to="/lessons/letters" className="btn btn-outline btn-chunky">{copy.backToLetters}</Link>
+              {stageEnds && (
+                <Link to={'/lessons/letters/stage/' + stageNow.n} className="btn btn-primary btn-chunky">{copy.stages.practice}</Link>
+              )}
+              <Link to={'/lessons/letters/stage/' + stageNow.n} className="btn btn-outline btn-chunky">{'← ' + stageLabel}</Link>
             </div>
           </div>
         )}
@@ -639,8 +660,8 @@ export default function LetterLoop() {
     <div className="container" style={{ padding: '48px 0', maxWidth: 720 }}>
       <MusicToggle mood="play" />
       <Seo title={`${copy.title} | ArabiKids`} description={copy.subtitle} path={`/lessons/letters/${n}`} />
-      <Link to="/lessons/letters" style={{ color: 'var(--color-blue)', fontWeight: 700 }}>
-        {copy.backToLetters}
+      <Link to={'/lessons/letters/stage/' + stageNow.n} style={{ color: 'var(--color-blue)', fontWeight: 700 }}>
+        {'← ' + stageLabel}
       </Link>
       <h1 className="page-title" style={{ marginTop: 12 }}>
         {copy.letterTitle.replace('{n}', n).replace('{name}', nameShown)}
